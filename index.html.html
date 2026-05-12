@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>🥃 Drop Tracker</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#21262d;
+  --border:#30363d;--text:#e6edf3;--muted:#7d8590;--muted2:#484f58;
+  --d07:#ef4444;--d14:#f59e0b;--d17:#2563eb;
+  --d18:#10b981;--d20:#a16207;--d16:#64748b;--d12:#475569;
+  --accent:#f59e0b;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+#app{display:flex;flex-direction:column;height:100dvh}
+#loading{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+#loading .lg{font-size:48px}
+#loading .msg{font-size:14px;color:var(--muted)}
+#loading .bar-wrap{width:200px;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+#loading .bar{height:100%;background:var(--accent);border-radius:2px;transition:width 0.3s;width:0%}
+#loading.done{display:none}
+#header{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0;z-index:1000}
+.logo-sm{font-size:18px;flex-shrink:0}
+.cycle-select{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 6px;font-size:11px;flex:1;min-width:0;cursor:pointer}
+.cycle-select option{background:var(--surface2)}
+#new-wave-btn{background:var(--surface2);border:1px solid var(--border);color:var(--accent);border-radius:6px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+#sync-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 8px;font-size:14px;cursor:pointer;flex-shrink:0}
+#sync-btn.syncing{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#hunt-btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+#district-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:6px 10px;display:flex;gap:6px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;z-index:999}
+#district-bar::-webkit-scrollbar{display:none}
+.d-chip{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);transition:all 0.15s}
+.d-chip .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.d-chip .prog{font-size:10px;opacity:0.75;font-variant-numeric:tabular-nums}
+#map-wrap{flex:1;position:relative}
+#map{width:100%;height:100%}
+#zoom-badge{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(13,17,23,0.85);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--muted);z-index:500;pointer-events:none;transition:opacity 0.3s;white-space:nowrap}
+#bottom-bar{background:var(--surface);border-top:1px solid var(--border);padding:8px 10px;display:flex;flex-shrink:0}
+.bstat{flex:1;text-align:center}
+.bstat+.bstat{border-left:1px solid var(--border)}
+.bval{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+.blabel{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-top:1px}
+#fab{position:absolute;bottom:16px;right:16px;width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:26px;cursor:pointer;box-shadow:0 4px 16px rgba(245,158,11,0.4);z-index:500;display:flex;align-items:center;justify-content:center}
+#fab:active{transform:scale(0.93)}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1e3a1e;border:1px solid #22c55e;color:#4ade80;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;z-index:4000;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1}
+.leaflet-popup-content-wrapper{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:12px!important;box-shadow:0 8px 32px rgba(0,0,0,0.7)!important;padding:0!important}
+.leaflet-popup-content{margin:0!important;width:250px!important}
+.leaflet-popup-tip{background:var(--surface)!important}
+.leaflet-popup-close-button{color:var(--muted)!important;font-size:20px!important;top:8px!important;right:10px!important;z-index:10}
+.scard{padding:14px}
+.scard-district{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:2px}
+.scard-name{font-size:15px;font-weight:800;line-height:1.2;padding-right:20px}
+.scard-addr{font-size:10px;color:var(--muted);margin-top:3px;margin-bottom:8px;line-height:1.4}
+.scard-badges{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:0.5px}
+.badge-S{background:#854d0e;color:#fef08a}
+.badge-A{background:#1e3a5f;color:#93c5fd}
+.badge-B{background:#1a2e1a;color:#86efac}
+.badge-C{background:#2d1515;color:#fca5a5}
+.badge-hh22{background:#7c2d12;color:#fed7aa}
+.badge-bb30{background:#312e81;color:#c4b5fd}
+.scard-stats{display:flex;gap:6px;margin-bottom:10px}
+.sstat{flex:1;background:var(--bg);border-radius:6px;padding:6px 8px}
+.sstat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px}
+.sstat-val{font-size:12px;font-weight:700}
+.drop-status{padding:7px 10px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.ds-drop{background:rgba(34,197,94,0.12);color:#4ade80;border:1px solid rgba(34,197,94,0.25)}
+.ds-nodrop{background:rgba(239,68,68,0.12);color:#f87171;border:1px solid rgba(239,68,68,0.25)}
+.ds-unknown{background:rgba(75,85,99,0.2);color:var(--muted);border:1px solid var(--border)}
+.scard-actions{display:flex;gap:6px;margin-bottom:10px}
+.scard-btn{flex:1;padding:9px;border-radius:8px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-primary{background:var(--accent);color:#000}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)}
+.scard-history{border-top:1px solid var(--border);padding-top:10px}
+.hist-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px}
+.hist-item{display:flex;align-items:flex-start;gap:6px;padding:4px 0;font-size:11px;border-bottom:1px solid var(--border)}
+.hist-item:last-child{border-bottom:none}
+.hist-dot{width:6px;height:6px;border-radius:50%;margin-top:3px;flex-shrink:0}
+.hist-main{flex:1;min-width:0}
+.hist-wave{color:var(--muted);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-bottles{color:var(--accent);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-time{color:var(--muted2);font-size:10px}
+.hist-link{color:#60a5fa;font-size:11px;text-decoration:none;flex-shrink:0;padding-left:4px}
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;display:none;align-items:flex-end;justify-content:center}
+#modal-overlay.open{display:flex}
+#modal{background:var(--surface);border-radius:16px 16px 0 0;width:100%;max-width:520px;padding:20px 16px;border-top:1px solid var(--border);max-height:92dvh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:800;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0 4px}
+.modal-section{margin-bottom:12px}
+.modal-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:5px}
+.modal-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 10px;font-size:13px;font-family:inherit}
+.modal-input::placeholder{color:var(--muted2)}
+textarea.modal-input{resize:vertical;min-height:56px}
+#parse-result{font-size:12px;margin-top:5px;min-height:18px;color:var(--muted)}
+.modal-actions{display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.modal-btn{flex:1;padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.modal-btn.cancel{background:var(--surface2);color:var(--text)}
+.modal-btn.confirm{background:var(--accent);color:#000}
+#voice-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%;justify-content:center;font-family:inherit;margin-bottom:8px}
+#voice-btn.listening{background:rgba(239,68,68,0.15);border-color:#ef4444;color:#f87171;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
+.result-toggle{display:flex;gap:6px;margin-top:6px}
+.rtog{flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;text-align:center;font-family:inherit}
+.rtog.sel-drop{border-color:#22c55e;background:rgba(34,197,94,0.12);color:#4ade80}
+.rtog.sel-nodrop{border-color:#ef4444;background:rgba(239,68,68,0.12);color:#f87171}
+#wave-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2100;display:none;align-items:center;justify-content:center;padding:20px}
+#wave-modal-overlay.open{display:flex}
+#wave-modal{background:var(--surface);border-radius:14px;width:100%;max-width:340px;padding:20px;border:1px solid var(--border)}
+.wave-modal-title{font-size:15px;font-weight:800;margin-bottom:8px}
+.wave-modal-sub{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+.wave-actions{display:flex;gap:8px;margin-top:14px}
+.wave-btn{flex:1;padding:11px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+#hunt-overlay{position:fixed;inset:0;background:var(--bg);z-index:3000;display:none;flex-direction:column}
+#hunt-overlay.open{display:flex}
+#hunt-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#hunt-title{font-size:14px;font-weight:700}
+#hunt-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
+#hunt-list{flex:1;overflow-y:auto;padding:10px}
+.hunt-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
+.hunt-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.hunt-store-num{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.hunt-store-name{font-size:12px;color:var(--muted);margin-top:1px}
+.hunt-store-right{text-align:right}
+.hunt-tier{font-size:13px;font-weight:800}
+.hunt-dist{font-size:11px;color:var(--muted);margin-top:2px}
+.hunt-status{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.hunt-actions{display:flex;gap:6px}
+.hunt-btn{flex:1;padding:10px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.you-dot{width:14px;height:14px;border-radius:50%;background:#60a5fa;border:3px solid #fff;box-shadow:0 0 0 3px rgba(96,165,250,0.3)}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="lg">🥃</div>
+  <div class="msg" id="load-msg">Loading stores...</div>
+  <div class="bar-wrap"><div class="bar" id="load-bar"></div></div>
+</div>
+
+<div id="app">
+  <div id="header">
+    <span class="logo-sm">🥃</span>
+    <select class="cycle-select" id="wave-select"></select>
+    <button id="new-wave-btn" onclick="openNewWave()">+ Wave</button>
+    <button id="sync-btn" onclick="syncFromSheet()" title="Sync">⟳</button>
+    <button id="hunt-btn">🚗 Hunt</button>
+  </div>
+  <div id="district-bar"></div>
+  <div id="map-wrap">
+    <div id="map"></div>
+    <div id="zoom-badge">zoom in to see store numbers</div>
+    <button id="fab" onclick="openModal()">＋</button>
+  </div>
+  <div id="bottom-bar">
+    <div class="bstat"><div class="bval" id="stat-dropped" style="color:#22c55e">–</div><div class="blabel">Dropped</div></div>
+    <div class="bstat"><div class="bval" id="stat-nodrop" style="color:#ef4444">–</div><div class="blabel">No Drop</div></div>
+    <div class="bstat"><div class="bval" id="stat-unknown" style="color:var(--muted)">–</div><div class="blabel">Unknown</div></div>
+    <div class="bstat"><div class="bval" id="stat-pct" style="color:var(--accent)">–</div><div class="blabel">Coverage</div></div>
+  </div>
+</div>
+
+<div id="modal-overlay">
+  <div id="modal">
+    <div class="modal-title">Log a Drop <button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-section">
+      <button id="voice-btn" onclick="toggleVoice()">🎤 Tap to speak — "Store 85 and 267 dropped"</button>
+      <div class="modal-label">Or paste Discord text</div>
+      <textarea class="modal-input" id="paste-input" placeholder="Paste raw Discord report here..."></textarea>
+      <div id="parse-result"></div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Store # <span style="color:var(--muted);font-weight:400;text-transform:none">(required)</span></div>
+      <input class="modal-input" id="f-store" type="number" placeholder="e.g. 267">
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Result</div>
+      <div class="result-toggle">
+        <button class="rtog sel-drop" id="tog-drop" onclick="setResult('drop')">✓ Drop</button>
+        <button class="rtog" id="tog-nodrop" onclick="setResult('no_drop')">✕ No Drop</button>
+      </div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Bottles <span style="color:var(--muted);font-weight:400;text-transform:none">(optional)</span></div>
+      <input class="modal-input" id="f-bottles" type="text" placeholder="e.g. HH22, Stagg, OF11">
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Reporter</div>
+      <input class="modal-input" id="f-reporter" type="text" placeholder="ME / Astophil / buffalo">
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Drop Time</div>
+      <input class="modal-input" id="f-time" type="datetime-local">
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Discord Link</div>
+      <input class="modal-input" id="f-link" type="url" placeholder="https://discord.com/channels/...">
+    </div>
+    <div class="modal-section">
+      <div class="modal-label">Notes</div>
+      <textarea class="modal-input" id="f-notes" placeholder="Top bottle gone, manager said..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn confirm" id="save-btn" onclick="confirmLog()">Save Drop ✓</button>
+    </div>
+  </div>
+</div>
+
+<div id="wave-modal-overlay">
+  <div id="wave-modal">
+    <div class="wave-modal-title">Start New Drop Wave</div>
+    <div class="wave-modal-sub">Creates a fresh cycle. All stores reset to unknown. History preserved.</div>
+    <div class="modal-label">Wave Label</div>
+    <input class="modal-input" id="new-wave-input" type="text" placeholder="e.g. 2026.05.12 - Stagg HH22" style="margin-top:4px">
+    <div class="wave-actions">
+      <button class="wave-btn" onclick="closeNewWave()" style="background:var(--surface2);color:var(--text)">Cancel</button>
+      <button class="wave-btn" onclick="confirmNewWave()" style="background:var(--accent);color:#000">Create</button>
+    </div>
+  </div>
+</div>
+
+<div id="hunt-overlay">
+  <div id="hunt-header">
+    <div id="hunt-title">🚗 Hunt Mode</div>
+    <button id="hunt-close" onclick="closeHunt()">✕ Exit</button>
+  </div>
+  <div id="hunt-list"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFjkKeNmvRXkxe2nj0I58wrwcgRLud97job4_2c3DQaHRf3lvGHRY5hvx-W429F6pg/exec";
+
+// District colors — updated per request
+const DC = {
+  D14:"#f59e0b",  // amber — home district, highest priority
+  D17:"#2563eb",  // cobalt blue
+  D18:"#10b981",  // emerald green
+  D07:"#ef4444",  // red
+  D20:"#a16207",  // burnt sienna/brown
+  D16:"#64748b",  // slate
+  D12:"#475569"   // dark slate
+};
+
+// District z-index order — D14 on top, D17 second, rest by order
+const DISTRICT_Z = {D14:700,D17:600,D18:500,D07:400,D20:300,D16:200,D12:100};
+
+// Zoom thresholds — bumped earlier so numbers show sooner
+const ZOOM_DOT = 10;   // <= 10: dots only
+const ZOOM_MID = 12;   // 11-12: number + tier
+const ZOOM_FULL = 13;  // >= 13: full pin with tier + glow
+
+let STORES=[], DROPS=[], currentWave="2026.04.27 - MM BO EHT";
+let activeDistricts=new Set(["ALL"]);
+let pendingDrops=JSON.parse(localStorage.getItem("pendingDrops")||"[]");
+let currentResult="drop", markers={}, recognition=null;
+let userLat=38.9278, userLng=-77.1823;
+let currentZoom=11;
+
+function allDrops(){ return [...DROPS,...pendingDrops]; }
+function distColor(d){ return DC[d]||"#64748b"; }
+function distZ(d){ return DISTRICT_Z[d]||100; }
+
+function setLoad(msg,pct){
+  document.getElementById("load-msg").textContent=msg;
+  document.getElementById("load-bar").style.width=pct+"%";
+}
+
+async function loadFromSheet(){
+  try{
+    setLoad("Loading stores...",20);
+    const sr=await fetch(SCRIPT_URL+"?action=getStores");
+    const srows=await sr.json();
+    STORES=srows.slice(1).map(r=>({
+      id:Number(r[0]),label:String(r[1]||""),district:String(r[2]||""),
+      address:String(r[3]||""),qRank:Number(r[4]||0),tier:String(r[5]||"C"),
+      sRank:Number(r[6]||99),sRankLabel:String(r[7]||""),
+      hh22:r[8]===true||r[8]==="TRUE"||r[8]==="true",
+      bb30:r[9]===true||r[9]==="TRUE"||r[9]==="true",
+      jd14:r[10]===true||r[10]==="TRUE"||r[10]==="true",
+      lat:Number(r[11]||0),lng:Number(r[12]||0)
+    })).filter(s=>s.id&&s.lat);
+    setLoad("Loading drops...",55);
+    const dr=await fetch(SCRIPT_URL+"?action=getDrops");
+    const drows=await dr.json();
+    DROPS=drows.slice(1).map(r=>({
+      wave:String(r[0]||"").trim()||null,storeId:Number(r[1]||0),
+      district:String(r[2]||""),result:String(r[3]||"unknown"),
+      timestamp:r[4]?String(r[4]):null,reporter:String(r[5]||""),
+      bottles:r[6]?String(r[6]):null,notes:r[7]?String(r[7]):null,
+      discordLink:r[8]?String(r[8]):null,dropQuality:r[9]||null,
+      topBottle:r[10]===true||r[10]==="TRUE"||r[10]==="Yes",
+      minutesSinceMidnight:r[11]||null,dayOfWeek:r[12]||null,
+      hellcatNotes:r[13]?String(r[13]):null,truckNotes:r[14]?String(r[14]):null,
+      needsReview:r[15]===true||r[15]==="TRUE"
+    })).filter(d=>d.storeId);
+    setLoad("Building map...",90);
+    localStorage.setItem("cachedStores",JSON.stringify(STORES));
+    localStorage.setItem("cachedDrops",JSON.stringify(DROPS));
+    localStorage.setItem("cacheTime",Date.now());
+    return true;
+  }catch(e){ console.error(e); return false; }
+}
+
+function loadFromCache(){
+  const s=localStorage.getItem("cachedStores"),d=localStorage.getItem("cachedDrops");
+  if(s&&d){ STORES=JSON.parse(s); DROPS=JSON.parse(d); return true; }
+  return false;
+}
+
+async function init(){
+  const ok=await loadFromSheet();
+  if(!ok){ if(!loadFromCache()){ setLoad("Could not load data.",100); return; } toast("Loaded from cache — tap ⟳ to sync"); }
+  document.getElementById("loading").classList.add("done");
+  buildMap();
+  buildWaveSelect();
+  buildDistrictBar();
+  renderMarkers();
+  updateStats();
+  flushPending();
+}
+
+if(navigator.geolocation){
+  navigator.geolocation.watchPosition(p=>{
+    userLat=p.coords.latitude;userLng=p.coords.longitude;
+    youMarker&&youMarker.setLatLng([userLat,userLng]);
+  },null,{enableHighAccuracy:true});
+}
+
+let map,youMarker;
+function buildMap(){
+  map=L.map("map",{zoomControl:false,attributionControl:false}).setView([38.88,-77.28],11);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19}).addTo(map);
+  L.control.zoom({position:"bottomleft"}).addTo(map);
+  const yi=L.divIcon({className:"",html:"<div class='you-dot'></div>",iconSize:[14,14],iconAnchor:[7,7]});
+  youMarker=L.marker([userLat,userLng],{icon:yi,zIndexOffset:1000}).addTo(map).bindTooltip("📍 You");
+  map.on("zoomend",()=>{
+    const z=map.getZoom();
+    const prev=currentZoom;
+    currentZoom=z;
+    updateZoomBadge(z);
+    if((prev<=ZOOM_DOT&&z>ZOOM_DOT)||(prev>ZOOM_DOT&&z<=ZOOM_DOT)||
+       (prev<=ZOOM_MID&&z>ZOOM_MID)||(prev>ZOOM_MID&&z<=ZOOM_MID)||
+       (prev<ZOOM_FULL&&z>=ZOOM_FULL)||(prev>=ZOOM_FULL&&z<ZOOM_FULL)){
+      renderMarkers();
+    }
+  });
+}
+
+function updateZoomBadge(z){
+  const b=document.getElementById("zoom-badge");
+  if(z>=ZOOM_FULL){b.style.opacity="0";}
+  else if(z>ZOOM_DOT){b.style.opacity="1";b.textContent="zoom in for full detail";}
+  else{b.style.opacity="1";b.textContent="zoom in to see store numbers";}
+}
+
+// ── PIN FACTORY ──
+function makePin(store,status){
+  const color=distColor(store.district);
+  const z=currentZoom;
+  const num=String(store.id);
+  const tier=store.tier;
+
+  // ── DOTS (zoom ≤ 10) ──
+  if(z<=ZOOM_DOT){
+    if(status==="drop"){
+      return L.divIcon({className:"",
+        html:`<div style="width:8px;height:8px;border-radius:50%;background:transparent;border:1.5px dashed ${color};opacity:0.35"></div>`,
+        iconSize:[8,8],iconAnchor:[4,4]});
+    } else if(status==="no_drop"){
+      return L.divIcon({className:"",
+        html:`<div style="width:7px;height:7px;border-radius:50%;background:#7f1d1d;opacity:0.5"></div>`,
+        iconSize:[7,7],iconAnchor:[3,3]});
+    } else {
+      return L.divIcon({className:"",
+        html:`<div style="width:10px;height:10px;border-radius:50%;background:${color};box-shadow:0 0 4px ${color}88"></div>`,
+        iconSize:[10,10],iconAnchor:[5,5]});
+    }
+  }
+
+  // ── MID ZOOM (11-12): number + tier letter below ──
+  const numSize=num.length>2?11:12;
+  const w=num.length>2?40:36;
+
+  if(z<=ZOOM_MID){
+    if(status==="drop"){
+      return L.divIcon({className:"",
+        html:`<div style="display:flex;flex-direction:column;align-items:center;opacity:0.38">
+          <div style="width:${w}px;border-radius:6px;border:1.5px dashed ${color};padding:2px 4px;text-align:center">
+            <div style="font-size:${numSize}px;font-weight:800;color:${color};font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
+            <div style="font-size:8px;font-weight:700;color:${color};line-height:1;opacity:0.8">${tier}</div>
+          </div>
+          <div style="width:1.5px;height:4px;background:${color}"></div>
+        </div>`,
+        iconSize:[w,34],iconAnchor:[w/2,34]});
+    } else if(status==="no_drop"){
+      return L.divIcon({className:"",
+        html:`<div style="display:flex;flex-direction:column;align-items:center;opacity:0.45">
+          <div style="width:${w}px;border-radius:6px;border:1.5px solid #7f1d1d;background:#1a0808;padding:2px 4px;text-align:center">
+            <div style="font-size:${numSize}px;font-weight:800;color:#ef4444;font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
+            <div style="font-size:8px;font-weight:700;color:#7f1d1d;line-height:1">✕</div>
+          </div>
+          <div style="width:1.5px;height:4px;background:#7f1d1d"></div>
+        </div>`,
+        iconSize:[w,34],iconAnchor:[w/2,34]});
+    } else {
+      return L.divIcon({className:"",
+        html:`<div style="display:flex;flex-direction:column;align-items:center">
+          <div style="width:${w}px;border-radius:6px;border:2.5px solid ${color};background:#0d1117;padding:2px 4px;text-align:center;box-shadow:0 0 7px ${color}55">
+            <div style="font-size:${numSize}px;font-weight:800;color:${color};font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
+            <div style="font-size:8px;font-weight:700;color:${color};line-height:1;opacity:0.85">${tier}</div>
+          </div>
+          <div style="width:2px;height:4px;background:${color}"></div>
+        </div>`,
+        iconSize:[w,34],iconAnchor:[w/2,34]});
+    }
+  }
+
+  // ── FULL (≥ 13): number + tier, larger, with glow ──
+  const wf=num.length>2?46:42;
+  if(status==="drop"){
+    return L.divIcon({className:"",
+      html:`<div style="display:flex;flex-direction:column;align-items:center;opacity:0.35">
+        <div style="width:${wf}px;border-radius:8px;border:1.5px dashed ${color};padding:3px 5px;text-align:center">
+          <div style="font-size:14px;font-weight:800;color:${color};font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
+          <div style="font-size:9px;font-weight:700;color:${color};line-height:1;opacity:0.8">${tier}</div>
+        </div>
+        <div style="width:1.5px;height:5px;background:${color}"></div>
+      </div>`,
+      iconSize:[wf,38],iconAnchor:[wf/2,38]});
+  } else if(status==="no_drop"){
+    return L.divIcon({className:"",
+      html:`<div style="display:flex;flex-direction:column;align-items:center;opacity:0.5">
+        <div style="width:${wf}px;border-radius:8px;border:1.5px solid #7f1d1d;background:#1a0808;padding:3px 5px;text-align:center">
+          <div style="font-size:14px;font-weight:800;color:#ef4444;font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
+          <div style="font-size:9px;font-weight:700;color:#7f1d1d;line-height:1">✕</div>
+        </div>
+        <div style="width:2px;height:5px;background:#7f1d1d"></div>
+      </div>`,
+      iconSize:[wf,38],iconAnchor:[wf/2,38]});
+  } else {
+    return L.divIcon({className:"",
+      html:`<div style="display:flex;flex-direction:column;align-items:center">
+        <div style="width:${wf}px;border-radius:8px;border:2.5px solid ${color};background:#0d1117;padding:3px 5px;text-align:center;box-shadow:0 0 10px ${color}77">
+          <div style="font-size:14px;font-weight:800;color:${color};font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
+          <div style="font-size:9px;font-weight:700;color:${color};line-height:1;opacity:0.85">${tier}</div>
+        </div>
+        <div style="width:2px;height:5px;background:${color}"></div>
+      </div>`,
+      iconSize:[wf,38],iconAnchor:[wf/2,38]});
+  }
+}
+
+function getStoreStatus(storeId){
+  const local=pendingDrops.filter(d=>d.storeId==storeId&&d.wave===currentWave);
+  const server=DROPS.filter(d=>d.storeId==storeId&&d.wave===currentWave);
+  const all=[...local,...server];
+  if(!all.length) return {status:"unknown",drop:null};
+  const drop=all.find(d=>d.result==="drop");
+  if(drop) return {status:"drop",drop};
+  const nodrop=all.find(d=>d.result==="no_drop");
+  if(nodrop) return {status:"no_drop",drop:nodrop};
+  return {status:"unknown",drop:all[0]};
+}
+
+function getStoreHistory(storeId){
+  return allDrops()
+    .filter(d=>d.storeId==storeId&&d.wave)
+    .sort((a,b)=>(b.timestamp||"").localeCompare(a.timestamp||""))
+    .slice(0,10);
+}
+
+function timeSince(ts){
+  if(!ts) return null;
+  const d=new Date(ts);if(isNaN(d)) return null;
+  const diff=(Date.now()-d)/60000;
+  if(diff<60) return Math.round(diff)+"m ago";
+  if(diff<1440) return Math.round(diff/60)+"h "+Math.round(diff%60)+"m ago";
+  return d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+}
+
+function buildPopup(store){
+  const {status,drop}=getStoreStatus(store.id);
+  const color=distColor(store.district);
+  const history=getStoreHistory(store.id);
+  const totalDrops=allDrops().filter(d=>d.storeId==store.id&&d.result==="drop").length;
+  const qRank10=(store.qRank*10/3).toFixed(1);
+  let statusHTML="";
+  if(status==="drop"){const ts=drop?.timestamp?timeSince(drop.timestamp):"time unknown";statusHTML=`<div class="drop-status ds-drop">✓ Dropped · ${ts}</div>`;}
+  else if(status==="no_drop"){statusHTML=`<div class="drop-status ds-nodrop">✕ No Drop Confirmed</div>`;}
+  else{statusHTML=`<div class="drop-status ds-unknown">? No Data This Cycle</div>`;}
+  const badges=`<div class="scard-badges">
+    <span class="badge badge-${store.tier}">${store.tier}</span>
+    ${store.hh22?'<span class="badge badge-hh22">⭐HH22</span>':""}
+    ${store.bb30?'<span class="badge badge-bb30">🏆BB30</span>':""}
+  </div>`;
+  let histHTML="";
+  if(history.length){
+    histHTML=`<div class="scard-history"><div class="hist-title">History (${totalDrops} drops)</div>`;
+    history.forEach(h=>{
+      const dot=h.result==="drop"?"#22c55e":"#ef4444";
+      const ds=h.timestamp?new Date(h.timestamp).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"2-digit"}):"";
+      histHTML+=`<div class="hist-item"><div class="hist-dot" style="background:${dot}"></div>
+        <div class="hist-main">
+          <div class="hist-wave">${h.wave||"Unlabeled"}</div>
+          ${h.bottles?`<div class="hist-bottles">${h.bottles}</div>`:""}
+          ${ds?`<div class="hist-time">${ds}${h.reporter?" · "+h.reporter:""}</div>`:""}
+        </div>
+        ${h.discordLink?`<a class="hist-link" href="${h.discordLink}" target="_blank">↗</a>`:""}
+      </div>`;
+    });
+    histHTML+=`</div>`;
+  }
+  const actions=status==="drop"
+    ?`<button class="scard-btn btn-danger" onclick="quickMark(${store.id},'no_drop')">Cleaned Out</button>
+       <button class="scard-btn btn-primary" onclick="quickMark(${store.id},'scored')">Got One ✅</button>`
+    :`<button class="scard-btn btn-primary" onclick="openModalForStore(${store.id})">Log Drop</button>
+      <button class="scard-btn btn-secondary" onclick="openDirections(${store.lat},${store.lng})">Directions ↗</button>`;
+  return `<div class="scard">
+    <div class="scard-district" style="color:${color}">${store.district}</div>
+    <div class="scard-name">#${store.id} · ${store.label}</div>
+    <div class="scard-addr">${store.address}</div>
+    ${badges}
+    <div class="scard-stats">
+      <div class="sstat"><div class="sstat-label">qRank</div><div class="sstat-val" style="color:${color}">${qRank10}/10</div></div>
+      <div class="sstat"><div class="sstat-label">Sales Rank</div><div class="sstat-val">${store.sRankLabel}</div></div>
+      <div class="sstat"><div class="sstat-label">All Drops</div><div class="sstat-val">${totalDrops}</div></div>
+    </div>
+    ${statusHTML}
+    <div class="scard-actions">${actions}</div>
+    ${histHTML}
+  </div>`;
+}
+
+function renderMarkers(){
+  Object.values(markers).forEach(m=>map.removeLayer(m));
+  markers={};
+  // Sort stores so D14 renders last (on top), D17 second-to-last, etc.
+  const sorted=[...STORES].sort((a,b)=>(distZ(a.district)||0)-(distZ(b.district)||0));
+  sorted.forEach(store=>{
+    if(!store.lat) return;
+    const visible=activeDistricts.has("ALL")||activeDistricts.has(store.district);
+    const {status}=getStoreStatus(store.id);
+    const m=L.marker([store.lat,store.lng],{
+      icon:makePin(store,status),
+      opacity:visible?1:0.06,
+      zIndexOffset:distZ(store.district)
+    });
+    m.bindPopup(()=>buildPopup(store),{maxWidth:270,className:""});
+    m.addTo(map);
+    markers[store.id]=m;
+  });
+}
+
+function updateStats(){
+  const rel=STORES.filter(s=>activeDistricts.has("ALL")||activeDistricts.has(s.district));
+  let d=0,n=0,u=0;
+  rel.forEach(s=>{const {status}=getStoreStatus(s.id);if(status==="drop")d++;else if(status==="no_drop")n++;else u++;});
+  document.getElementById("stat-dropped").textContent=d;
+  document.getElementById("stat-nodrop").textContent=n;
+  document.getElementById("stat-unknown").textContent=u;
+  document.getElementById("stat-pct").textContent=rel.length?Math.round((d+n)/rel.length*100)+"%":"–";
+}
+
+function buildWaveSelect(){
+  const waves=[...new Set(allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
+  const sel=document.getElementById("wave-select");
+  const cur=sel.value||currentWave;
+  sel.innerHTML="";
+  waves.forEach(w=>{const o=document.createElement("option");o.value=w;o.textContent=w;if(w===cur)o.selected=true;sel.appendChild(o);});
+  if(!sel.value&&waves.length)sel.value=waves[0];
+  currentWave=sel.value;
+  sel.onchange=()=>{currentWave=sel.value;refresh();};
+}
+
+function buildDistrictBar(){
+  const bar=document.getElementById("district-bar");
+  bar.innerHTML="";
+  const allA=activeDistricts.has("ALL");
+  const ac=document.createElement("div");
+  ac.className="d-chip";ac.style.cssText=allA?"background:#21262d;border-color:#60a5fa;color:#e6edf3":"";
+  ac.innerHTML="All";ac.onclick=()=>{activeDistricts=new Set(["ALL"]);refresh();};
+  bar.appendChild(ac);
+  // District chips in priority order
+  ["D14","D17","D18","D07","D20","D16","D12"].forEach(d=>{
+    const color=DC[d];
+    const stores=STORES.filter(s=>s.district===d);if(!stores.length)return;
+    const wd=allDrops().filter(x=>x.wave===currentWave&&x.district===d&&x.result==="drop").length;
+    const active=activeDistricts.has(d);
+    const chip=document.createElement("div");
+    chip.className="d-chip";
+    chip.style.cssText=active?`background:${color}22;border-color:${color};color:${color}`:`color:${color}`;
+    chip.innerHTML=`<div class="dot" style="background:${color}"></div>${d} <span class="prog">${wd}/${stores.length}</span>`;
+    chip.onclick=()=>{activeDistricts.delete("ALL");activeDistricts.has(d)?activeDistricts.delete(d):activeDistricts.add(d);if(!activeDistricts.size)activeDistricts.add("ALL");refresh();};
+    bar.appendChild(chip);
+  });
+}
+
+function refresh(){buildDistrictBar();renderMarkers();updateStats();}
+
+async function syncFromSheet(){
+  const btn=document.getElementById("sync-btn");btn.classList.add("syncing");
+  const ok=await loadFromSheet();btn.classList.remove("syncing");
+  if(ok){refresh();buildWaveSelect();toast("Synced ✓");}else{toast("Sync failed — using cache");}
+}
+
+async function writeDropToSheet(drop){
+  const row=[drop.wave||"",drop.storeId,drop.district||"",drop.result,drop.timestamp||"",
+    drop.reporter||"",drop.bottles||"",drop.notes||"",drop.discordLink||"",
+    drop.dropQuality||"",drop.topBottle||false,"","","","",false];
+  try{const r=await fetch(SCRIPT_URL+"?action=addDrop",{method:"POST",body:JSON.stringify(row),headers:{"Content-Type":"application/json"}});const d=await r.json();return d.success===true;}
+  catch(e){return false;}
+}
+
+async function flushPending(){
+  if(!pendingDrops.length)return;
+  const toFlush=[...pendingDrops];let flushed=0;
+  for(const d of toFlush){const ok=await writeDropToSheet(d);if(ok){pendingDrops=pendingDrops.filter(p=>p._id!==d._id);flushed++;}}
+  localStorage.setItem("pendingDrops",JSON.stringify(pendingDrops));
+  if(flushed)toast(`Synced ${flushed} drop(s) ✓`);
+}
+
+function quickMark(storeId,action){
+  map.closePopup();
+  const now=new Date().toISOString().slice(0,16);
+  const result=action==="scored"?"drop":action;
+  const drop={_id:Date.now()+"_"+storeId,wave:currentWave,storeId,result,timestamp:now,
+    district:STORES.find(s=>s.id===storeId)?.district||"",reporter:"ME",
+    notes:action==="scored"?"GOT ONE ✅":action==="no_drop"?"Cleaned out":""};
+  pendingDrops=pendingDrops.filter(d=>!(d.storeId===storeId&&d.wave===currentWave));
+  pendingDrops.push(drop);
+  localStorage.setItem("pendingDrops",JSON.stringify(pendingDrops));
+  setTimeout(()=>{refresh();flushPending();},80);
+  toast(action==="scored"?"🥃 Got one!":action==="no_drop"?"Cleaned out marked":"Drop logged");
+}
+
+function openDirections(lat,lng){window.open(`https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`);}
+
+let modalStorePreset=null;
+function openModal(){modalStorePreset=null;_openModal();}
+function openModalForStore(id){map.closePopup();modalStorePreset=id;_openModal();}
+function _openModal(){
+  document.getElementById("modal-overlay").style.display="flex";
+  document.getElementById("f-store").value=modalStorePreset||"";
+  document.getElementById("f-bottles").value="";document.getElementById("f-reporter").value="";
+  document.getElementById("f-notes").value="";document.getElementById("f-link").value="";
+  document.getElementById("f-time").value=new Date().toISOString().slice(0,16);
+  document.getElementById("paste-input").value="";document.getElementById("parse-result").textContent="";
+  setResult("drop");
+}
+function closeModal(){document.getElementById("modal-overlay").style.display="none";}
+function setResult(r){
+  currentResult=r;
+  document.getElementById("tog-drop").className="rtog"+(r==="drop"?" sel-drop":"");
+  document.getElementById("tog-nodrop").className="rtog"+(r==="no_drop"?" sel-nodrop":"");
+}
+
+document.getElementById("paste-input").addEventListener("input",function(){
+  const found=parseNums(this.value);
+  const el=document.getElementById("parse-result");
+  if(found.length){el.style.color="#4ade80";el.textContent="✓ Found: "+found.map(id=>{const s=STORES.find(x=>x.id===id);return "#"+id+(s?" "+s.label:"");}).join(", ");if(found.length===1)document.getElementById("f-store").value=found[0];}
+  else{el.style.color="var(--muted)";el.textContent=this.value?"No store numbers recognized":"";}
+});
+
+function parseNums(text){
+  return [...new Set((text.match(/(\d{2,3})/g)||[]).map(Number))].filter(n=>STORES.find(s=>s.id===n));
+}
+
+async function confirmLog(){
+  const storeId=parseInt(document.getElementById("f-store").value);
+  if(!storeId||!STORES.find(s=>s.id===storeId)){alert("Please enter a valid store number");return;}
+  const btn=document.getElementById("save-btn");btn.textContent="Saving...";
+  const pasteText=document.getElementById("paste-input").value;
+  const parsedIds=pasteText?parseNums(pasteText):[];
+  const toLog=parsedIds.length>1?parsedIds:[storeId];
+  const now=document.getElementById("f-time").value||new Date().toISOString().slice(0,16);
+  for(const id of toLog){
+    const drop={_id:Date.now()+"_"+id,wave:currentWave,storeId:id,
+      district:STORES.find(s=>s.id===id)?.district||"",result:currentResult,timestamp:now,
+      reporter:document.getElementById("f-reporter").value||"ME",
+      bottles:document.getElementById("f-bottles").value||null,
+      notes:document.getElementById("f-notes").value||null,
+      discordLink:document.getElementById("f-link").value||null};
+    pendingDrops=pendingDrops.filter(d=>!(d.storeId===id&&d.wave===currentWave));
+    pendingDrops.push(drop);
+  }
+  localStorage.setItem("pendingDrops",JSON.stringify(pendingDrops));
+  closeModal();refresh();btn.textContent="Save Drop ✓";
+  toast(`Logged ${toLog.length} store(s) — syncing...`);
+  await flushPending();
+}
+
+function toggleVoice(){
+  const btn=document.getElementById("voice-btn");
+  if(recognition){recognition.stop();recognition=null;btn.classList.remove("listening");btn.textContent="🎤 Tap to speak";return;}
+  if(!("webkitSpeechRecognition" in window||"SpeechRecognition" in window)){alert("Try Safari on iPhone.");return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();recognition.continuous=false;recognition.interimResults=false;recognition.lang="en-US";
+  recognition.onresult=e=>{const text=e.results[0][0].transcript;document.getElementById("paste-input").value=text;document.getElementById("paste-input").dispatchEvent(new Event("input"));btn.classList.remove("listening");recognition=null;btn.innerHTML="🎤 Heard: "+text;};
+  recognition.onerror=()=>{btn.classList.remove("listening");recognition=null;btn.textContent="🎤 Try again";};
+  recognition.start();btn.classList.add("listening");btn.textContent="🔴 Listening...";
+}
+
+function openNewWave(){
+  document.getElementById("wave-modal-overlay").style.display="flex";
+  const today=new Date().toISOString().slice(0,10).replace(/-/g,".");
+  document.getElementById("new-wave-input").value=today+" - ";
+  setTimeout(()=>document.getElementById("new-wave-input").focus(),100);
+}
+function closeNewWave(){document.getElementById("wave-modal-overlay").style.display="none";}
+async function confirmNewWave(){
+  const label=document.getElementById("new-wave-input").value.trim();
+  if(!label){alert("Please enter a label");return;}
+  currentWave=label;closeNewWave();
+  try{await fetch(SCRIPT_URL+"?action=addWave",{method:"POST",body:JSON.stringify([label,new Date().toISOString()]),headers:{"Content-Type":"application/json"}});}catch(e){}
+  buildWaveSelect();
+  const sel=document.getElementById("wave-select");
+  if(![...sel.options].some(o=>o.value===label)){const opt=document.createElement("option");opt.value=label;opt.textContent=label;opt.selected=true;sel.insertBefore(opt,sel.firstChild);}
+  else sel.value=label;
+  refresh();toast("New wave: "+label);
+}
+
+document.getElementById("hunt-btn").onclick=openHunt;
+function openHunt(){
+  const stores=STORES
+    .filter(s=>activeDistricts.has("ALL")||activeDistricts.has(s.district))
+    .map(s=>{
+      const {status,drop}=getStoreStatus(s.id);
+      const distMi=Math.sqrt(Math.pow(s.lat-userLat,2)+Math.pow(s.lng-userLng,2))*69;
+      const ss=status==="unknown"?0:status==="drop"?1:2;
+      const ts=["S","A","B","C"].indexOf(s.tier);
+      return {...s,status,drop,distMi,sortKey:ss*1000+ts*10+distMi*0.1};
+    }).sort((a,b)=>a.sortKey-b.sortKey);
+  document.getElementById("hunt-list").innerHTML=stores.map(s=>{
+    const color=distColor(s.district);
+    let statusHTML="",actions="";
+    if(s.status==="drop"){
+      const ts=s.drop?.timestamp?timeSince(s.drop.timestamp):"";
+      statusHTML=`<div class="hunt-status" style="color:#4ade80">✓ DROPPED ${ts}</div>`;
+      actions=`<button class="hunt-btn" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)" onclick="quickMark(${s.id},'no_drop');openHunt()">Cleaned Out</button>
+               <button class="hunt-btn" style="background:var(--accent);color:#000" onclick="quickMark(${s.id},'scored');openHunt()">Got One ✅</button>`;
+    }else if(s.status==="no_drop"){
+      statusHTML=`<div class="hunt-status" style="color:#f87171">✕ NO DROP</div>`;
+      actions=`<button class="hunt-btn" style="background:var(--surface2);color:var(--text);border:1px solid var(--border)" onclick="quickMark(${s.id},'drop');openHunt()">Log Drop</button>
+               <button class="hunt-btn" style="background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid #1d4ed8" onclick="openDirections(${s.lat},${s.lng})">Go ↗ ${s.distMi.toFixed(1)}mi</button>`;
+    }else{
+      statusHTML=`<div class="hunt-status" style="color:var(--muted)">? NOT YET REPORTED</div>`;
+      actions=`<button class="hunt-btn" style="background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3)" onclick="quickMark(${s.id},'drop');openHunt()">Log Drop</button>
+               <button class="hunt-btn" style="background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid #1d4ed8" onclick="openDirections(${s.lat},${s.lng})">Go ↗ ${s.distMi.toFixed(1)}mi</button>`;
+    }
+    return `<div class="hunt-card">
+      <div class="hunt-card-top">
+        <div><div class="hunt-store-num" style="color:${color}">#${s.id}</div><div class="hunt-store-name">${s.label} · ${s.district}</div></div>
+        <div class="hunt-store-right"><div class="hunt-tier" style="color:${color}">${s.tier}</div><div class="hunt-dist">${s.distMi.toFixed(1)}mi · ${s.sRankLabel}</div></div>
+      </div>${statusHTML}<div class="hunt-actions">${actions}</div>
+    </div>`;
+  }).join("");
+  document.getElementById("hunt-overlay").classList.add("open");
+}
+function closeHunt(){document.getElementById("hunt-overlay").classList.remove("open");}
+
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500);}
+
+init();
+</script>
+</body>
+</html>
