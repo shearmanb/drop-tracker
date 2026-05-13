@@ -211,7 +211,80 @@ body.desktop #mobile-search-btn{display:none}
 .dp-hist-link{color:#60a5fa;font-size:12px;text-decoration:none;flex-shrink:0}
 body.desktop #layout-toggle{content:'📱 Mobile'}
 
-/* ═══ ENTRY PANEL ═══ */
+/* ═══ F9: QUICK DROP QUEUE ═══ */
+#queue-badge{position:relative;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 8px;font-size:13px;cursor:pointer;flex-shrink:0;display:none;align-items:center;gap:4px;font-family:inherit}
+#queue-badge.has-items{display:flex;border-color:#f59e0b;color:#f59e0b}
+#queue-badge-count{background:#f59e0b;color:#000;border-radius:10px;padding:1px 5px;font-size:10px;font-weight:800;line-height:1.4}
+#queue-overlay{position:fixed;inset:0;background:var(--bg);z-index:3000;display:none;flex-direction:column}
+#queue-overlay.open{display:flex}
+#queue-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#queue-title{font-size:14px;font-weight:700}
+#queue-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
+#queue-list{flex:1;overflow-y:auto;padding:10px}
+.queue-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
+.queue-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.queue-store-num{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}
+.queue-store-name{font-size:11px;color:var(--muted);margin-top:1px}
+.queue-time{font-size:11px;color:var(--muted);text-align:right}
+.queue-wave{font-size:10px;color:var(--muted2);margin-top:2px;text-align:right}
+.queue-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.queue-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)}
+.queue-actions{display:flex;gap:6px}
+.queue-btn{flex:1;padding:9px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+/* ═══ F4: REVIEW QUEUE ═══ */
+#review-badge{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;flex-shrink:0;display:none;align-items:center;gap:4px;font-family:inherit;white-space:nowrap}
+#review-badge.has-items{display:flex;border-color:#f87171;color:#f87171}
+#review-overlay{position:fixed;inset:0;background:var(--bg);z-index:3000;display:none;flex-direction:column}
+#review-overlay.open{display:flex}
+#review-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px}
+#review-title{font-size:14px;font-weight:700;flex:1}
+#review-filter{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer;font-family:inherit}
+#review-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
+#review-list{flex:1;overflow-y:auto;padding:10px}
+.review-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px}
+.review-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.review-store{font-size:14px;font-weight:800}
+.review-issue{font-size:11px;color:#f87171;margin-bottom:8px;line-height:1.5}
+.review-fields{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.review-row{display:flex;gap:6px;align-items:center}
+.review-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;width:60px;flex-shrink:0}
+.review-input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit}
+.review-actions{display:flex;gap:6px}
+.review-btn{flex:1;padding:8px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+/* ═══ F10: IDLE FILL-IN MODE ═══ */
+#fillin-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;flex-shrink:0;display:none;font-family:inherit;white-space:nowrap}
+#fillin-btn.has-tasks{display:block;border-color:#a855f7;color:#d8b4fe}
+#fillin-overlay{position:fixed;inset:0;background:var(--bg);z-index:3000;display:none;flex-direction:column}
+#fillin-overlay.open{display:flex}
+#fillin-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#fillin-title{font-size:14px;font-weight:700}
+#fillin-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
+#fillin-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px 16px}
+#fillin-progress{width:100%;max-width:420px;margin-bottom:16px}
+#fillin-prog-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:6px}
+#fillin-prog-fill{height:100%;background:#a855f7;border-radius:2px;transition:width 0.3s}
+#fillin-prog-label{font-size:11px;color:var(--muted);text-align:center}
+.fillin-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;width:100%;max-width:420px;margin-bottom:12px}
+.fillin-task-type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#a855f7;margin-bottom:4px}
+.fillin-store{font-size:20px;font-weight:900;margin-bottom:2px}
+.fillin-context{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+.fillin-field{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;margin-bottom:10px}
+.fillin-field:focus{outline:none;border-color:#a855f7}
+.fillin-actions{display:flex;gap:8px}
+.fillin-btn{flex:1;padding:11px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+/* ═══ F14: BEHAVIOR TAGS ═══ */
+.btag{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0.5px}
+.btag-random{background:rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)}
+.btag-daylocked{background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid rgba(37,99,235,0.3)}
+.btag-bulk{background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3)}
+.btag-unknown{background:rgba(75,85,99,0.15);color:#6b7280;border:1px solid rgba(75,85,99,0.2)}
+/* ═══ F12: DESKTOP POLISH ═══ */
+body.desktop #hunt-btn{display:none}
+body.desktop #dist-toggle{display:none}
+body.desktop #mobile-search-btn{display:none}
+body.desktop #fab{display:none}
+body.desktop #new-wave-btn{display:none}
+body.desktop .meta-version::after{content:' desktop'}
 #entry-panel{position:fixed;top:0;right:0;width:420px;height:100%;background:var(--surface);border-left:1px solid var(--border);z-index:2500;display:none;flex-direction:column;box-shadow:-8px 0 32px rgba(0,0,0,0.5)}
 #entry-panel.open{display:flex}
 #entry-panel-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
@@ -287,6 +360,9 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     <button id="new-wave-btn" onclick="openNewWave()">+ Wave</button>
     <button id="mobile-search-btn" onclick="openMobileSearch()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:14px;cursor:pointer;flex-shrink:0">🔍</button>
     <button id="dist-toggle" onclick="toggleDistMode()" title="Switch distance reference">🏠 #267</button>
+    <button id="queue-badge" onclick="openQueueOverlay()" title="Needs detail logging">📋 <span id="queue-badge-count">0</span></button>
+    <button id="review-badge" onclick="openReviewOverlay()" title="Needs review">⚠️</button>
+    <button id="fillin-btn" onclick="openFillinOverlay()" title="Data quality tasks">✏️</button>
     <button id="sync-btn" onclick="syncFromSheet()" title="Sync">⟳</button>
     <button id="hunt-btn">🚗 Hunt</button>
   </div>
@@ -295,7 +371,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     <div id="map"></div>
     <div id="zoom-badge">zoom in to see store numbers</div>
     <div id="app-meta">
-      <div class="meta-version">v0.1</div>
+      <div class="meta-version">v0.3</div>
       <div class="meta-sync" id="meta-sync">not synced</div>
     </div>
     <button id="fab" onclick="openModal()">＋</button>
@@ -343,7 +419,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     <div id="desktop-map"></div>
     <div id="desktop-zoom-badge">zoom in to see store numbers</div>
     <div id="desktop-app-meta">
-      <div class="meta-version">v0.2</div>
+      <div class="meta-version">v0.3</div>
       <div class="meta-sync" id="desktop-meta-sync">not synced</div>
     </div>
   </div>
@@ -551,11 +627,50 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
   </div>
 </div>
 
+<!-- F9: QUICK DROP QUEUE OVERLAY -->
+<div id="queue-overlay">
+  <div id="queue-header">
+    <div id="queue-title">📋 Needs Detail Logging</div>
+    <button id="queue-close" onclick="closeQueueOverlay()">✕ Close</button>
+  </div>
+  <div id="queue-list"></div>
+</div>
+
+<!-- F4: NEEDS REVIEW OVERLAY -->
+<div id="review-overlay">
+  <div id="review-header">
+    <div id="review-title">⚠️ Needs Review</div>
+    <select id="review-filter" onchange="renderReviewList()">
+      <option value="all">All issues</option>
+      <option value="no_wave">Missing wave</option>
+      <option value="no_time">Missing time</option>
+      <option value="incomplete">Incomplete</option>
+    </select>
+    <button id="review-close" onclick="closeReviewOverlay()">✕ Close</button>
+  </div>
+  <div id="review-list"></div>
+</div>
+
+<!-- F10: FILL-IN / IDLE MODE OVERLAY -->
+<div id="fillin-overlay">
+  <div id="fillin-header">
+    <div id="fillin-title">✏️ Fill In Details</div>
+    <button id="fillin-close" onclick="closeFillinOverlay()">✕ Close</button>
+  </div>
+  <div id="fillin-body">
+    <div id="fillin-progress">
+      <div id="fillin-prog-bar"><div id="fillin-prog-fill" style="width:0%"></div></div>
+      <div id="fillin-prog-label">Loading tasks...</div>
+    </div>
+    <div id="fillin-card-area"></div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFjkKeNmvRXkxe2nj0I58wrwcgRLud97job4_2c3DQaHRf3lvGHRY5hvx-W429F6pg/exec";
-const APP_VERSION = "v0.1";
+const APP_VERSION = "v0.3";
 let lastSyncTime = null;
 
 function updateSyncBadge(){
@@ -916,8 +1031,9 @@ function buildPopup(store){
   const actions=status==="drop"
     ?`<button class="scard-btn btn-danger" onclick="quickMark(${store.id},'no_drop')">Cleaned Out</button>
        <button class="scard-btn btn-primary" onclick="quickMark(${store.id},'scored')">Got One ✅</button>`
-    :`<button class="scard-btn btn-primary" onclick="openModalForStore(${store.id})">Log Drop</button>
-      <button class="scard-btn btn-secondary" onclick="openDirections(${store.lat},${store.lng})">~${calcTime(calcDist(store.lat,store.lng))} ↗</button>`;
+    :`<button class="scard-btn btn-primary" onclick="quickDrop(${store.id})">⚡ Quick Drop</button>
+      <button class="scard-btn btn-secondary" onclick="openModalForStore(${store.id})">📝 Log Details</button>
+      <button class="scard-btn btn-secondary" onclick="openDirections(${store.lat},${store.lng})" style="flex:0;padding:9px 8px">~${calcTime(calcDist(store.lat,store.lng))} ↗</button>`;
   return `<div class="scard">
     <div class="scard-district" style="color:${color}">${store.district}</div>
     <div class="scard-name">#${store.id} · ${store.label}</div>
@@ -1209,7 +1325,14 @@ function mobileSpotlight(storeId){
   if(!store||!map) return;
   closeMobileSearch();
   map.setView([store.lat,store.lng],15,{animate:true});
-  setTimeout(()=>{ const m=markers[storeId]; if(m) m.openPopup(); },400);
+  // Open popup after zoom settles — retry a couple times in case marker isn't ready
+  let attempts=0;
+  const tryOpen=()=>{
+    const m=markers[storeId];
+    if(m){ m.openPopup(); return; }
+    if(++attempts<5) setTimeout(tryOpen,150);
+  };
+  setTimeout(tryOpen,350);
 }
 
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500);}
@@ -1785,6 +1908,8 @@ function toggleWaveDropList(row, district, wave){
 
   list.style.display='block';
 }
+
+function updateSbWaveInfo(){
   const wd=allDrops().filter(d=>d.wave===currentWave&&d.result==='drop');
   const el1=document.getElementById('sb-wave-name');
   const el2=document.getElementById('sb-wave-info');
@@ -1942,7 +2067,7 @@ function openDetailPanel(storeId){
   const badges=`<div class="dp-badges"><span class="badge badge-${store.tier}">${store.tier}</span>${store.hh22?'<span class="badge badge-hh22">⭐HH22</span>':""}${store.bb30?'<span class="badge badge-bb30">🏆BB30</span>':""}</div>`;
   const actions=status==='drop'
     ?`<button class="dp-btn btn-danger" onclick="quickMark(${storeId},'no_drop')">Cleaned Out</button><button class="dp-btn btn-primary" onclick="quickMark(${storeId},'scored')">Got One ✅</button>`
-    :`<button class="dp-btn btn-primary" onclick="openModalForStore(${storeId})">Log Drop</button><button class="dp-btn btn-secondary" onclick="openDirections(${store.lat},${store.lng})">~${driveTime} ↗</button>`;
+    :`<button class="dp-btn btn-primary" onclick="quickDrop(${storeId});closeDetailPanel()">⚡ Quick Drop</button><button class="dp-btn btn-secondary" onclick="openModalForStore(${storeId})">📝 Log</button><button class="dp-btn btn-secondary" onclick="openDirections(${store.lat},${store.lng})">~${driveTime} ↗</button>`;
   let histHTML='';
   if(history.length){
     histHTML='<div class="dp-history"><div class="dp-hist-title">Drop History ('+totalDrops+' total)</div>';
@@ -1997,8 +2122,584 @@ function quickMark(storeId,action){
   if(isDesktop){setTimeout(()=>{renderDesktopMarkers();updateDesktopStats();buildSbDistricts();if(selectedStoreId===storeId)openDetailPanel(storeId);},150);}
 }
 
-// Auto-detect on load — runs after init is defined
-window.addEventListener('DOMContentLoaded', ()=>{});
+// ═══════════════════════════════════════════
+// F9 — QUICK DROP + NEEDS LOGGING QUEUE
+// ═══════════════════════════════════════════
+
+// quickDrops: { storeId, wave, timestamp, district } — logged instantly, details pending
+// We store these separately from pendingDrops so we know they need filling in
+let quickDropItems = JSON.parse(localStorage.getItem('quickDropItems')||'[]');
+
+function quickDrop(storeId){
+  if(map) map.closePopup();
+  const store = STORES.find(s=>s.id===storeId);
+  if(!store) return;
+  const now = new Date().toISOString().slice(0,16);
+  const drop = {
+    _id: Date.now()+'_'+storeId,
+    wave: currentWave, storeId, district: store.district,
+    result: 'drop', timestamp: now, reporter: 'ME',
+    bottles: null, notes: null, discordLink: null,
+    _needsDetail: true
+  };
+  // Remove any existing quick drop for this store+wave
+  quickDropItems = quickDropItems.filter(d=>!(d.storeId===storeId&&d.wave===currentWave));
+  quickDropItems.push(drop);
+  localStorage.setItem('quickDropItems', JSON.stringify(quickDropItems));
+  // Also add to pendingDrops so map updates
+  pendingDrops = pendingDrops.filter(d=>!(d.storeId===storeId&&d.wave===currentWave));
+  pendingDrops.push({...drop});
+  localStorage.setItem('pendingDrops', JSON.stringify(pendingDrops));
+  updateQueueBadge();
+  refresh();
+  flushPending();
+  toast('⚡ Quick drop logged — tap 📋 to add details');
+}
+
+function updateQueueBadge(){
+  const btn = document.getElementById('queue-badge');
+  const count = document.getElementById('queue-badge-count');
+  const n = quickDropItems.length;
+  if(n>0){
+    btn.classList.add('has-items');
+    count.textContent = n;
+  } else {
+    btn.classList.remove('has-items');
+  }
+}
+
+function openQueueOverlay(){
+  renderQueueList();
+  document.getElementById('queue-overlay').classList.add('open');
+}
+function closeQueueOverlay(){
+  document.getElementById('queue-overlay').classList.remove('open');
+}
+
+function renderQueueList(){
+  const list = document.getElementById('queue-list');
+  if(!quickDropItems.length){
+    list.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px">No quick drops pending detail logging 🎉</div>';
+    return;
+  }
+  list.innerHTML = quickDropItems.map(d=>{
+    const store = STORES.find(s=>s.id===d.storeId);
+    const color = distColor(d.district);
+    const ts = d.timestamp ? new Date(d.timestamp).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '–';
+    const wave = d.wave ? d.wave.replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,'').substring(0,20) : '–';
+    // Missing tags
+    const tags = [];
+    if(!d.bottles) tags.push('bottles');
+    if(!d.reporter||d.reporter==='ME') tags.push('reporter');
+    if(!d.discordLink) tags.push('discord link');
+    return `<div class="queue-card">
+      <div class="queue-card-top">
+        <div>
+          <div class="queue-store-num" style="color:${color}">#${d.storeId}</div>
+          <div class="queue-store-name">${store?.label||''} · ${d.district}</div>
+        </div>
+        <div>
+          <div class="queue-time">${ts}</div>
+          <div class="queue-wave">${wave}</div>
+        </div>
+      </div>
+      <div class="queue-tags">${tags.map(t=>`<span class="queue-tag">⚠ ${t}</span>`).join('')}</div>
+      <div class="queue-actions">
+        <button class="queue-btn" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)" onclick="fillInQuickDrop('${d._id}')">📝 Fill In Details</button>
+        <button class="queue-btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border)" onclick="dismissQuickDrop('${d._id}')">✓ Done</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function fillInQuickDrop(id){
+  const drop = quickDropItems.find(d=>d._id===id);
+  if(!drop) return;
+  closeQueueOverlay();
+  // Pre-fill entry panel
+  openEntryPanel();
+  setTimeout(()=>{
+    document.getElementById('ef-store').value = drop.storeId;
+    efUpdateStoreConfirm(drop.storeId);
+    if(drop.timestamp) document.getElementById('ef-reported-time').value = drop.timestamp;
+    if(drop.wave){
+      const sel = document.getElementById('ef-wave');
+      [...sel.options].forEach(o=>{ if(o.value===drop.wave) o.selected=true; });
+    }
+    efSetResult('drop');
+    // Tag this panel as editing a quick drop
+    document.getElementById('ef-add-btn').dataset.quickDropId = id;
+    document.getElementById('entry-panel-title').textContent = '📝 Fill In Drop Details';
+  }, 200);
+}
+
+function dismissQuickDrop(id){
+  quickDropItems = quickDropItems.filter(d=>d._id!==id);
+  localStorage.setItem('quickDropItems', JSON.stringify(quickDropItems));
+  updateQueueBadge();
+  renderQueueList();
+}
+
+// ═══════════════════════════════════════════
+// F4 — NEEDS REVIEW QUEUE
+// ═══════════════════════════════════════════
+
+function getNeedsReviewDrops(){
+  return allDrops().filter(d=>d.needsReview===true||d.needsReview==='TRUE');
+}
+
+function getReviewIssues(d){
+  const issues = [];
+  if(!d.wave||!/^\d{4}/.test(d.wave)) issues.push('Missing wave label');
+  if(!d.timestamp) issues.push('Missing timestamp');
+  if(!d.storeId) issues.push('Missing store #');
+  if(!issues.length) issues.push('Flagged for review');
+  return issues;
+}
+
+function updateReviewBadge(){
+  const btn = document.getElementById('review-badge');
+  const n = getNeedsReviewDrops().length;
+  if(n>0){
+    btn.classList.add('has-items');
+    btn.textContent = '⚠️ '+n;
+  } else {
+    btn.classList.remove('has-items');
+  }
+}
+
+function openReviewOverlay(){
+  renderReviewList();
+  document.getElementById('review-overlay').classList.add('open');
+}
+function closeReviewOverlay(){
+  document.getElementById('review-overlay').classList.remove('open');
+}
+
+function renderReviewList(){
+  const filter = document.getElementById('review-filter')?.value||'all';
+  const list = document.getElementById('review-list');
+  let drops = getNeedsReviewDrops();
+  if(filter==='no_wave') drops = drops.filter(d=>!d.wave||!/^\d{4}/.test(d.wave));
+  else if(filter==='no_time') drops = drops.filter(d=>!d.timestamp);
+  else if(filter==='incomplete') drops = drops.filter(d=>!d.bottles||!d.reporter);
+
+  if(!drops.length){
+    list.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px">No drops matching this filter 🎉</div>';
+    return;
+  }
+  const waves = [...new Set(allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
+  const waveOptions = waves.map(w=>`<option value="${w}">${w}</option>`).join('');
+
+  list.innerHTML = drops.slice(0,50).map((d,i)=>{
+    const store = STORES.find(s=>s.id===d.storeId);
+    const issues = getReviewIssues(d);
+    const color = distColor(d.district||store?.district||'');
+    const ts = d.timestamp ? new Date(d.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : '';
+    return `<div class="review-card" id="rcard-${i}">
+      <div class="review-card-top">
+        <div class="review-store" style="color:${color}">#${d.storeId||'?'} ${store?.label||''}</div>
+        <div style="font-size:10px;color:var(--muted)">${ts} · ${d.reporter||'?'}</div>
+      </div>
+      <div class="review-issue">${issues.join(' · ')}</div>
+      <div class="review-fields">
+        <div class="review-row">
+          <span class="review-label">Wave</span>
+          <select class="review-input" id="rv-wave-${i}" style="flex:1">
+            <option value="">– Select wave –</option>
+            ${waveOptions}
+          </select>
+        </div>
+        <div class="review-row">
+          <span class="review-label">Bottles</span>
+          <input class="review-input" id="rv-bottles-${i}" type="text" placeholder="${d.bottles||'e.g. HH22, Stagg'}" value="${d.bottles||''}">
+        </div>
+        <div class="review-row">
+          <span class="review-label">Reporter</span>
+          <input class="review-input" id="rv-reporter-${i}" type="text" placeholder="${d.reporter||'e.g. ME'}" value="${d.reporter||''}">
+        </div>
+        <div class="review-row">
+          <span class="review-label">Time</span>
+          <input class="review-input" id="rv-time-${i}" type="datetime-local" value="${d.timestamp?d.timestamp.replace(' ','T').slice(0,16):''}">
+        </div>
+      </div>
+      <div class="review-actions">
+        <button class="review-btn" style="background:var(--accent);color:#000" onclick="saveReviewDrop(${i},${JSON.stringify(d).replace(/"/g,'&quot;')})">✓ Save & Mark Done</button>
+        <button class="review-btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border)" onclick="skipReviewDrop('rcard-${i}')">Skip</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Set wave dropdowns to current values
+  drops.slice(0,50).forEach((d,i)=>{
+    const sel = document.getElementById('rv-wave-'+i);
+    if(sel && d.wave) sel.value = d.wave;
+  });
+}
+
+async function saveReviewDrop(idx, drop){
+  const wave = document.getElementById('rv-wave-'+idx)?.value || drop.wave;
+  const bottles = document.getElementById('rv-bottles-'+idx)?.value || drop.bottles;
+  const reporter = document.getElementById('rv-reporter-'+idx)?.value || drop.reporter;
+  const ts = document.getElementById('rv-time-'+idx)?.value || drop.timestamp;
+
+  // Build correction row — same structure as addDrop but with a special flag
+  const row = [
+    wave||'', drop.storeId||'', drop.district||'', '', '', '',
+    reporter||'', '', bottles||'', drop.notes||'', '',
+    ts||'', '', ts||'',
+    drop.result==='drop'?'Drop':'No Drop', '', '', '', '', '', '',
+    '', '', ts?ts.split('T')[0]:'', '', '',
+    'REVIEWED' // marker for Apps Script
+  ];
+
+  try {
+    const r = await fetch(SCRIPT_URL+'?action=updateDrop', {
+      method:'POST',
+      body: JSON.stringify({original: drop, updates: {wave, bottles, reporter, timestamp:ts, needsReview:false}}),
+      headers:{'Content-Type':'application/json'}
+    });
+    // Even if the server call fails, update locally
+  } catch(e){}
+
+  // Update local DROPS array
+  const localDrop = DROPS.find(d=>d.storeId===drop.storeId&&d.timestamp===drop.timestamp&&d.result===drop.result);
+  if(localDrop){
+    if(wave) localDrop.wave = wave;
+    if(bottles) localDrop.bottles = bottles;
+    if(reporter) localDrop.reporter = reporter;
+    if(ts) localDrop.timestamp = ts;
+    localDrop.needsReview = false;
+  }
+
+  localStorage.setItem('cachedDrops', JSON.stringify(DROPS));
+  document.getElementById('rcard-'+idx).style.display = 'none';
+  updateReviewBadge();
+  toast('✓ Drop updated');
+}
+
+function skipReviewDrop(cardId){
+  document.getElementById(cardId).style.display='none';
+}
+
+// ═══════════════════════════════════════════
+// F10 — IDLE FILL-IN MODE
+// ═══════════════════════════════════════════
+
+let fillinTasks = [];
+let fillinIdx = 0;
+
+function buildFillinTasks(){
+  const tasks = [];
+  const waveDrops = allDrops().filter(d=>d.wave===currentWave&&d.result==='drop');
+
+  // 1. Missing bottles (easiest — just fill in a field)
+  waveDrops.filter(d=>!d.bottles).forEach(d=>{
+    const store = STORES.find(s=>s.id===d.storeId);
+    tasks.push({
+      type:'missing_bottles', priority:1,
+      drop: d, store,
+      label:'Missing Bottles',
+      question:`What bottles dropped at #${d.storeId} ${store?.label||''}?`,
+      context:`${d.wave||''} · ${d.timestamp?new Date(d.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'date unknown'} · ${d.reporter||'unknown reporter'}`,
+      field:'bottles', placeholder:'e.g. HH22, Stagg Jr, OF11'
+    });
+  });
+
+  // 2. Missing reporter
+  waveDrops.filter(d=>!d.reporter||d.reporter==='?').forEach(d=>{
+    const store = STORES.find(s=>s.id===d.storeId);
+    tasks.push({
+      type:'missing_reporter', priority:2,
+      drop: d, store,
+      label:'Missing Reporter',
+      question:`Who reported the drop at #${d.storeId} ${store?.label||''}?`,
+      context:`${d.wave||''} · ${d.bottles||'no bottles listed'}`,
+      field:'reporter', placeholder:'e.g. Patron24, buffalo, ME'
+    });
+  });
+
+  // 3. Missing discord link
+  waveDrops.filter(d=>!d.discordLink&&d.result==='drop').slice(0,15).forEach(d=>{
+    const store = STORES.find(s=>s.id===d.storeId);
+    tasks.push({
+      type:'missing_link', priority:3,
+      drop: d, store,
+      label:'Missing Discord Link',
+      question:`Discord link for drop at #${d.storeId} ${store?.label||''}?`,
+      context:`${d.bottles||'–'} · ${d.reporter||'?'} · ${d.timestamp?new Date(d.timestamp).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}`,
+      field:'discordLink', placeholder:'https://discord.com/channels/...'
+    });
+  });
+
+  // Sort by priority then store tier
+  tasks.sort((a,b)=>{
+    if(a.priority!==b.priority) return a.priority-b.priority;
+    const ta=['S','A','B','C'].indexOf(a.store?.tier||'C');
+    const tb=['S','A','B','C'].indexOf(b.store?.tier||'C');
+    return ta-tb;
+  });
+
+  return tasks;
+}
+
+function updateFillinBadge(){
+  const btn = document.getElementById('fillin-btn');
+  const waveDrops = allDrops().filter(d=>d.wave===currentWave&&d.result==='drop');
+  const missing = waveDrops.filter(d=>!d.bottles||!d.reporter||d.reporter==='?').length;
+  if(missing>0){
+    btn.classList.add('has-tasks');
+    btn.textContent = '✏️ '+missing;
+  } else {
+    btn.classList.remove('has-tasks');
+    btn.textContent = '✏️';
+  }
+}
+
+function openFillinOverlay(){
+  fillinTasks = buildFillinTasks();
+  fillinIdx = 0;
+  document.getElementById('fillin-overlay').classList.add('open');
+  renderFillinCard();
+}
+function closeFillinOverlay(){
+  document.getElementById('fillin-overlay').classList.remove('open');
+}
+
+function renderFillinCard(){
+  const total = fillinTasks.length;
+  const remaining = total - fillinIdx;
+  const pct = total ? Math.round(fillinIdx/total*100) : 100;
+  document.getElementById('fillin-prog-fill').style.width = pct+'%';
+  document.getElementById('fillin-prog-label').textContent = remaining
+    ? `${fillinIdx} done · ${remaining} remaining`
+    : 'All tasks complete! 🎉';
+
+  const area = document.getElementById('fillin-card-area');
+  if(fillinIdx>=total){
+    area.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">
+      <div style="font-size:40px;margin-bottom:12px">🎉</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:6px">All caught up!</div>
+      <div style="font-size:12px">No more data quality tasks for this wave.</div>
+    </div>`;
+    return;
+  }
+
+  const task = fillinTasks[fillinIdx];
+  const color = distColor(task.store?.district||'');
+  area.innerHTML = `<div class="fillin-card">
+    <div class="fillin-task-type">${task.label}</div>
+    <div class="fillin-store" style="color:${color}">#${task.drop.storeId} · ${task.store?.label||''}</div>
+    <div class="fillin-context">${task.context}</div>
+    <input class="fillin-field" id="fillin-input" type="text" placeholder="${task.placeholder}" autocomplete="off">
+    <div class="fillin-actions">
+      <button class="fillin-btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border)" onclick="skipFillin()">Skip →</button>
+      <button class="fillin-btn" style="background:#a855f7;color:#fff" onclick="saveFillin()">Save ✓</button>
+    </div>
+  </div>`;
+  setTimeout(()=>document.getElementById('fillin-input')?.focus(), 100);
+}
+
+function skipFillin(){
+  fillinIdx++;
+  renderFillinCard();
+}
+
+async function saveFillin(){
+  const task = fillinTasks[fillinIdx];
+  const val = document.getElementById('fillin-input')?.value?.trim();
+  if(!val){ toast('Please enter a value first'); return; }
+
+  // Update local DROPS
+  const drop = DROPS.find(d=>d.storeId===task.drop.storeId&&d.wave===task.drop.wave&&d.timestamp===task.drop.timestamp);
+  if(drop) drop[task.field] = val;
+  // Also update pendingDrops
+  const pd = pendingDrops.find(d=>d._id===task.drop._id);
+  if(pd) pd[task.field] = val;
+
+  localStorage.setItem('cachedDrops', JSON.stringify(DROPS));
+  localStorage.setItem('pendingDrops', JSON.stringify(pendingDrops));
+
+  // Try to sync to sheet
+  try {
+    await fetch(SCRIPT_URL+'?action=updateDrop', {
+      method:'POST',
+      body: JSON.stringify({original: task.drop, updates: {[task.field]: val}}),
+      headers:{'Content-Type':'application/json'}
+    });
+  } catch(e){}
+
+  fillinIdx++;
+  updateFillinBadge();
+  renderFillinCard();
+  toast('✓ Saved');
+}
+
+// ═══════════════════════════════════════════
+// F14 — DISTRICT BEHAVIOR TAGS
+// ═══════════════════════════════════════════
+
+// Tags stored in localStorage: { D14: 'daylocked', D17: 'bulk', ... }
+const BEHAVIOR_OPTIONS = [
+  { key:'random',    label:'Random',     desc:'No consistent day/time pattern' },
+  { key:'daylocked', label:'Day-Locked', desc:'Drops on specific days of week' },
+  { key:'bulk',      label:'Bulk',       desc:'Large quantities, multiple stores at once' },
+  { key:'unknown',   label:'Unknown',    desc:'Not enough data yet' },
+];
+
+let districtBehaviors = JSON.parse(localStorage.getItem('districtBehaviors')||'{}');
+
+function getBehaviorTag(district){
+  return districtBehaviors[district] || 'unknown';
+}
+
+function setBehaviorTag(district, tag){
+  districtBehaviors[district] = tag;
+  localStorage.setItem('districtBehaviors', JSON.stringify(districtBehaviors));
+  // Refresh sidebar if desktop
+  if(isDesktop) buildSbDistricts();
+  buildDistrictBar();
+}
+
+function behaviorTagHTML(district, small=true){
+  const tag = getBehaviorTag(district);
+  const opt = BEHAVIOR_OPTIONS.find(o=>o.key===tag)||BEHAVIOR_OPTIONS[3];
+  const cls = small ? `btag btag-${tag}` : `btag btag-${tag}`;
+  return `<span class="${cls}" title="${opt.desc}">${opt.label}</span>`;
+}
+
+function renderBehaviorSelector(district, containerId){
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  const current = getBehaviorTag(district);
+  container.innerHTML = `<div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px">District Behavior</div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px">
+      ${BEHAVIOR_OPTIONS.map(o=>`
+        <button onclick="setBehaviorTag('${district}','${o.key}')" 
+          style="padding:4px 10px;border-radius:6px;border:1.5px solid ${o.key===current?'var(--accent)':'var(--border)'};
+          background:${o.key===current?'rgba(245,158,11,0.12)':'var(--bg)'};
+          color:${o.key===current?'var(--accent)':'var(--muted)'};
+          font-size:11px;font-weight:700;cursor:pointer;font-family:inherit" 
+          title="${o.desc}">${o.label}</button>
+      `).join('')}
+    </div>`;
+}
+
+// ═══════════════════════════════════════════
+// F12 — DESKTOP POLISH & SIDEBAR UPDATES
+// ═══════════════════════════════════════════
+// Add desktop wave select + sync buttons to sidebar header
+function buildDesktopHeader(){
+  // Add wave select and action buttons to sidebar
+  const waveSec = document.querySelector('#sidebar .sb-section:nth-child(2)');
+  if(!waveSec || waveSec.dataset.hasControls) return;
+  waveSec.dataset.hasControls = '1';
+
+  const ctrl = document.createElement('div');
+  ctrl.style.cssText = 'display:flex;gap:6px;margin-top:8px;flex-wrap:wrap';
+  ctrl.innerHTML = `
+    <select class="cycle-select" id="sb-wave-select" style="flex:1;min-width:0;font-size:11px"></select>
+    <button onclick="syncFromSheet()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 8px;font-size:13px;cursor:pointer" title="Sync">⟳</button>
+    <button onclick="openNewWave()" style="background:var(--surface2);border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer">+ Wave</button>
+  `;
+  waveSec.appendChild(ctrl);
+
+  // Populate wave select
+  const sbWaveSel = document.getElementById('sb-wave-select');
+  if(sbWaveSel){
+    const waves = [...new Set(allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
+    waves.forEach(w=>{
+      const o=document.createElement('option');o.value=w;o.textContent=w;
+      if(w===currentWave)o.selected=true;sbWaveSel.appendChild(o);
+    });
+    sbWaveSel.onchange=()=>{
+      currentWave=sbWaveSel.value;
+      document.getElementById('wave-select').value=currentWave;
+      renderDesktopMarkers();buildSbDistricts();updateDesktopStats();updateSbWaveInfo();
+    };
+  }
+}
+
+// Also add review/fillin badges to desktop sidebar
+function buildDesktopBadges(){
+  const sec = document.querySelector('#sidebar .sb-section:last-child');
+  if(!sec||sec.dataset.hasBadges) return;
+  sec.dataset.hasBadges='1';
+  const n = getNeedsReviewDrops().length;
+  const missing = allDrops().filter(d=>d.wave===currentWave&&d.result==='drop'&&(!d.bottles||!d.reporter||d.reporter==='?')).length;
+  if(n>0||missing>0){
+    const badgeRow = document.createElement('div');
+    badgeRow.style.cssText='display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap';
+    if(n>0) badgeRow.innerHTML+=`<button onclick="openReviewOverlay()" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">⚠️ ${n} needs review</button>`;
+    if(missing>0) badgeRow.innerHTML+=`<button onclick="openFillinOverlay()" style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);color:#d8b4fe;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">✏️ ${missing} fill in</button>`;
+    sec.insertBefore(badgeRow, sec.firstChild);
+  }
+}
+
+// ═══════════════════════════════════════════
+// PATCH: integrate behavior tags into district sidebar/panel
+// ═══════════════════════════════════════════
+
+// Override openDistrictPanel to include behavior selector
+const _origOpenDistrictPanel = openDistrictPanel;
+function openDistrictPanel(district){
+  _origOpenDistrictPanel(district);
+  // After panel renders, add behavior selector div
+  setTimeout(()=>{
+    const content = document.getElementById('detail-panel-content');
+    if(!content) return;
+    const existing = content.querySelector('#behavior-selector');
+    if(existing) return;
+    const div = document.createElement('div');
+    div.id = 'behavior-selector';
+    div.style.cssText = 'margin:10px 0 14px 0;padding:12px;background:var(--bg);border-radius:8px';
+    content.insertBefore(div, content.children[4]||content.lastChild);
+    renderBehaviorSelector(district, 'behavior-selector');
+  }, 50);
+}
+
+// Patch buildSbDistricts to include behavior tags inline
+const _origBuildSbDistricts = buildSbDistricts;
+function buildSbDistricts(){
+  _origBuildSbDistricts();
+  // Inject behavior tags into each district row
+  // (Done inline in the patched predBadge — using hook approach)
+  // Actually the badge is rendered inside buildSbDistricts already via predBadge
+  // We patch it by adding behavior tag next to pred badge
+  ['D14','D17','D18','D07','D20','D16','D12'].forEach(d=>{
+    const rows = document.querySelectorAll('#sb-districts .sb-district');
+    rows.forEach(row=>{
+      const name = row.querySelector('.sb-district-name');
+      if(name&&name.textContent===d){
+        const existing = row.querySelector('.sb-btag');
+        if(!existing){
+          const span = document.createElement('span');
+          span.className='sb-btag';
+          span.innerHTML=behaviorTagHTML(d);
+          const left=row.querySelector('.sb-district-left');
+          if(left) left.appendChild(span);
+        }
+      }
+    });
+  });
+}
+
+// ═══════════════════════════════════════════
+// INIT PATCHES — run after data load
+// ═══════════════════════════════════════════
+const _origInit = init;
+async function init(){
+  await _origInit();
+  updateQueueBadge();
+  updateReviewBadge();
+  updateFillinBadge();
+}
+
+const _origActivateDesktop = activateDesktop;
+function activateDesktop(){
+  _origActivateDesktop();
+  setTimeout(()=>{buildDesktopHeader();buildDesktopBadges();},200);
+}
 
 async function initAndDetect(){
   await init();
