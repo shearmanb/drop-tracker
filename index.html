@@ -371,7 +371,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     <div id="map"></div>
     <div id="zoom-badge">zoom in to see store numbers</div>
     <div id="app-meta">
-      <div class="meta-version">v0.3</div>
+      <div class="meta-version">v0.4</div>
       <div class="meta-sync" id="meta-sync">not synced</div>
     </div>
     <button id="fab" onclick="openModal()">＋</button>
@@ -419,7 +419,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     <div id="desktop-map"></div>
     <div id="desktop-zoom-badge">zoom in to see store numbers</div>
     <div id="desktop-app-meta">
-      <div class="meta-version">v0.3</div>
+      <div class="meta-version">v0.4</div>
       <div class="meta-sync" id="desktop-meta-sync">not synced</div>
     </div>
   </div>
@@ -672,7 +672,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFjkKeNmvRXkxe2nj0I58wrwcgRLud97job4_2c3DQaHRf3lvGHRY5hvx-W429F6pg/exec";
-const APP_VERSION = "v0.3";
+const APP_VERSION = "v0.4";
 let lastSyncTime = null;
 
 function updateSyncBadge(){
@@ -1204,11 +1204,18 @@ async function _syncFromSheetCore(){
   if(ok){refresh();buildWaveSelect();toast("Synced ✓");}else{toast("Sync failed — using cache");}
 }
 
+// Use GET instead of POST to avoid CORS preflight issues with Apps Script
+async function scriptPost(action, payload){
+  const encoded = encodeURIComponent(JSON.stringify(payload));
+  const r = await fetch(SCRIPT_URL+'?action='+action+'&data='+encoded);
+  return await r.json();
+}
+
 async function writeDropToSheet(drop){
   const row=[drop.wave||"",drop.storeId,drop.district||"",drop.result,drop.timestamp||"",
     drop.reporter||"",drop.bottles||"",drop.notes||"",drop.discordLink||"",
     drop.dropQuality||"",drop.topBottle||false,"","","","",false];
-  try{const r=await fetch(SCRIPT_URL+"?action=addDrop",{method:"POST",body:JSON.stringify(row),headers:{"Content-Type":"application/json"}});const d=await r.json();return d.success===true;}
+  try{const d=await scriptPost('addDrop',row);return d.success===true;}
   catch(e){return false;}
 }
 
@@ -1312,7 +1319,7 @@ async function confirmNewWave(){
   const label=document.getElementById("new-wave-input").value.trim();
   if(!label){alert("Please enter a label");return;}
   closeNewWave();
-  try{await fetch(SCRIPT_URL+"?action=addWave",{method:"POST",body:JSON.stringify([label,new Date().toISOString()]),headers:{"Content-Type":"application/json"}});}catch(e){}
+  try{await scriptPost('addWave',[label,new Date().toISOString()]);}catch(e){}
 
   // Add to dropdown first
   const sel=document.getElementById("wave-select");
@@ -1672,12 +1679,7 @@ async function efSubmit(){
   btn.textContent='Saving...'; btn.disabled=true;
 
   try {
-    const r = await fetch(SCRIPT_URL+'?action=addDrop',{
-      method:'POST',
-      body:JSON.stringify(row),
-      headers:{'Content-Type':'application/json'}
-    });
-    const data = await r.json();
+    const data = await scriptPost('addDrop', row);
     if(data.success){
       // Also add to local DROPS so map updates immediately
       DROPS.push({
@@ -2440,23 +2442,17 @@ async function saveReviewDrop(idx){
   let serverOk = false;
   let serverMsg = '';
   try {
-    const r = await fetch(SCRIPT_URL+'?action=updateDrop', {
-      method:'POST',
-      body: JSON.stringify({
-        original: drop,
-        updates: {wave, bottles, reporter, timestamp:ts, needsReview:false}
-      }),
-      headers:{'Content-Type':'application/json'}
+    const data = await scriptPost('updateDrop', {
+      original: drop,
+      updates: {wave, bottles, reporter, timestamp:ts, needsReview:false}
     });
-    const data = await r.json();
     serverOk = data.success === true;
     serverMsg = data.error || '';
     if(!serverOk){
-      // Show error but still update locally
-      toast('Sheet error: ' + (serverMsg||'row not found — updated locally only'));
+      toast('⚠ Sheet error: ' + (serverMsg||'row not found'));
     }
   } catch(e){
-    toast('Network error — updated locally only');
+    toast('⚠ Network error: ' + e.message);
   }
 
   // Always update local DROPS array regardless of server result
@@ -2624,11 +2620,7 @@ async function saveFillin(){
 
   // Try to sync to sheet
   try {
-    await fetch(SCRIPT_URL+'?action=updateDrop', {
-      method:'POST',
-      body: JSON.stringify({original: task.drop, updates: {[task.field]: val}}),
-      headers:{'Content-Type':'application/json'}
-    });
+    await scriptPost('updateDrop', {original: task.drop, updates: {[task.field]: val}});
   } catch(e){}
 
   fillinIdx++;
