@@ -34,6 +34,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 #sync-btn.syncing{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 #hunt-btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0}
+#dist-toggle{background:var(--surface2);border:1.5px solid var(--border);color:var(--muted);border-radius:20px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;transition:all 0.15s}
+#dist-toggle.live{border-color:#3b82f6;color:#60a5fa;background:rgba(59,130,246,0.12)}
 #district-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:6px 10px;display:flex;gap:6px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;z-index:999}
 #district-bar::-webkit-scrollbar{display:none}
 .d-chip{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);transition:all 0.15s}
@@ -42,6 +44,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 #map-wrap{flex:1;position:relative}
 #map{width:100%;height:100%}
 #zoom-badge{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(13,17,23,0.85);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--muted);z-index:500;pointer-events:none;transition:opacity 0.3s;white-space:nowrap}
+#app-meta{position:absolute;bottom:10px;right:10px;background:rgba(13,17,23,0.8);border:1px solid var(--border);border-radius:8px;padding:4px 8px;z-index:500;pointer-events:none;text-align:right;line-height:1.5}
+#app-meta .meta-version{font-size:10px;font-weight:700;color:var(--accent);font-family:monospace}
+#app-meta .meta-sync{font-size:9px;color:var(--muted2)}
 #bottom-bar{background:var(--surface);border-top:1px solid var(--border);padding:8px 10px;display:flex;flex-shrink:0}
 .bstat{flex:1;text-align:center}
 .bstat+.bstat{border-left:1px solid var(--border)}
@@ -136,6 +141,122 @@ textarea.modal-input{resize:vertical;min-height:56px}
 .hunt-actions{display:flex;gap:6px}
 .hunt-btn{flex:1;padding:10px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
 .you-dot{width:14px;height:14px;border-radius:50%;background:#60a5fa;border:3px solid #fff;box-shadow:0 0 0 3px rgba(96,165,250,0.3)}
+
+#layout-toggle{position:fixed;bottom:16px;left:16px;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;z-index:600;font-family:inherit}
+body.desktop #app{display:none}
+body.desktop #desktop-main{display:flex!important}
+#desktop-main{display:none;flex:1;overflow:hidden;height:100dvh}
+#sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;height:100%}
+#sidebar-scroll{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sidebar-scroll::-webkit-scrollbar{width:4px}
+#sidebar-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.sb-section{padding:12px 14px;border-bottom:1px solid var(--border)}
+.sb-section-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:8px}
+.sb-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sb-stat{background:var(--bg);border-radius:6px;padding:8px 10px;text-align:center}
+.sb-stat-val{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.sb-stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-top:3px}
+.sb-district{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:8px;cursor:pointer;margin-bottom:4px;border:1.5px solid transparent;transition:background 0.15s}
+.sb-district:hover{background:var(--surface2)}
+.sb-district.active{background:rgba(255,255,255,0.04)}
+.sb-district-left{display:flex;align-items:center;gap:8px}
+.sb-district-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.sb-district-name{font-size:13px;font-weight:600}
+.sb-district-right{text-align:right}
+.sb-district-prog{font-size:11px;font-variant-numeric:tabular-nums;font-weight:600}
+.sb-district-sub{font-size:9px;color:var(--muted)}
+#store-search{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:12px;font-family:inherit}
+#store-search::placeholder{color:var(--muted2)}
+#search-results{margin-top:6px}
+.search-result{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:6px;cursor:pointer}
+.search-result:hover{background:var(--surface2)}
+.sr-left{display:flex;align-items:center;gap:8px}
+.sr-num{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+.sr-name{font-size:11px;color:var(--muted)}
+.sr-right{font-size:10px;color:var(--muted)}
+#sb-log-btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.sb-wave-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3;word-break:break-word}
+.sb-wave-info{font-size:11px;color:var(--muted);line-height:1.6}
+#desktop-map-wrap{flex:1;position:relative;overflow:hidden}
+#desktop-map{width:100%;height:100%}
+#desktop-zoom-badge{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(13,17,23,0.85);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--muted);z-index:500;pointer-events:none;transition:opacity 0.3s;white-space:nowrap}
+#desktop-app-meta{position:absolute;bottom:10px;right:10px;background:rgba(13,17,23,0.8);border:1px solid var(--border);border-radius:8px;padding:4px 8px;z-index:500;pointer-events:none;text-align:right;line-height:1.5}
+#detail-panel{width:0;flex-shrink:0;overflow:hidden;transition:width 0.25s ease;background:var(--surface);border-left:0px solid var(--border);height:100%}
+#detail-panel.open{width:320px;border-left-width:1px}
+#detail-panel-inner{width:320px;height:100%;overflow-y:auto;padding:16px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#detail-panel-inner::-webkit-scrollbar{width:4px}
+#detail-panel-inner::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+#detail-panel-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0;float:right;line-height:1;margin-bottom:4px}
+.dp-district{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:3px}
+.dp-name{font-size:18px;font-weight:800;line-height:1.2;margin-bottom:2px}
+.dp-addr{font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.4}
+.dp-badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.dp-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px}
+.dp-stat{background:var(--bg);border-radius:6px;padding:8px}
+.dp-stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px}
+.dp-stat-val{font-size:13px;font-weight:700}
+.dp-status{padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.dp-actions{display:flex;gap:8px;margin-bottom:16px}
+.dp-btn{flex:1;padding:10px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.dp-history{border-top:1px solid var(--border);padding-top:12px}
+.dp-hist-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px}
+.dp-hist-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.dp-hist-item:last-child{border-bottom:none}
+.dp-hist-dot{width:7px;height:7px;border-radius:50%;margin-top:3px;flex-shrink:0}
+.dp-hist-main{flex:1;min-width:0}
+.dp-hist-wave{color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dp-hist-bottles{color:var(--accent);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dp-hist-meta{color:var(--muted2);font-size:10px;margin-top:1px}
+.dp-hist-link{color:#60a5fa;font-size:12px;text-decoration:none;flex-shrink:0}
+body.desktop #layout-toggle{content:'📱 Mobile'}
+
+/* ═══ ENTRY PANEL ═══ */
+#entry-panel{position:fixed;top:0;right:0;width:420px;height:100%;background:var(--surface);border-left:1px solid var(--border);z-index:2500;display:none;flex-direction:column;box-shadow:-8px 0 32px rgba(0,0,0,0.5)}
+#entry-panel.open{display:flex}
+#entry-panel-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#entry-panel-title{font-size:15px;font-weight:800}
+#entry-panel-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0;font-family:inherit}
+#entry-panel-body{flex:1;overflow-y:auto;padding:16px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#entry-panel-body::-webkit-scrollbar{width:4px}
+#entry-panel-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+#entry-panel-footer{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+
+/* Entry form elements */
+.ef-section{margin-bottom:16px}
+.ef-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:5px}
+.ef-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 10px;font-size:13px;font-family:inherit}
+.ef-input::placeholder{color:var(--muted2)}
+.ef-input:focus{outline:none;border-color:var(--accent)}
+textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5}
+.ef-row{display:flex;gap:8px}
+.ef-row .ef-input{flex:1}
+.ef-parsed{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:6px;font-size:12px;display:none}
+.ef-parsed.has-data{display:block}
+.ef-parsed-row{display:flex;align-items:center;gap:8px;padding:3px 0}
+.ef-parsed-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;width:70px;flex-shrink:0}
+.ef-parsed-val{font-size:12px;font-weight:600;color:var(--text)}
+.ef-parsed-val.ok{color:#4ade80}
+.ef-parsed-val.warn{color:var(--accent)}
+.ef-toggle{display:flex;gap:6px;margin-top:4px}
+.ef-tog{flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;text-align:center;font-family:inherit;transition:all 0.15s}
+.ef-tog.sel-drop{border-color:#22c55e;background:rgba(34,197,94,0.12);color:#4ade80}
+.ef-tog.sel-nodrop{border-color:#ef4444;background:rgba(239,68,68,0.12);color:#f87171}
+.ef-quality{display:flex;gap:6px;margin-top:4px}
+.ef-q{flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;text-align:center;font-family:inherit}
+.ef-q.sel{border-color:var(--accent);background:rgba(245,158,11,0.12);color:var(--accent)}
+.ef-topbottle{display:flex;gap:6px;margin-top:4px}
+.ef-tb{flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;text-align:center;font-family:inherit}
+.ef-tb.sel{border-color:#a855f7;background:rgba(168,85,247,0.12);color:#d8b4fe}
+.ef-divider{height:1px;background:var(--border);margin:8px 0}
+.ef-store-confirm{font-size:11px;margin-top:4px;padding:4px 8px;border-radius:6px;display:none}
+.ef-store-confirm.found{display:block;background:rgba(34,197,94,0.1);color:#4ade80;border:1px solid rgba(34,197,94,0.2)}
+.ef-store-confirm.notfound{display:block;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2)}
+.ef-btn{flex:1;padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.ef-btn.primary{background:var(--accent);color:#000}
+.ef-btn.secondary{background:var(--surface2);color:var(--text)}
+.ef-btn.primary:disabled{opacity:0.5;cursor:not-allowed}
+.ef-success{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);color:#4ade80;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:600;display:none;margin-bottom:12px;text-align:center}
+.ef-success.show{display:block}
 </style>
 </head>
 <body>
@@ -151,6 +272,7 @@ textarea.modal-input{resize:vertical;min-height:56px}
     <span class="logo-sm">🥃</span>
     <select class="cycle-select" id="wave-select"></select>
     <button id="new-wave-btn" onclick="openNewWave()">+ Wave</button>
+    <button id="dist-toggle" onclick="toggleDistMode()" title="Switch distance reference">🏠 #267</button>
     <button id="sync-btn" onclick="syncFromSheet()" title="Sync">⟳</button>
     <button id="hunt-btn">🚗 Hunt</button>
   </div>
@@ -158,6 +280,10 @@ textarea.modal-input{resize:vertical;min-height:56px}
   <div id="map-wrap">
     <div id="map"></div>
     <div id="zoom-badge">zoom in to see store numbers</div>
+    <div id="app-meta">
+      <div class="meta-version">v0.1</div>
+      <div class="meta-sync" id="meta-sync">not synced</div>
+    </div>
     <button id="fab" onclick="openModal()">＋</button>
   </div>
   <div id="bottom-bar">
@@ -168,7 +294,173 @@ textarea.modal-input{resize:vertical;min-height:56px}
   </div>
 </div>
 
-<div id="modal-overlay">
+<!-- DESKTOP MAIN -->
+<div id="desktop-main">
+  <div id="sidebar">
+    <div id="sidebar-scroll">
+      <div class="sb-section">
+        <div class="sb-section-title">Current Wave</div>
+        <div class="sb-wave-name" id="sb-wave-name">–</div>
+        <div class="sb-wave-info" id="sb-wave-info">–</div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-title">Cycle Progress</div>
+        <div class="sb-stats">
+          <div class="sb-stat"><div class="sb-stat-val" id="sb-dropped" style="color:#22c55e">–</div><div class="sb-stat-label">Dropped</div></div>
+          <div class="sb-stat"><div class="sb-stat-val" id="sb-nodrop" style="color:#ef4444">–</div><div class="sb-stat-label">No Drop</div></div>
+          <div class="sb-stat"><div class="sb-stat-val" id="sb-unknown" style="color:var(--muted)">–</div><div class="sb-stat-label">Unknown</div></div>
+          <div class="sb-stat"><div class="sb-stat-val" id="sb-pct" style="color:var(--accent)">–</div><div class="sb-stat-label">Coverage</div></div>
+        </div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-title">Districts</div>
+        <div id="sb-districts"></div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-title">Find Store</div>
+        <input type="text" id="store-search" placeholder="Store # or name..." oninput="searchStores(this.value)">
+        <div id="search-results"></div>
+      </div>
+      <div class="sb-section">
+        <button id="sb-log-btn" onclick="openEntryPanel()">＋ Log a Drop</button>
+      </div>
+    </div>
+  </div>
+  <div id="desktop-map-wrap">
+    <div id="desktop-map"></div>
+    <div id="desktop-zoom-badge">zoom in to see store numbers</div>
+    <div id="desktop-app-meta">
+      <div class="meta-version">v0.2</div>
+      <div class="meta-sync" id="desktop-meta-sync">not synced</div>
+    </div>
+  </div>
+  <div id="detail-panel">
+    <div id="detail-panel-inner">
+      <div id="detail-panel-content">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--muted);font-size:13px;gap:8px">
+          <div style="font-size:32px">📍</div>
+          <div>Tap a store pin to see details</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LAYOUT TOGGLE -->
+<button id="layout-toggle" onclick="toggleLayout()">🖥 Desktop</button>
+<button id="copy-btn" onclick="copyAppCode()" title="Copy app code to clipboard" style="position:fixed;bottom:16px;left:110px;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;z-index:600;font-family:inherit">📋 Copy Code</button>
+
+<!-- DESKTOP ENTRY PANEL -->
+<div id="entry-panel">
+  <div id="entry-panel-header">
+    <div id="entry-panel-title">＋ Log a Drop</div>
+    <button id="entry-panel-close" onclick="closeEntryPanel()">✕</button>
+  </div>
+  <div id="entry-panel-body">
+
+    <!-- Success message -->
+    <div class="ef-success" id="ef-success">✓ Drop added to Google Sheet!</div>
+
+    <!-- Paste block -->
+    <div class="ef-section">
+      <div class="ef-label">Paste Discord text</div>
+      <textarea class="ef-input" id="ef-paste" placeholder="Patron24 — 3/29/25, 12:35 PM&#10;!drop 260 jd12 hh 19"></textarea>
+      <div class="ef-parsed" id="ef-parsed">
+        <div class="ef-parsed-row"><span class="ef-parsed-label">Reporter</span><span class="ef-parsed-val" id="efp-reporter">–</span></div>
+        <div class="ef-parsed-row"><span class="ef-parsed-label">Reported</span><span class="ef-parsed-val" id="efp-time">–</span></div>
+        <div class="ef-parsed-row"><span class="ef-parsed-label">Store #</span><span class="ef-parsed-val" id="efp-store">–</span></div>
+      </div>
+    </div>
+
+    <div class="ef-divider"></div>
+
+    <!-- Core fields -->
+    <div class="ef-section">
+      <div class="ef-label">Store #</div>
+      <input class="ef-input" id="ef-store" type="number" placeholder="e.g. 260">
+      <div class="ef-store-confirm" id="ef-store-confirm"></div>
+    </div>
+
+    <div class="ef-section">
+      <div class="ef-label">Wave</div>
+      <select class="ef-input" id="ef-wave"></select>
+    </div>
+
+    <div class="ef-section">
+      <div class="ef-label">Result</div>
+      <div class="ef-toggle">
+        <button class="ef-tog sel-drop" id="eftog-drop" onclick="efSetResult('drop')">✓ Drop</button>
+        <button class="ef-tog" id="eftog-nodrop" onclick="efSetResult('no_drop')">✕ No Drop</button>
+      </div>
+    </div>
+
+    <div class="ef-section">
+      <div class="ef-label">Reporter</div>
+      <input class="ef-input" id="ef-reporter" type="text" placeholder="e.g. Patron24">
+    </div>
+
+    <div class="ef-section">
+      <div class="ef-label">Reported Time</div>
+      <input class="ef-input" id="ef-reported-time" type="datetime-local">
+    </div>
+
+    <div class="ef-divider"></div>
+
+    <!-- Optional fields -->
+    <div class="ef-section">
+      <div class="ef-label">Bottles <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+      <input class="ef-input" id="ef-bottles" type="text" placeholder="e.g. jd12, hh 19, stagg">
+    </div>
+
+    <div class="ef-section">
+      <div class="ef-label">Discord Link <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+      <input class="ef-input" id="ef-link" type="url" placeholder="https://discord.com/channels/...">
+    </div>
+
+    <div class="ef-section">
+      <div class="ef-label">Corrected Drop Time <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">(if known)</span></div>
+      <input class="ef-input" id="ef-corrected-time" type="datetime-local">
+    </div>
+
+    <div class="ef-section">
+      <div class="ef-label">Drop Quality</div>
+      <div class="ef-quality">
+        <button class="ef-q" id="efq-1" onclick="efSetQuality(1)">1</button>
+        <button class="ef-q" id="efq-2" onclick="efSetQuality(2)">2</button>
+        <button class="ef-q" id="efq-3" onclick="efSetQuality(3)">3</button>
+      </div>
+    </div>
+
+    <div class="ef-section">
+      <div class="ef-label">Top Bottle of Cycle?</div>
+      <div class="ef-topbottle">
+        <button class="ef-tb" id="eftb-y" onclick="efSetTopBottle(true)">Yes</button>
+        <button class="ef-tb" id="eftb-n" onclick="efSetTopBottle(false)">No</button>
+      </div>
+    </div>
+
+    <div class="ef-section">
+      <div class="ef-label">Hellcat Notes</div>
+      <input class="ef-input" id="ef-hc" type="text" placeholder="HC field...">
+    </div>
+
+    <div class="ef-section">
+      <div class="ef-label">Truck Notes</div>
+      <input class="ef-input" id="ef-truck" type="text" placeholder="Truck delivery notes...">
+    </div>
+
+    <div class="ef-section">
+      <div class="ef-label">Notes</div>
+      <textarea class="ef-input" id="ef-notes" placeholder="Anything worth remembering..."></textarea>
+    </div>
+
+  </div>
+  <div id="entry-panel-footer">
+    <button class="ef-btn secondary" onclick="efClear()">Clear</button>
+    <button class="ef-btn primary" id="ef-add-btn" onclick="efSubmit()">+ Add to Sheet</button>
+  </div>
+</div>
+
   <div id="modal">
     <div class="modal-title">Log a Drop <button class="modal-close" onclick="closeModal()">✕</button></div>
     <div class="modal-section">
@@ -240,6 +532,19 @@ textarea.modal-input{resize:vertical;min-height:56px}
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFjkKeNmvRXkxe2nj0I58wrwcgRLud97job4_2c3DQaHRf3lvGHRY5hvx-W429F6pg/exec";
+const APP_VERSION = "v0.1";
+let lastSyncTime = null;
+
+function updateSyncBadge(){
+  const el = document.getElementById("meta-sync");
+  if(!el) return;
+  if(!lastSyncTime){ el.textContent = "not synced"; return; }
+  const diff = Math.round((Date.now() - lastSyncTime) / 60000);
+  if(diff < 1) el.textContent = "synced just now";
+  else if(diff < 60) el.textContent = "synced " + diff + "m ago";
+  else el.textContent = "synced " + Math.round(diff/60) + "h ago";
+}
+setInterval(updateSyncBadge, 30000);
 
 // District colors — updated per request
 const DC = {
@@ -247,7 +552,7 @@ const DC = {
   D17:"#2563eb",  // cobalt blue
   D18:"#10b981",  // emerald green
   D07:"#ef4444",  // red
-  D20:"#a16207",  // burnt sienna/brown
+  D20:"#06b6d4",  // burnt sienna/brown
   D16:"#64748b",  // slate
   D12:"#475569"   // dark slate
 };
@@ -260,12 +565,49 @@ const ZOOM_DOT = 10;   // <= 10: dots only
 const ZOOM_MID = 12;   // 11-12: number + tier
 const ZOOM_FULL = 13;  // >= 13: full pin with tier + glow
 
-let STORES=[], DROPS=[], currentWave="2026.04.27 - MM BO EHT";
+let STORES=[], DROPS=[], PATTERNS=[], currentWave="2026.04.27 - MM BO EHT";
 let activeDistricts=new Set(["ALL"]);
 let pendingDrops=JSON.parse(localStorage.getItem("pendingDrops")||"[]");
 let currentResult="drop", markers={}, recognition=null;
 let userLat=38.9278, userLng=-77.1823;
 let currentZoom=11;
+
+// Distance mode: 'home' = from store 267, 'live' = from current GPS
+let distMode = 'home';
+const HOME_LAT = 38.9278, HOME_LNG = -77.1823; // Store 267, McLean
+
+function getRefCoords(){
+  return distMode === 'live'
+    ? {lat: userLat, lng: userLng}
+    : {lat: HOME_LAT, lng: HOME_LNG};
+}
+
+function calcDist(storeLat, storeLng){
+  const ref = getRefCoords();
+  const mi = Math.sqrt(Math.pow(storeLat - ref.lat, 2) + Math.pow(storeLng - ref.lng, 2)) * 69;
+  return mi;
+}
+
+// NoVA suburban drive time estimate: ~1.5x straight-line factor, ~35mph avg
+function calcTime(mi){
+  const mins = Math.round((mi * 1.5 / 35) * 60);
+  if(mins < 60) return mins + ' min';
+  return Math.floor(mins/60) + 'h ' + (mins%60) + 'm';
+}
+
+function toggleDistMode(){
+  distMode = distMode === 'home' ? 'live' : 'home';
+  const btn = document.getElementById('dist-toggle');
+  if(distMode === 'live'){
+    btn.textContent = '📍 Live';
+    btn.classList.add('live');
+  } else {
+    btn.textContent = '🏠 #267';
+    btn.classList.remove('live');
+  }
+  // Re-render hunt mode if open, refresh markers
+  if(document.getElementById('hunt-overlay').classList.contains('open')) openHunt();
+}
 
 function allDrops(){ return [...DROPS,...pendingDrops]; }
 function distColor(d){ return DC[d]||"#64748b"; }
@@ -304,17 +646,44 @@ async function loadFromSheet(){
       hellcatNotes:r[13]?String(r[13]):null,truckNotes:r[14]?String(r[14]):null,
       needsReview:r[15]===true||r[15]==="TRUE"
     })).filter(d=>d.storeId);
+    setLoad("Loading patterns...",82);
+    try{
+      const pr=await fetch(SCRIPT_URL+"?action=getPatterns");
+      const prows=await pr.json();
+      PATTERNS=prows.slice(1).map(r=>({
+        wave:String(r[0]||"").trim()||null,
+        district:String(r[1]||"").trim(),
+        mode:String(r[2]||"").trim()||null,
+        start:r[3]?String(r[3]).trim():null,
+        clusterA:r[4]?String(r[4]).trim():null,
+        clusterB:r[5]?String(r[5]).trim():null,
+        details:r[6]?String(r[6]).trim():null,
+        special:r[7]?String(r[7]).trim():null,
+        notes:r[8]?String(r[8]).trim():null,
+      })).filter(p=>p.district);
+      localStorage.setItem("cachedPatterns",JSON.stringify(PATTERNS));
+    }catch(e){ console.warn("Patterns load failed",e); PATTERNS=[]; }
+
     setLoad("Building map...",90);
     localStorage.setItem("cachedStores",JSON.stringify(STORES));
     localStorage.setItem("cachedDrops",JSON.stringify(DROPS));
     localStorage.setItem("cacheTime",Date.now());
+    lastSyncTime = Date.now();
+    updateSyncBadge();
     return true;
   }catch(e){ console.error(e); return false; }
 }
 
 function loadFromCache(){
   const s=localStorage.getItem("cachedStores"),d=localStorage.getItem("cachedDrops");
-  if(s&&d){ STORES=JSON.parse(s); DROPS=JSON.parse(d); return true; }
+  if(s&&d){
+    STORES=JSON.parse(s); DROPS=JSON.parse(d);
+    const cp=localStorage.getItem("cachedPatterns");
+    if(cp) PATTERNS=JSON.parse(cp);
+    const ct = localStorage.getItem("cacheTime");
+    if(ct){ lastSyncTime = parseInt(ct); updateSyncBadge(); }
+    return true;
+  }
   return false;
 }
 
@@ -525,7 +894,7 @@ function buildPopup(store){
     ?`<button class="scard-btn btn-danger" onclick="quickMark(${store.id},'no_drop')">Cleaned Out</button>
        <button class="scard-btn btn-primary" onclick="quickMark(${store.id},'scored')">Got One ✅</button>`
     :`<button class="scard-btn btn-primary" onclick="openModalForStore(${store.id})">Log Drop</button>
-      <button class="scard-btn btn-secondary" onclick="openDirections(${store.lat},${store.lng})">Directions ↗</button>`;
+      <button class="scard-btn btn-secondary" onclick="openDirections(${store.lat},${store.lng})">~${calcTime(calcDist(store.lat,store.lng))} ↗</button>`;
   return `<div class="scard">
     <div class="scard-district" style="color:${color}">${store.district}</div>
     <div class="scard-name">#${store.id} · ${store.label}</div>
@@ -575,11 +944,11 @@ function updateStats(){
 function buildWaveSelect(){
   const waves=[...new Set(allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
   const sel=document.getElementById("wave-select");
-  const cur=sel.value||currentWave;
   sel.innerHTML="";
-  waves.forEach(w=>{const o=document.createElement("option");o.value=w;o.textContent=w;if(w===cur)o.selected=true;sel.appendChild(o);});
-  if(!sel.value&&waves.length)sel.value=waves[0];
-  currentWave=sel.value;
+  waves.forEach(w=>{const o=document.createElement("option");o.value=w;o.textContent=w;if(w===currentWave)o.selected=true;sel.appendChild(o);});
+  // Only set currentWave from dropdown on initial load, never override it
+  if(!currentWave&&waves.length){ currentWave=waves[0]; sel.value=waves[0]; }
+  else if(currentWave){ sel.value=currentWave; }
   sel.onchange=()=>{currentWave=sel.value;refresh();};
 }
 
@@ -721,13 +1090,22 @@ function closeNewWave(){document.getElementById("wave-modal-overlay").style.disp
 async function confirmNewWave(){
   const label=document.getElementById("new-wave-input").value.trim();
   if(!label){alert("Please enter a label");return;}
-  currentWave=label;closeNewWave();
+  closeNewWave();
   try{await fetch(SCRIPT_URL+"?action=addWave",{method:"POST",body:JSON.stringify([label,new Date().toISOString()]),headers:{"Content-Type":"application/json"}});}catch(e){}
-  buildWaveSelect();
+
+  // Add to dropdown first
   const sel=document.getElementById("wave-select");
-  if(![...sel.options].some(o=>o.value===label)){const opt=document.createElement("option");opt.value=label;opt.textContent=label;opt.selected=true;sel.insertBefore(opt,sel.firstChild);}
-  else sel.value=label;
-  refresh();toast("New wave: "+label);
+  if(![...sel.options].some(o=>o.value===label)){
+    const opt=document.createElement("option");
+    opt.value=label;opt.textContent=label;
+    sel.insertBefore(opt,sel.firstChild);
+  }
+  // Set dropdown AND currentWave — order matters
+  sel.value=label;
+  currentWave=label;
+
+  refresh();
+  toast("New wave: "+label+" — all stores reset");
 }
 
 document.getElementById("hunt-btn").onclick=openHunt;
@@ -736,10 +1114,11 @@ function openHunt(){
     .filter(s=>activeDistricts.has("ALL")||activeDistricts.has(s.district))
     .map(s=>{
       const {status,drop}=getStoreStatus(s.id);
-      const distMi=Math.sqrt(Math.pow(s.lat-userLat,2)+Math.pow(s.lng-userLng,2))*69;
+      const distMi=calcDist(s.lat, s.lng);
+      const driveTime=calcTime(distMi);
       const ss=status==="unknown"?0:status==="drop"?1:2;
       const ts=["S","A","B","C"].indexOf(s.tier);
-      return {...s,status,drop,distMi,sortKey:ss*1000+ts*10+distMi*0.1};
+      return {...s,status,drop,distMi,driveTime,sortKey:ss*1000+ts*10+distMi*0.1};
     }).sort((a,b)=>a.sortKey-b.sortKey);
   document.getElementById("hunt-list").innerHTML=stores.map(s=>{
     const color=distColor(s.district);
@@ -752,16 +1131,16 @@ function openHunt(){
     }else if(s.status==="no_drop"){
       statusHTML=`<div class="hunt-status" style="color:#f87171">✕ NO DROP</div>`;
       actions=`<button class="hunt-btn" style="background:var(--surface2);color:var(--text);border:1px solid var(--border)" onclick="quickMark(${s.id},'drop');openHunt()">Log Drop</button>
-               <button class="hunt-btn" style="background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid #1d4ed8" onclick="openDirections(${s.lat},${s.lng})">Go ↗ ${s.distMi.toFixed(1)}mi</button>`;
+               <button class="hunt-btn" style="background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid #1d4ed8" onclick="openDirections(${s.lat},${s.lng})">Go ~${s.driveTime} ↗</button>`;
     }else{
       statusHTML=`<div class="hunt-status" style="color:var(--muted)">? NOT YET REPORTED</div>`;
       actions=`<button class="hunt-btn" style="background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3)" onclick="quickMark(${s.id},'drop');openHunt()">Log Drop</button>
-               <button class="hunt-btn" style="background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid #1d4ed8" onclick="openDirections(${s.lat},${s.lng})">Go ↗ ${s.distMi.toFixed(1)}mi</button>`;
+               <button class="hunt-btn" style="background:rgba(37,99,235,0.15);color:#60a5fa;border:1px solid #1d4ed8" onclick="openDirections(${s.lat},${s.lng})">Go ~${s.driveTime} ↗</button>`;
     }
     return `<div class="hunt-card">
       <div class="hunt-card-top">
         <div><div class="hunt-store-num" style="color:${color}">#${s.id}</div><div class="hunt-store-name">${s.label} · ${s.district}</div></div>
-        <div class="hunt-store-right"><div class="hunt-tier" style="color:${color}">${s.tier}</div><div class="hunt-dist">${s.distMi.toFixed(1)}mi · ${s.sRankLabel}</div></div>
+        <div class="hunt-store-right"><div class="hunt-tier" style="color:${color}">${s.tier}</div><div class="hunt-dist">~${s.driveTime} · ${s.distMi.toFixed(1)}mi</div></div>
       </div>${statusHTML}<div class="hunt-actions">${actions}</div>
     </div>`;
   }).join("");
@@ -771,7 +1150,773 @@ function closeHunt(){document.getElementById("hunt-overlay").classList.remove("o
 
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500);}
 
+async function copyAppCode(){
+  const code = document.documentElement.outerHTML;
+  await navigator.clipboard.writeText(code);
+  const btn = document.getElementById('copy-btn');
+  btn.textContent = '✓ Copied!';
+  btn.style.color = '#4ade80';
+  btn.style.borderColor = '#4ade80';
+  setTimeout(()=>{ btn.textContent='📋 Copy Code'; btn.style.color=''; btn.style.borderColor=''; }, 3000);
+}
+
+// ═══ DESKTOP ENTRY PANEL ═══
+let efResult = 'drop';
+let efQuality = null;
+let efTopBottle = null;
+let efStickyWave = null; // wave persists between entries
+
+function openEntryPanel(){
+  document.getElementById('entry-panel').classList.add('open');
+  efPopulateWaves();
+  efClearSuccess();
+  // Focus paste field
+  setTimeout(()=>document.getElementById('ef-paste').focus(), 100);
+}
+
+function closeEntryPanel(){
+  document.getElementById('entry-panel').classList.remove('open');
+}
+
+function efPopulateWaves(){
+  const sel = document.getElementById('ef-wave');
+  const waves = [...new Set(allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
+  const target = efStickyWave || currentWave;
+  sel.innerHTML = '';
+  waves.forEach(w=>{
+    const o = document.createElement('option');
+    o.value=w; o.textContent=w;
+    if(w===target) o.selected=true;
+    sel.appendChild(o);
+  });
+  // Also add any custom waves not in drops
+  if(target && ![...sel.options].some(o=>o.value===target)){
+    const o=document.createElement('option');o.value=target;o.textContent=target;o.selected=true;
+    sel.insertBefore(o,sel.firstChild);
+  }
+  sel.onchange=()=>{ efStickyWave=sel.value; };
+}
+
+// ── PARSE DISCORD PASTE ──
+function parseDiscordPaste(text){
+  if(!text.trim()) return null;
+  const result = { reporter:null, timestamp:null, storeId:null };
+
+  // Match reporter — everything before em dash or regular dash followed by date
+  const reporterMatch = text.match(/^(.+?)\s+[—\-–]\s+(\d{1,2}\/\d{1,2}\/\d{2,4})/m);
+  if(reporterMatch){
+    result.reporter = reporterMatch[1].trim();
+    // Parse date — format M/D/YY or M/D/YYYY, H:MM AM/PM
+    const dateStr = text.match(/(\d{1,2}\/\d{1,2}\/\d{2,4},?\s+\d{1,2}:\d{2}\s*[AP]M)/i);
+    if(dateStr){
+      const raw = dateStr[1];
+      // Normalize 2-digit year
+      const normalized = raw.replace(/(\d{1,2}\/\d{1,2}\/)(\d{2})(,|\s)/, (m,p1,p2,p3)=>{
+        const yr = parseInt(p2);
+        const full = yr <= 30 ? 2000+yr : 1900+yr;
+        return p1+full+p3;
+      });
+      const d = new Date(normalized);
+      if(!isNaN(d)){
+        // Format as datetime-local value
+        const pad = n=>String(n).padStart(2,'0');
+        result.timestamp = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
+    }
+  }
+
+  // Match store number from !drop command
+  const dropMatch = text.match(/!drop\s+(\d{2,3})/i);
+  if(dropMatch){
+    result.storeId = parseInt(dropMatch[1]);
+  }
+
+  return result;
+}
+
+// Live parse on paste input
+document.getElementById('ef-paste').addEventListener('input', function(){
+  const parsed = parseDiscordPaste(this.value);
+  const box = document.getElementById('ef-parsed');
+  if(!parsed || (!parsed.reporter && !parsed.timestamp && !parsed.storeId)){
+    box.classList.remove('has-data');
+    return;
+  }
+  box.classList.add('has-data');
+
+  const rEl = document.getElementById('efp-reporter');
+  const tEl = document.getElementById('efp-time');
+  const sEl = document.getElementById('efp-store');
+
+  if(parsed.reporter){
+    rEl.textContent = parsed.reporter;
+    rEl.className = 'ef-parsed-val ok';
+    document.getElementById('ef-reporter').value = parsed.reporter;
+  } else {
+    rEl.textContent = 'not found'; rEl.className='ef-parsed-val warn';
+  }
+
+  if(parsed.timestamp){
+    const d = new Date(parsed.timestamp);
+    tEl.textContent = d.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+    tEl.className = 'ef-parsed-val ok';
+    document.getElementById('ef-reported-time').value = parsed.timestamp;
+  } else {
+    tEl.textContent = 'not found'; tEl.className='ef-parsed-val warn';
+  }
+
+  if(parsed.storeId){
+    const store = STORES.find(s=>s.id===parsed.storeId);
+    if(store){
+      sEl.textContent = '#'+parsed.storeId+' · '+store.label+' ('+store.district+')';
+      sEl.className = 'ef-parsed-val ok';
+      document.getElementById('ef-store').value = parsed.storeId;
+      efUpdateStoreConfirm(parsed.storeId);
+    } else {
+      sEl.textContent = '#'+parsed.storeId+' — not in store list';
+      sEl.className = 'ef-parsed-val warn';
+      document.getElementById('ef-store').value = parsed.storeId;
+    }
+  } else {
+    sEl.textContent = 'not found'; sEl.className='ef-parsed-val warn';
+  }
+});
+
+// Store # live lookup
+document.getElementById('ef-store').addEventListener('input', function(){
+  efUpdateStoreConfirm(parseInt(this.value));
+});
+
+function efUpdateStoreConfirm(id){
+  const el = document.getElementById('ef-store-confirm');
+  if(!id){ el.className='ef-store-confirm'; return; }
+  const store = STORES.find(s=>s.id===id);
+  if(store){
+    el.textContent = store.label+' · '+store.district+' · '+store.tier+' tier · sRank '+store.sRankLabel;
+    el.className = 'ef-store-confirm found';
+  } else {
+    el.textContent = 'Store #'+id+' not found in store list';
+    el.className = 'ef-store-confirm notfound';
+  }
+}
+
+function efSetResult(r){
+  efResult=r;
+  document.getElementById('eftog-drop').className='ef-tog'+(r==='drop'?' sel-drop':'');
+  document.getElementById('eftog-nodrop').className='ef-tog'+(r==='no_drop'?' sel-nodrop':'');
+}
+
+function efSetQuality(q){
+  efQuality=q;
+  [1,2,3].forEach(n=>{
+    document.getElementById('efq-'+n).className='ef-q'+(n===q?' sel':'');
+  });
+}
+
+function efSetTopBottle(v){
+  efTopBottle=v;
+  document.getElementById('eftb-y').className='ef-tb'+(v===true?' sel':'');
+  document.getElementById('eftb-n').className='ef-tb'+(v===false?' sel':'');
+}
+
+function efClear(){
+  document.getElementById('ef-paste').value='';
+  document.getElementById('ef-store').value='';
+  document.getElementById('ef-reporter').value='';
+  document.getElementById('ef-reported-time').value='';
+  document.getElementById('ef-corrected-time').value='';
+  document.getElementById('ef-bottles').value='';
+  document.getElementById('ef-link').value='';
+  document.getElementById('ef-hc').value='';
+  document.getElementById('ef-truck').value='';
+  document.getElementById('ef-notes').value='';
+  document.getElementById('ef-parsed').classList.remove('has-data');
+  document.getElementById('ef-store-confirm').className='ef-store-confirm';
+  efSetResult('drop');
+  efQuality=null; efTopBottle=null;
+  [1,2,3].forEach(n=>document.getElementById('efq-'+n).className='ef-q');
+  document.getElementById('eftb-y').className='ef-tb';
+  document.getElementById('eftb-n').className='ef-tb';
+  efClearSuccess();
+  // Keep wave sticky — don't reset
+  document.getElementById('ef-paste').focus();
+}
+
+function efClearSuccess(){
+  document.getElementById('ef-success').classList.remove('show');
+}
+
+async function efSubmit(){
+  const storeId = parseInt(document.getElementById('ef-store').value);
+  if(!storeId){ alert('Store # is required'); return; }
+
+  const wave = document.getElementById('ef-wave').value;
+  const reportedTime = document.getElementById('ef-reported-time').value;
+  const correctedTime = document.getElementById('ef-corrected-time').value;
+
+  // timeToUse = corrected if available, else reported
+  const timeToUse = correctedTime || reportedTime || '';
+
+  // Auto-calc MinutesSinceMidnight and DayOfWeek from timeToUse (F1+F2!)
+  let minsSinceMidnight = '', dayOfWeek = '';
+  if(timeToUse){
+    const d = new Date(timeToUse);
+    if(!isNaN(d)){
+      minsSinceMidnight = d.getHours()*60 + d.getMinutes();
+      dayOfWeek = d.getDay()+1; // 1=Sunday, 7=Saturday
+    }
+  }
+
+  const store = STORES.find(s=>s.id===storeId);
+  const district = store?.district||'';
+
+  const row = [
+    wave,                                              // Wave Label
+    storeId,                                           // Store #
+    district,                                          // District
+    store?.sRankLabel||'',                             // Rev Rank
+    store?.qRank||'',                                  // Qlty Avg
+    document.getElementById('ef-link').value||'',      // Link to report
+    document.getElementById('ef-reporter').value||'',  // Reporter
+    '',                                                // Discord Time (raw)
+    document.getElementById('ef-bottles').value||'',   // Bottles
+    document.getElementById('ef-notes').value||'',     // Notes
+    '',                                                // Top Bottles Cleanout
+    reportedTime,                                      // ReportedTS
+    correctedTime,                                     // Estimated Time (Corrected)
+    timeToUse,                                         // Time to use
+    efResult==='drop'?'Drop':efResult==='no_drop'?'No Drop':'', // Result
+    '',                                                // Confidence
+    efTopBottle===true?'Yes':efTopBottle===false?'No':'', // Top Bottle
+    '',                                                // 2nd Top
+    efQuality||'',                                     // Drop Quality Score
+    '',                                                // Selection
+    '',                                                // Total Qlty Score
+    minsSinceMidnight,                                 // MinutesSinceMidnight (auto!)
+    dayOfWeek,                                         // DayOfWeek (auto!)
+    timeToUse?timeToUse.split('T')[0]:'',              // DateOnly
+    document.getElementById('ef-hc').value||'',        // HC
+    document.getElementById('ef-truck').value||'',     // Truck Notes
+  ];
+
+  const btn = document.getElementById('ef-add-btn');
+  btn.textContent='Saving...'; btn.disabled=true;
+
+  try {
+    const r = await fetch(SCRIPT_URL+'?action=addDrop',{
+      method:'POST',
+      body:JSON.stringify(row),
+      headers:{'Content-Type':'application/json'}
+    });
+    const data = await r.json();
+    if(data.success){
+      // Also add to local DROPS so map updates immediately
+      DROPS.push({
+        wave, storeId, district, result: efResult==='drop'?'drop':efResult==='no_drop'?'no_drop':'unknown',
+        timestamp: timeToUse||reportedTime||null,
+        reporter: document.getElementById('ef-reporter').value||'',
+        bottles: document.getElementById('ef-bottles').value||null,
+        notes: document.getElementById('ef-notes').value||null,
+        discordLink: document.getElementById('ef-link').value||null,
+        dropQuality: efQuality||null,
+        topBottle: efTopBottle===true,
+        minutesSinceMidnight: minsSinceMidnight||null,
+        dayOfWeek: dayOfWeek||null,
+        hellcatNotes: document.getElementById('ef-hc').value||null,
+        truckNotes: document.getElementById('ef-truck').value||null,
+        needsReview: false
+      });
+      // Show success, keep wave sticky, clear other fields
+      document.getElementById('ef-success').classList.add('show');
+      efStickyWave = wave;
+      efClear();
+      // Refresh map and sidebar
+      renderDesktopMarkers();
+      buildSbDistricts();
+      updateDesktopStats();
+      updateSbWaveInfo();
+    } else {
+      alert('Error saving: '+(data.error||'unknown error'));
+    }
+  } catch(e){
+    alert('Network error — check connection and try again');
+  }
+
+  btn.textContent='+ Add to Sheet'; btn.disabled=false;
+}
+
 init();
+
+
+
+// ═══ DESKTOP LAYOUT ═══
+let desktopMap=null,desktopYouMarker=null,desktopMarkers={};
+let isDesktop=false,selectedStoreId=null;
+
+function detectLayout(){
+  const f=localStorage.getItem('forceLayout');
+  if(f==='desktop') return true;
+  if(f==='mobile') return false;
+  return window.innerWidth>=1024;
+}
+
+function toggleLayout(){
+  if(isDesktop){localStorage.setItem('forceLayout','mobile');activateMobile();}
+  else{localStorage.setItem('forceLayout','desktop');activateDesktop();}
+}
+
+function activateDesktop(){
+  isDesktop=true;
+  document.body.classList.add('desktop');
+  document.getElementById('layout-toggle').textContent='📱 Mobile';
+  document.getElementById('desktop-main').style.display='flex';
+  if(!desktopMap) buildDesktopMap();
+  buildSidebar();
+  renderDesktopMarkers();
+  updateDesktopStats();
+  updateDesktopSyncBadge();
+}
+
+function activateMobile(){
+  isDesktop=false;
+  document.body.classList.remove('desktop');
+  document.getElementById('layout-toggle').textContent='🖥 Desktop';
+  document.getElementById('desktop-main').style.display='none';
+}
+
+function updateDesktopSyncBadge(){
+  const el=document.getElementById('desktop-meta-sync');
+  if(!el) return;
+  if(!lastSyncTime){el.textContent='not synced';return;}
+  const diff=Math.round((Date.now()-lastSyncTime)/60000);
+  if(diff<1)el.textContent='synced just now';
+  else if(diff<60)el.textContent='synced '+diff+'m ago';
+  else el.textContent='synced '+Math.round(diff/60)+'h ago';
+}
+
+function buildDesktopMap(){
+  desktopMap=L.map('desktop-map',{zoomControl:false,attributionControl:false}).setView([38.88,-77.28],11);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(desktopMap);
+  L.control.zoom({position:'bottomleft'}).addTo(desktopMap);
+  const yi=L.divIcon({className:'',html:"<div class='you-dot'></div>",iconSize:[14,14],iconAnchor:[7,7]});
+  desktopYouMarker=L.marker([userLat,userLng],{icon:yi,zIndexOffset:1000}).addTo(desktopMap).bindTooltip('You');
+  desktopMap.on('zoomend',()=>{
+    const z=desktopMap.getZoom(),prev=currentZoom;currentZoom=z;
+    const b=document.getElementById('desktop-zoom-badge');
+    if(b){if(z>=ZOOM_FULL)b.style.opacity='0';else if(z>ZOOM_DOT){b.style.opacity='1';b.textContent='zoom in for full detail';}else{b.style.opacity='1';b.textContent='zoom in to see store numbers';}}
+    if((prev<=ZOOM_DOT&&z>ZOOM_DOT)||(prev>ZOOM_DOT&&z<=ZOOM_DOT)||
+       (prev<=ZOOM_MID&&z>ZOOM_MID)||(prev>ZOOM_MID&&z<=ZOOM_MID)||
+       (prev<ZOOM_FULL&&z>=ZOOM_FULL)||(prev>=ZOOM_FULL&&z<ZOOM_FULL)){renderDesktopMarkers();}
+  });
+}
+
+function renderDesktopMarkers(){
+  if(!desktopMap) return;
+  Object.values(desktopMarkers).forEach(m=>desktopMap.removeLayer(m));
+  desktopMarkers={};
+  const sorted=[...STORES].sort((a,b)=>(distZ(a.district)||0)-(distZ(b.district)||0));
+  sorted.forEach(store=>{
+    if(!store.lat) return;
+    const visible=activeDistricts.has('ALL')||activeDistricts.has(store.district);
+    const {status}=getStoreStatus(store.id);
+    const m=L.marker([store.lat,store.lng],{icon:makePin(store,status),opacity:visible?1:0.06,zIndexOffset:distZ(store.district)});
+    m.on('click',()=>openDetailPanel(store.id));
+    m.addTo(desktopMap);
+    desktopMarkers[store.id]=m;
+  });
+}
+
+// ═══ PATTERN ANALYSIS ═══
+
+function getDistrictPatterns(district, limit=10){
+  return PATTERNS
+    .filter(p=>p.district===district && p.wave)
+    .sort((a,b)=>{
+      // Sort by wave label descending (they start with YYYY.MM.DD)
+      return (b.wave||"").localeCompare(a.wave||"");
+    })
+    .slice(0, limit);
+}
+
+function getPatternSummary(district){
+  const patterns = getDistrictPatterns(district, 999);
+  if(!patterns.length) return null;
+
+  // Most common mode
+  const modeCounts = {};
+  patterns.forEach(p=>{ if(p.mode){ modeCounts[p.mode]=(modeCounts[p.mode]||0)+1; } });
+  const topMode = Object.entries(modeCounts).sort((a,b)=>b[1]-a[1])[0];
+
+  // Last pattern
+  const last = patterns[0];
+
+  // Predictability — % of waves sharing most common mode
+  const total = patterns.filter(p=>p.mode).length;
+  const topPct = topMode ? Math.round(topMode[1]/total*100) : 0;
+  const predictability = topPct>=70?'HIGH':topPct>=50?'MEDIUM':'LOW';
+  const predColor = predictability==='HIGH'?'#4ade80':predictability==='MEDIUM'?'#f59e0b':'#f87171';
+
+  // Avg start day/time
+  const startTimes = patterns.filter(p=>p.start).map(p=>{
+    const d=new Date(p.start); return isNaN(d)?null:d;
+  }).filter(Boolean);
+  let avgStart = null;
+  if(startTimes.length){
+    const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const dayCounts={};
+    startTimes.forEach(d=>{ const day=days[d.getDay()]; dayCounts[day]=(dayCounts[day]||0)+1; });
+    const topDay=Object.entries(dayCounts).sort((a,b)=>b[1]-a[1])[0];
+    const avgMins=Math.round(startTimes.reduce((s,d)=>s+d.getHours()*60+d.getMinutes(),0)/startTimes.length);
+    const h=Math.floor(avgMins/60), m=avgMins%60;
+    const ampm=h>=12?'pm':'am'; const h12=h>12?h-12:h||12;
+    avgStart=`${topDay[0]} ~${h12}:${String(m).padStart(2,'0')}${ampm}`;
+  }
+
+  // Special flags
+  const specials = patterns.filter(p=>p.special).map(p=>p.special);
+  const specialCounts = {};
+  specials.forEach(s=>{ specialCounts[s]=(specialCounts[s]||0)+1; });
+  const specialSummary = Object.entries(specialCounts).map(([k,v])=>`${v} ${k}`).join(', ');
+
+  return { last, topMode: topMode?.[0], topPct, predictability, predColor, avgStart, specialSummary, total };
+}
+
+function formatWaveShort(wave){
+  if(!wave) return '';
+  // "2026.04.27 - MM BO EHT" → "Apr 27 · MM BO EHT"
+  const dateMatch = wave.match(/^(\d{4})\.(\d{2})\.(\d{2})/);
+  if(!dateMatch) return wave.substring(0,20);
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const mon=months[parseInt(dateMatch[2])-1];
+  const day=parseInt(dateMatch[3]);
+  const label=wave.replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,'').substring(0,16);
+  return `${mon} ${day} · ${label}`;
+}
+
+function formatModeShort(mode){
+  if(!mode) return '–';
+  const map={
+    'Simultaneous Cluster':'Simult. Cluster',
+    'Two Cluster (Same Day)':'2x Same Day',
+    'Two Cluster (Two Day)':'2x Two Day',
+    'two even simultaneous cluster (two day)':'2x Two Day',
+    'two even simultaneous cluster (same day)':'2x Same Day',
+    'simultaneous cluster':'Simult. Cluster',
+    'same day rolling 1 hour window':'Rolling 1hr',
+    'same day rolling 4 hour window':'Rolling 4hr',
+    'two even same day rolling windows':'Rolling Windows',
+    'Same Day Rolling Window':'Rolling Window',
+    'Two at a Time (Random)':'2x Random',
+    '4 cluster / abnormal':'4+ Cluster',
+    '4+ Cluster / Abnormal':'4+ Cluster',
+    'No Pattern':'No Pattern',
+  };
+  return map[mode]||mode.substring(0,18);
+}
+
+// ── OPEN DISTRICT PATTERN PANEL ──
+function openDistrictPanel(district){
+  const color=distColor(district);
+  const patterns=getDistrictPatterns(district,20);
+  const summary=getPatternSummary(district);
+  const stores=STORES.filter(s=>s.district===district);
+  const dropped=allDrops().filter(x=>x.wave===currentWave&&x.district===district&&x.result==='drop').length;
+
+  let summaryHTML='';
+  if(summary){
+    summaryHTML=`
+      <div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div>
+            <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Last Mode</div>
+            <div style="font-size:12px;font-weight:700;color:${color}">${formatModeShort(summary.last?.mode)}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:1px">${formatWaveShort(summary.last?.wave)}</div>
+          </div>
+          <div>
+            <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Predictability</div>
+            <div style="font-size:12px;font-weight:700;color:${summary.predColor}">${summary.predictability}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:1px">${summary.topPct}% consistent</div>
+          </div>
+          <div>
+            <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Most Common</div>
+            <div style="font-size:12px;font-weight:700">${formatModeShort(summary.topMode)}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:1px">${summary.topPct}% of waves</div>
+          </div>
+          <div>
+            <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Avg Start</div>
+            <div style="font-size:12px;font-weight:700">${summary.avgStart||'–'}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:1px">${summary.total} waves analyzed</div>
+          </div>
+        </div>
+        ${summary.specialSummary?`<div style="font-size:11px;color:var(--accent);border-top:1px solid var(--border);padding-top:8px">⚑ ${summary.specialSummary}</div>`:''}
+      </div>`;
+  }
+
+  let histHTML='';
+  if(patterns.length){
+    histHTML=`<div style="border-top:1px solid var(--border);padding-top:12px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px">Pattern History</div>`;
+    patterns.forEach(p=>{
+      const dateStr=p.start?new Date(p.start).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'';
+      const waveShort=p.wave?p.wave.replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,'').substring(0,20):'–';
+      histHTML+=`<div style="padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:700;color:${color}">${formatModeShort(p.mode)}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${waveShort}</div>
+            ${p.details?`<div style="font-size:10px;color:var(--muted2);margin-top:2px;line-height:1.4">${p.details}</div>`:''}
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:11px;font-weight:600">${dateStr}</div>
+            ${p.special?`<div style="font-size:9px;color:var(--accent);margin-top:2px">⚑ ${p.special}</div>`:''}
+          </div>
+        </div>
+        ${p.clusterA||p.clusterB?`<div style="display:flex;gap:12px;margin-top:5px">
+          ${p.clusterA?`<div style="font-size:10px;color:var(--muted)">A: <span style="color:var(--text)">${new Date(p.clusterA).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span></div>`:''}
+          ${p.clusterB?`<div style="font-size:10px;color:var(--muted)">B: <span style="color:var(--text)">${new Date(p.clusterB).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span></div>`:''}
+        </div>`:''}
+        ${p.notes?`<div style="font-size:10px;color:var(--muted2);margin-top:3px;font-style:italic">${p.notes}</div>`:''}
+      </div>`;
+    });
+    histHTML+=`</div>`;
+  } else {
+    histHTML=`<div style="font-size:12px;color:var(--muted);padding:16px 0;text-align:center">No pattern data yet for ${district}</div>`;
+  }
+
+  document.getElementById('detail-panel-content').innerHTML=`
+    <button id="detail-panel-close" onclick="closeDetailPanel()">✕</button>
+    <div class="dp-district" style="color:${color}">${district} · Pattern Analysis</div>
+    <div class="dp-name">${stores.length} stores · ${dropped}/${stores.length} dropped this wave</div>
+    <div style="margin-bottom:12px"></div>
+    ${summaryHTML}
+    ${histHTML}
+  `;
+
+  const panel=document.getElementById('detail-panel');
+  panel.classList.add('open');
+  setTimeout(()=>desktopMap&&desktopMap.invalidateSize(),260);
+}
+
+function updateSbWaveInfo(){
+  const wd=allDrops().filter(d=>d.wave===currentWave&&d.result==='drop');
+  const el1=document.getElementById('sb-wave-name');
+  const el2=document.getElementById('sb-wave-info');
+  if(el1) el1.textContent=currentWave||'–';
+  if(el2) el2.textContent=wd.length+' drops · '+[...new Set(wd.map(d=>d.district))].filter(Boolean).join(', ');
+}
+
+function buildSidebar(){
+  buildSbDistricts();
+  updateDesktopStats();
+  updateSbWaveInfo();
+}
+
+function buildSbDistricts(){
+  const c=document.getElementById('sb-districts');
+  if(!c) return;
+  c.innerHTML='';
+  const allA=activeDistricts.has('ALL');
+  const allDiv=document.createElement('div');
+  allDiv.className='sb-district'+(allA?' active':'');
+  allDiv.style.color=allA?'var(--text)':'var(--muted)';
+  if(allA) allDiv.style.borderColor='var(--muted)';
+  allDiv.innerHTML=`<div class="sb-district-left"><div class="sb-district-dot" style="background:var(--muted)"></div><div class="sb-district-name">All Districts</div></div><div class="sb-district-right"><div class="sb-district-prog">${STORES.length}</div><div class="sb-district-sub">stores</div></div>`;
+  allDiv.onclick=()=>{activeDistricts=new Set(['ALL']);buildSbDistricts();renderDesktopMarkers();updateDesktopStats();};
+  c.appendChild(allDiv);
+
+  ['D14','D17','D18','D07','D20','D16','D12'].forEach(d=>{
+    const color=DC[d];
+    const stores=STORES.filter(s=>s.district===d);if(!stores.length)return;
+    const dropped=allDrops().filter(x=>x.wave===currentWave&&x.district===d&&x.result==='drop').length;
+    const nodrop=allDrops().filter(x=>x.wave===currentWave&&x.district===d&&x.result==='no_drop').length;
+    const active=activeDistricts.has(d);
+    const pct=stores.length?Math.round(dropped/stores.length*100):0;
+
+    // Get last 6 patterns for this district
+    const patterns=getDistrictPatterns(d, 6);
+    const summary=getPatternSummary(d);
+
+    // Pattern rows HTML
+    let patternRows='';
+    if(patterns.length){
+      patternRows=`<div style="margin-top:6px;padding-top:6px;border-top:1px solid ${color}22">`;
+      patterns.forEach(p=>{
+        const dateMatch=p.wave?p.wave.match(/^(\d{4})\.(\d{2})\.(\d{2})/):null;
+        const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const dateStr=dateMatch?`${months[parseInt(dateMatch[2])-1]} ${parseInt(dateMatch[3])}`:
+          (p.start?new Date(p.start).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'');
+        const modeShort=formatModeShort(p.mode);
+        const waveLabel=p.wave?p.wave.replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,'').substring(0,14):'';
+        patternRows+=`<div style="display:flex;align-items:baseline;gap:6px;padding:2px 0;font-size:11px">
+          <span style="color:var(--muted2);width:42px;flex-shrink:0;font-variant-numeric:tabular-nums">${dateStr}</span>
+          <span style="color:${color};font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${modeShort}</span>
+          ${p.special?`<span style="color:var(--accent);font-size:9px;flex-shrink:0">⚑</span>`:''}
+        </div>`;
+      });
+      patternRows+=`</div>`;
+    } else {
+      patternRows=`<div style="margin-top:5px;font-size:10px;color:var(--muted2);padding-top:5px;border-top:1px solid ${color}22">No pattern data yet</div>`;
+    }
+
+    // Predictability badge
+    const predBadge=summary?`<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;background:${summary.predColor}22;color:${summary.predColor}">${summary.predictability}</span>`:'';
+
+    const div=document.createElement('div');
+    div.className='sb-district'+(active?' active':'');
+    div.style.cssText=`color:${color};${active?'border-color:'+color+';background:'+color+'0f;':''};cursor:pointer;flex-direction:column;align-items:stretch;gap:0`;
+    div.innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+        <div class="sb-district-left">
+          <div class="sb-district-dot" style="background:${color}"></div>
+          <div class="sb-district-name">${d}</div>
+          ${predBadge}
+        </div>
+        <div class="sb-district-right">
+          <div class="sb-district-prog" style="color:${color}">${dropped}/${stores.length}</div>
+          <div class="sb-district-sub">${pct}% · ${nodrop} no-drop</div>
+        </div>
+      </div>
+      ${patternRows}
+    `;
+
+    // Click left side = filter map, click pattern area = open detail panel
+    div.onclick=(e)=>{
+      // If clicking the pattern rows, open detail panel
+      if(e.target.closest('[data-pattern]')||patterns.length&&e.offsetY>30){
+        openDistrictPanel(d);
+        return;
+      }
+      activeDistricts.delete('ALL');
+      activeDistricts.has(d)?activeDistricts.delete(d):activeDistricts.add(d);
+      if(!activeDistricts.size) activeDistricts.add('ALL');
+      buildSbDistricts(); renderDesktopMarkers(); updateDesktopStats();
+    };
+
+    // Double-click always opens pattern panel
+    div.ondblclick=(e)=>{ e.preventDefault(); openDistrictPanel(d); };
+
+    // Add a small "patterns ↗" link
+    const patLink=document.createElement('div');
+    patLink.style.cssText=`font-size:9px;color:${color};opacity:0.6;text-align:right;margin-top:3px;cursor:pointer;padding-top:2px`;
+    patLink.textContent='patterns ↗';
+    patLink.onclick=(e)=>{ e.stopPropagation(); openDistrictPanel(d); };
+    div.appendChild(patLink);
+
+    c.appendChild(div);
+  });
+}
+
+function updateDesktopStats(){
+  const rel=STORES.filter(s=>activeDistricts.has('ALL')||activeDistricts.has(s.district));
+  let d=0,n=0,u=0;
+  rel.forEach(s=>{const {status}=getStoreStatus(s.id);if(status==='drop')d++;else if(status==='no_drop')n++;else u++;});
+  const pct=rel.length?Math.round((d+n)/rel.length*100):0;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('sb-dropped',d);set('sb-nodrop',n);set('sb-unknown',u);set('sb-pct',pct+'%');
+}
+
+function searchStores(query){
+  const results=document.getElementById('search-results');
+  if(!query.trim()){results.innerHTML='';return;}
+  const q=query.toLowerCase();
+  const matches=STORES.filter(s=>String(s.id).includes(q)||s.label.toLowerCase().includes(q)||s.address.toLowerCase().includes(q)).slice(0,8);
+  if(!matches.length){results.innerHTML='<div style="font-size:11px;color:var(--muted);padding:4px 0">No stores found</div>';return;}
+  results.innerHTML=matches.map(s=>{
+    const color=distColor(s.district);
+    const {status}=getStoreStatus(s.id);
+    const dot=status==='drop'?'#22c55e':status==='no_drop'?'#ef4444':'var(--muted)';
+    return `<div class="search-result" onclick="spotlightStore(${s.id})"><div class="sr-left"><div style="width:7px;height:7px;border-radius:50%;background:${dot};flex-shrink:0"></div><div class="sr-num" style="color:${color}">#${s.id}</div><div class="sr-name">${s.label}</div></div><div class="sr-right">${s.district} · ${s.tier}</div></div>`;
+  }).join('');
+}
+
+function spotlightStore(storeId){
+  const store=STORES.find(s=>s.id===storeId);
+  if(!store||!desktopMap) return;
+  desktopMap.setView([store.lat,store.lng],15,{animate:true});
+  document.getElementById('search-results').innerHTML='';
+  document.getElementById('store-search').value='#'+storeId+' '+store.label;
+  openDetailPanel(storeId);
+}
+
+function openDetailPanel(storeId){
+  selectedStoreId=storeId;
+  const store=STORES.find(s=>s.id===storeId);
+  if(!store) return;
+  const {status,drop}=getStoreStatus(storeId);
+  const color=distColor(store.district);
+  const history=getStoreHistory(storeId);
+  const totalDrops=allDrops().filter(d=>d.storeId==storeId&&d.result==='drop').length;
+  const qRank10=(store.qRank*10/3).toFixed(1);
+  const driveTime=calcTime(calcDist(store.lat,store.lng));
+  let statusHTML='';
+  if(status==='drop'){const ts=drop&&drop.timestamp?timeSince(drop.timestamp):'time unknown';statusHTML=`<div class="dp-status ds-drop">✓ Dropped · ${ts}</div>`;}
+  else if(status==='no_drop'){statusHTML=`<div class="dp-status ds-nodrop">✕ No Drop Confirmed</div>`;}
+  else{statusHTML=`<div class="dp-status ds-unknown">? No Data This Cycle</div>`;}
+  const badges=`<div class="dp-badges"><span class="badge badge-${store.tier}">${store.tier}</span>${store.hh22?'<span class="badge badge-hh22">⭐HH22</span>':""}${store.bb30?'<span class="badge badge-bb30">🏆BB30</span>':""}</div>`;
+  const actions=status==='drop'
+    ?`<button class="dp-btn btn-danger" onclick="quickMark(${storeId},'no_drop')">Cleaned Out</button><button class="dp-btn btn-primary" onclick="quickMark(${storeId},'scored')">Got One ✅</button>`
+    :`<button class="dp-btn btn-primary" onclick="openModalForStore(${storeId})">Log Drop</button><button class="dp-btn btn-secondary" onclick="openDirections(${store.lat},${store.lng})">~${driveTime} ↗</button>`;
+  let histHTML='';
+  if(history.length){
+    histHTML='<div class="dp-history"><div class="dp-hist-title">Drop History ('+totalDrops+' total)</div>';
+    history.forEach(h=>{
+      const dot=h.result==='drop'?'#22c55e':'#ef4444';
+      const ds=h.timestamp?new Date(h.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'';
+      histHTML+=`<div class="dp-hist-item"><div class="dp-hist-dot" style="background:${dot}"></div><div class="dp-hist-main"><div class="dp-hist-wave">${h.wave||'Unlabeled'}</div>${h.bottles?`<div class="dp-hist-bottles">${h.bottles}</div>`:''}<div class="dp-hist-meta">${ds}${h.reporter?' · '+h.reporter:''}</div></div>${h.discordLink?`<a class="dp-hist-link" href="${h.discordLink}" target="_blank">↗</a>`:''}</div>`;
+    });
+    histHTML+='</div>';
+  }
+  document.getElementById('detail-panel-content').innerHTML=`
+    <button id="detail-panel-close" onclick="closeDetailPanel()">✕</button>
+    <div class="dp-district" style="color:${color}">${store.district}</div>
+    <div class="dp-name">#${store.id} · ${store.label}</div>
+    <div class="dp-addr">${store.address}</div>
+    ${badges}
+    <div class="dp-stats">
+      <div class="dp-stat"><div class="dp-stat-label">qRank</div><div class="dp-stat-val" style="color:${color}">${qRank10}/10</div></div>
+      <div class="dp-stat"><div class="dp-stat-label">Sales Rank</div><div class="dp-stat-val">${store.sRankLabel}</div></div>
+      <div class="dp-stat"><div class="dp-stat-label">All Drops</div><div class="dp-stat-val">${totalDrops}</div></div>
+    </div>
+    ${statusHTML}
+    <div class="dp-actions">${actions}</div>
+    ${histHTML}`;
+  const panel=document.getElementById('detail-panel');
+  panel.classList.add('open');
+  setTimeout(()=>desktopMap&&desktopMap.invalidateSize(),260);
+}
+
+function closeDetailPanel(){
+  document.getElementById('detail-panel').classList.remove('open');
+  selectedStoreId=null;
+  setTimeout(()=>desktopMap&&desktopMap.invalidateSize(),260);
+}
+
+// Hook into wave selector for desktop
+document.getElementById('wave-select').addEventListener('change',function(){
+  if(isDesktop){setTimeout(()=>{buildSbDistricts();updateDesktopStats();updateSbWaveInfo();renderDesktopMarkers();},50);}
+});
+
+// Hook into sync button for desktop
+const _origSync=syncFromSheet;
+async function syncFromSheet(){
+  await _origSync();
+  if(isDesktop){buildSbDistricts();updateDesktopStats();updateSbWaveInfo();renderDesktopMarkers();updateDesktopSyncBadge();}
+}
+
+// Hook into quickMark for desktop refresh
+const _origQM=quickMark;
+function quickMark(storeId,action){
+  _origQM(storeId,action);
+  if(isDesktop){setTimeout(()=>{renderDesktopMarkers();updateDesktopStats();buildSbDistricts();if(selectedStoreId===storeId)openDetailPanel(storeId);},150);}
+}
+
+// Auto-detect on load — override init
+const _origInit=init;
+async function init(){
+  await _origInit();
+  if(detectLayout()) activateDesktop();
+}
+
 </script>
 </body>
 </html>
