@@ -1445,7 +1445,6 @@ async function efSubmit(){
   btn.textContent='+ Add to Sheet'; btn.disabled=false;
 }
 
-initAndDetect();
 // ═══ DESKTOP LAYOUT ═══
 let desktopMap=null,desktopYouMarker=null,desktopMarkers={};
 let isDesktop=false,selectedStoreId=null;
@@ -1915,6 +1914,7 @@ async function initAndDetect(){
   if(detectLayout()) activateDesktop();
 }
 
+initAndDetect();
 </script>
 </body>
 </html>
