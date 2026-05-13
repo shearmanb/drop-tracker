@@ -549,6 +549,8 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
   </div>
 </div>
 
+
+<div id="modal-overlay">
   <div id="modal">
     <div class="modal-title">Log a Drop <button class="modal-close" onclick="closeModal()">✕</button></div>
     <div class="modal-section">
@@ -996,7 +998,58 @@ function timeSince(ts){
   return d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
 }
 
-function buildPopup(store){
+// Returns drop order info for a store within its district for a given wave
+// e.g. { order: 2, total: 5, label: '2nd', sameTime: false, mode: 'Rolling Window' }
+function getDropOrder(storeId, wave){
+  const store = STORES.find(s=>s.id===storeId);
+  if(!store) return null;
+  const district = store.district;
+
+  // Get all drops for this district+wave with timestamps
+  const distDrops = allDrops()
+    .filter(d=>d.district===district && d.wave===wave && d.result==='drop' && d.timestamp)
+    .map(d=>({...d, _ms: new Date(d.timestamp).getTime()}))
+    .filter(d=>!isNaN(d._ms))
+    .sort((a,b)=>a._ms-b._ms);
+
+  if(!distDrops.length) return null;
+
+  const thisDrop = distDrops.find(d=>d.storeId===storeId);
+  if(!thisDrop) return null;
+
+  // Group drops within 30-minute windows
+  const WINDOW = 30 * 60 * 1000;
+  const groups = [];
+  let currentGroup = [distDrops[0]];
+  for(let i=1; i<distDrops.length; i++){
+    if(distDrops[i]._ms - currentGroup[0]._ms <= WINDOW){
+      currentGroup.push(distDrops[i]);
+    } else {
+      groups.push(currentGroup);
+      currentGroup = [distDrops[i]];
+    }
+  }
+  groups.push(currentGroup);
+
+  // Which group is this store in?
+  const groupIdx = groups.findIndex(g=>g.some(d=>d.storeId===storeId));
+  if(groupIdx === -1) return null;
+
+  const sameTime = groups.length === 1; // entire district in one window
+  const order = groupIdx + 1;
+  const total = groups.length;
+
+  const ordinals = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];
+  const label = sameTime ? 'Same time' : (ordinals[groupIdx] || order+'th');
+
+  // Get pattern mode for this wave+district
+  const pattern = PATTERNS.find(p=>p.wave===wave && p.district===district);
+  const mode = pattern?.mode || null;
+
+  return { order, total, label, sameTime, mode };
+}
+
+
   const {status,drop}=getStoreStatus(store.id);
   const color=distColor(store.district);
   const history=getStoreHistory(store.id);
@@ -1017,11 +1070,16 @@ function buildPopup(store){
     history.forEach(h=>{
       const dot=h.result==="drop"?"#22c55e":"#ef4444";
       const ds=h.timestamp?new Date(h.timestamp).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"2-digit"}):"";
+      const tm=h.timestamp?new Date(h.timestamp).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}):"";
+      const ord = h.result==='drop' && h.wave ? getDropOrder(store.id, h.wave) : null;
+      const ordHTML = ord ? `<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:${ord.sameTime?'rgba(37,99,235,0.15)':'rgba(16,185,129,0.15)'};color:${ord.sameTime?'#60a5fa':'#34d399'}">${ord.label}${ord.sameTime?'':' of '+ord.total}</span>` : '';
+      const modeHTML = ord?.mode ? `<span style="font-size:9px;color:var(--muted2)">${formatModeShort(ord.mode)}</span>` : '';
       histHTML+=`<div class="hist-item"><div class="hist-dot" style="background:${dot}"></div>
         <div class="hist-main">
-          <div class="hist-wave">${h.wave||"Unlabeled"}</div>
+          <div class="hist-wave" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${h.wave||"Unlabeled"} ${ordHTML} ${modeHTML}</div>
           ${h.bottles?`<div class="hist-bottles">${h.bottles}</div>`:""}
-          ${ds?`<div class="hist-time">${ds}${h.reporter?" · "+h.reporter:""}</div>`:""}
+          ${h.dropQuality?`<div style="display:inline-flex;align-items:center;gap:3px;font-size:10px;color:#f59e0b;font-weight:700">★ Q${h.dropQuality}</div>`:''}
+          ${ds?`<div class="hist-time">${ds}${tm?' · <span style="color:var(--accent)">'+tm+'</span>':''}${h.reporter?" · "+h.reporter:""}</div>`:""}
         </div>
         ${h.discordLink?`<a class="hist-link" href="${h.discordLink}" target="_blank">↗</a>`:""}
       </div>`;
@@ -1034,6 +1092,29 @@ function buildPopup(store){
     :`<button class="scard-btn btn-primary" onclick="quickDrop(${store.id})">⚡ Quick Drop</button>
       <button class="scard-btn btn-secondary" onclick="openModalForStore(${store.id})">📝 Log Details</button>
       <button class="scard-btn btn-secondary" onclick="openDirections(${store.lat},${store.lng})" style="flex:0;padding:9px 8px">~${calcTime(calcDist(store.lat,store.lng))} ↗</button>`;
+  // Most common drop time window from last 10 drops
+  const recentDropTimes = history
+    .filter(h=>h.result==='drop'&&h.timestamp)
+    .slice(0,10)
+    .map(h=>new Date(h.timestamp))
+    .filter(d=>!isNaN(d));
+  let commonTimeHTML = '<div class="sstat-val" style="font-size:10px;color:var(--muted)">no data</div>';
+  if(recentDropTimes.length>=2){
+    const hourCounts={};
+    recentDropTimes.forEach(d=>{
+      const h=d.getHours();
+      const label=`${h===0?12:h>12?h-12:h}${h>=12?'pm':'am'}`;
+      hourCounts[label]=(hourCounts[label]||0)+1;
+    });
+    const top=Object.entries(hourCounts).sort((a,b)=>b[1]-a[1])[0];
+    const pct=Math.round(top[1]/recentDropTimes.length*100);
+    commonTimeHTML=`<div class="sstat-val" style="color:${color}">${top[0]}</div><div style="font-size:9px;color:var(--muted)">${pct}% of drops</div>`;
+  } else if(recentDropTimes.length===1){
+    const h=recentDropTimes[0].getHours();
+    const label=`${h===0?12:h>12?h-12:h}${h>=12?'pm':'am'}`;
+    commonTimeHTML=`<div class="sstat-val" style="color:${color}">${label}</div><div style="font-size:9px;color:var(--muted)">1 drop</div>`;
+  }
+
   return `<div class="scard">
     <div class="scard-district" style="color:${color}">${store.district}</div>
     <div class="scard-name">#${store.id} · ${store.label}</div>
@@ -1043,6 +1124,7 @@ function buildPopup(store){
       <div class="sstat"><div class="sstat-label">qRank</div><div class="sstat-val" style="color:${color}">${qRank10}/10</div></div>
       <div class="sstat"><div class="sstat-label">Sales Rank</div><div class="sstat-val">${store.sRankLabel}</div></div>
       <div class="sstat"><div class="sstat-label">All Drops</div><div class="sstat-val">${totalDrops}</div></div>
+      <div class="sstat"><div class="sstat-label">Common Time</div>${commonTimeHTML}</div>
     </div>
     ${statusHTML}
     <div class="scard-actions">${actions}</div>
@@ -1158,7 +1240,7 @@ let modalStorePreset=null;
 function openModal(){modalStorePreset=null;_openModal();}
 function openModalForStore(id){map.closePopup();modalStorePreset=id;_openModal();}
 function _openModal(){
-  document.getElementById("modal-overlay").style.display="flex";
+  document.getElementById("modal-overlay").classList.add("open");
   document.getElementById("f-store").value=modalStorePreset||"";
   document.getElementById("f-bottles").value="";document.getElementById("f-reporter").value="";
   document.getElementById("f-notes").value="";document.getElementById("f-link").value="";
@@ -1166,7 +1248,7 @@ function _openModal(){
   document.getElementById("paste-input").value="";document.getElementById("parse-result").textContent="";
   setResult("drop");
 }
-function closeModal(){document.getElementById("modal-overlay").style.display="none";}
+function closeModal(){document.getElementById("modal-overlay").classList.remove("open");}
 function setResult(r){
   currentResult=r;
   document.getElementById("tog-drop").className="rtog"+(r==="drop"?" sel-drop":"");
@@ -2074,7 +2156,11 @@ function openDetailPanel(storeId){
     history.forEach(h=>{
       const dot=h.result==='drop'?'#22c55e':'#ef4444';
       const ds=h.timestamp?new Date(h.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'';
-      histHTML+=`<div class="dp-hist-item"><div class="dp-hist-dot" style="background:${dot}"></div><div class="dp-hist-main"><div class="dp-hist-wave">${h.wave||'Unlabeled'}</div>${h.bottles?`<div class="dp-hist-bottles">${h.bottles}</div>`:''}<div class="dp-hist-meta">${ds}${h.reporter?' · '+h.reporter:''}</div></div>${h.discordLink?`<a class="dp-hist-link" href="${h.discordLink}" target="_blank">↗</a>`:''}</div>`;
+      const tm=h.timestamp?new Date(h.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'';
+      const ord = h.result==='drop' && h.wave ? getDropOrder(storeId, h.wave) : null;
+      const ordHTML = ord ? `<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:${ord.sameTime?'rgba(37,99,235,0.15)':'rgba(16,185,129,0.15)'};color:${ord.sameTime?'#60a5fa':'#34d399'}">${ord.label}${ord.sameTime?'':' of '+ord.total}</span>` : '';
+      const modeHTML = ord?.mode ? `<span style="font-size:9px;color:var(--muted2);margin-left:2px">${formatModeShort(ord.mode)}</span>` : '';
+      histHTML+=`<div class="dp-hist-item"><div class="dp-hist-dot" style="background:${dot}"></div><div class="dp-hist-main"><div class="dp-hist-wave" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${h.wave||'Unlabeled'} ${ordHTML} ${modeHTML}</div>${h.bottles?`<div class="dp-hist-bottles">${h.bottles}</div>`:''} ${h.dropQuality?`<span style="font-size:10px;color:#f59e0b;font-weight:700">★ Q${h.dropQuality}</span>`:''}<div class="dp-hist-meta">${ds}${tm?` · <span style="color:var(--accent)">${tm}</span>`:''}${h.reporter?' · '+h.reporter:''}</div></div>${h.discordLink?`<a class="dp-hist-link" href="${h.discordLink}" target="_blank">↗</a>`:''}</div>`;
     });
     histHTML+='</div>';
   }
@@ -2289,7 +2375,11 @@ function renderReviewList(){
   const waves = [...new Set(allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
   const waveOptions = waves.map(w=>`<option value="${w}">${w}</option>`).join('');
 
+  // Store drops in a map so onclick can look them up safely — no JSON in HTML
+  window._reviewDrops = {};
+
   list.innerHTML = drops.slice(0,50).map((d,i)=>{
+    window._reviewDrops[i] = d;
     const store = STORES.find(s=>s.id===d.storeId);
     const issues = getReviewIssues(d);
     const color = distColor(d.district||store?.district||'');
@@ -2322,7 +2412,7 @@ function renderReviewList(){
         </div>
       </div>
       <div class="review-actions">
-        <button class="review-btn" style="background:var(--accent);color:#000" onclick="saveReviewDrop(${i},${JSON.stringify(d).replace(/"/g,'&quot;')})">✓ Save & Mark Done</button>
+        <button class="review-btn" style="background:var(--accent);color:#000" onclick="saveReviewDrop(${i})">✓ Save & Mark Done</button>
         <button class="review-btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border)" onclick="skipReviewDrop('rcard-${i}')">Skip</button>
       </div>
     </div>`;
@@ -2335,7 +2425,9 @@ function renderReviewList(){
   });
 }
 
-async function saveReviewDrop(idx, drop){
+async function saveReviewDrop(idx){
+  const drop = window._reviewDrops[idx];
+  if(!drop){ toast('Error: drop not found'); return; }
   const wave = document.getElementById('rv-wave-'+idx)?.value || drop.wave;
   const bottles = document.getElementById('rv-bottles-'+idx)?.value || drop.bottles;
   const reporter = document.getElementById('rv-reporter-'+idx)?.value || drop.reporter;
