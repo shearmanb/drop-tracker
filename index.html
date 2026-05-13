@@ -1116,7 +1116,7 @@ function buildDistrictBar(){
 
 function refresh(){buildDistrictBar();renderMarkers();updateStats();}
 
-async function syncFromSheet(){
+async function _syncFromSheetCore(){
   const btn=document.getElementById("sync-btn");btn.classList.add("syncing");
   const ok=await loadFromSheet();btn.classList.remove("syncing");
   if(ok){refresh();buildWaveSelect();toast("Synced ✓");}else{toast("Sync failed — using cache");}
@@ -1138,7 +1138,7 @@ async function flushPending(){
   if(flushed)toast(`Synced ${flushed} drop(s) ✓`);
 }
 
-function quickMark(storeId,action){
+function _quickMarkCore(storeId,action){
   map.closePopup();
   const now=new Date().toISOString().slice(0,16);
   const result=action==="scored"?"drop":action;
@@ -1797,7 +1797,7 @@ function formatModeShort(mode){
 }
 
 // ── OPEN DISTRICT PATTERN PANEL ──
-function openDistrictPanel(district){
+function _openDistrictPanelCore(district){
   const color=distColor(district);
   const patterns=getDistrictPatterns(district,20);
   const summary=getPatternSummary(district);
@@ -1923,7 +1923,7 @@ function buildSidebar(){
   updateSbWaveInfo();
 }
 
-function buildSbDistricts(){
+function _buildSbDistrictsCore(){
   const c=document.getElementById('sb-districts');
   if(!c) return;
   c.innerHTML='';
@@ -2109,16 +2109,14 @@ document.getElementById('wave-select').addEventListener('change',function(){
 });
 
 // Hook into sync button for desktop
-const _origSyncFn = syncFromSheet;
 async function syncFromSheet(){
-  await _origSyncFn();
+  await _syncFromSheetCore();
   if(isDesktop){buildSbDistricts();updateDesktopStats();updateSbWaveInfo();renderDesktopMarkers();updateDesktopSyncBadge();}
 }
 
 // Hook into quickMark for desktop refresh
-const _origQMFn = quickMark;
 function quickMark(storeId,action){
-  _origQMFn(storeId,action);
+  _quickMarkCore(storeId,action);
   if(isDesktop){setTimeout(()=>{renderDesktopMarkers();updateDesktopStats();buildSbDistricts();if(selectedStoreId===storeId)openDetailPanel(storeId);},150);}
 }
 
@@ -2637,13 +2635,11 @@ function buildDesktopBadges(){
 }
 
 // ═══════════════════════════════════════════
-// PATCH: integrate behavior tags into district sidebar/panel
+// BEHAVIOR TAG INJECTION INTO DISTRICT PANEL
 // ═══════════════════════════════════════════
 
-// Override openDistrictPanel to include behavior selector
-const _origOpenDistrictPanel = openDistrictPanel;
 function openDistrictPanel(district){
-  _origOpenDistrictPanel(district);
+  _openDistrictPanelCore(district);
   // After panel renders, add behavior selector div
   setTimeout(()=>{
     const content = document.getElementById('detail-panel-content');
@@ -2658,14 +2654,9 @@ function openDistrictPanel(district){
   }, 50);
 }
 
-// Patch buildSbDistricts to include behavior tags inline
-const _origBuildSbDistricts = buildSbDistricts;
+// buildSbDistricts: calls core then injects behavior tags
 function buildSbDistricts(){
-  _origBuildSbDistricts();
-  // Inject behavior tags into each district row
-  // (Done inline in the patched predBadge — using hook approach)
-  // Actually the badge is rendered inside buildSbDistricts already via predBadge
-  // We patch it by adding behavior tag next to pred badge
+  _buildSbDistrictsCore();
   ['D14','D17','D18','D07','D20','D16','D12'].forEach(d=>{
     const rows = document.querySelectorAll('#sb-districts .sb-district');
     rows.forEach(row=>{
@@ -2684,26 +2675,15 @@ function buildSbDistricts(){
   });
 }
 
-// ═══════════════════════════════════════════
-// INIT PATCHES — run after data load
-// ═══════════════════════════════════════════
-const _origInit = init;
-async function init(){
-  await _origInit();
+async function initAndDetect(){
+  await init();
   updateQueueBadge();
   updateReviewBadge();
   updateFillinBadge();
-}
-
-const _origActivateDesktop = activateDesktop;
-function activateDesktop(){
-  _origActivateDesktop();
-  setTimeout(()=>{buildDesktopHeader();buildDesktopBadges();},200);
-}
-
-async function initAndDetect(){
-  await init();
-  if(detectLayout()) activateDesktop();
+  if(detectLayout()){
+    activateDesktop();
+    setTimeout(()=>{buildDesktopHeader();buildDesktopBadges();},200);
+  }
 }
 
 initAndDetect();
