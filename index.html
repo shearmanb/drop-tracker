@@ -1445,10 +1445,7 @@ async function efSubmit(){
   btn.textContent='+ Add to Sheet'; btn.disabled=false;
 }
 
-init();
-
-
-
+initAndDetect();
 // ═══ DESKTOP LAYOUT ═══
 let desktopMap=null,desktopYouMarker=null,desktopMarkers={};
 let isDesktop=false,selectedStoreId=null;
@@ -1897,23 +1894,24 @@ document.getElementById('wave-select').addEventListener('change',function(){
 });
 
 // Hook into sync button for desktop
-const _origSync=syncFromSheet;
+const _origSyncFn = syncFromSheet;
 async function syncFromSheet(){
-  await _origSync();
+  await _origSyncFn();
   if(isDesktop){buildSbDistricts();updateDesktopStats();updateSbWaveInfo();renderDesktopMarkers();updateDesktopSyncBadge();}
 }
 
 // Hook into quickMark for desktop refresh
-const _origQM=quickMark;
+const _origQMFn = quickMark;
 function quickMark(storeId,action){
-  _origQM(storeId,action);
+  _origQMFn(storeId,action);
   if(isDesktop){setTimeout(()=>{renderDesktopMarkers();updateDesktopStats();buildSbDistricts();if(selectedStoreId===storeId)openDetailPanel(storeId);},150);}
 }
 
-// Auto-detect on load — override init
-const _origInit=init;
-async function init(){
-  await _origInit();
+// Auto-detect on load — runs after init is defined
+window.addEventListener('DOMContentLoaded', ()=>{});
+
+async function initAndDetect(){
+  await init();
   if(detectLayout()) activateDesktop();
 }
 
