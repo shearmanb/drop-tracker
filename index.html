@@ -146,6 +146,7 @@ textarea.modal-input{resize:vertical;min-height:56px}
 body.desktop #app{display:none}
 body.desktop #desktop-main{display:flex!important}
 #desktop-main{display:none;flex:1;overflow:hidden;height:100dvh}
+body.desktop #mobile-search-btn{display:none}
 #sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;height:100%}
 #sidebar-scroll{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
 #sidebar-scroll::-webkit-scrollbar{width:4px}
@@ -257,6 +258,18 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
 .ef-btn.primary:disabled{opacity:0.5;cursor:not-allowed}
 .ef-success{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);color:#4ade80;border-radius:8px;padding:10px 12px;font-size:12px;font-weight:600;display:none;margin-bottom:12px;text-align:center}
 .ef-success.show{display:block}
+#mobile-search-overlay{position:fixed;inset:0;background:var(--bg);z-index:3500;display:none;flex-direction:column}
+#mobile-search-overlay.open{display:flex}
+#mobile-search-header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+#mobile-search-input{flex:1;background:var(--bg);border:1.5px solid var(--accent);color:var(--text);border-radius:8px;padding:9px 12px;font-size:15px;font-family:inherit;outline:none}
+#mobile-search-cancel{background:none;border:none;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;padding:0 4px}
+#mobile-search-results{flex:1;overflow-y:auto;padding:8px}
+.mobile-search-result{display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;margin-bottom:6px;background:var(--surface);border:1px solid var(--border);cursor:pointer}
+.msr-num{font-size:18px;font-weight:900;font-variant-numeric:tabular-nums;width:48px;flex-shrink:0}
+.msr-info{flex:1;min-width:0}
+.msr-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msr-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.msr-status{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -272,6 +285,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     <span class="logo-sm">🥃</span>
     <select class="cycle-select" id="wave-select"></select>
     <button id="new-wave-btn" onclick="openNewWave()">+ Wave</button>
+    <button id="mobile-search-btn" onclick="openMobileSearch()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:14px;cursor:pointer;flex-shrink:0">🔍</button>
     <button id="dist-toggle" onclick="toggleDistMode()" title="Switch distance reference">🏠 #267</button>
     <button id="sync-btn" onclick="syncFromSheet()" title="Sync">⟳</button>
     <button id="hunt-btn">🚗 Hunt</button>
@@ -298,6 +312,10 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
 <div id="desktop-main">
   <div id="sidebar">
     <div id="sidebar-scroll">
+      <div class="sb-section" style="padding:10px 14px">
+        <input type="text" id="store-search" placeholder="🔍 Find store # or name..." oninput="searchStores(this.value)" style="font-size:13px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border)">
+        <div id="search-results"></div>
+      </div>
       <div class="sb-section">
         <div class="sb-section-title">Current Wave</div>
         <div class="sb-wave-name" id="sb-wave-name">–</div>
@@ -315,11 +333,6 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
       <div class="sb-section">
         <div class="sb-section-title">Districts</div>
         <div id="sb-districts"></div>
-      </div>
-      <div class="sb-section">
-        <div class="sb-section-title">Find Store</div>
-        <input type="text" id="store-search" placeholder="Store # or name..." oninput="searchStores(this.value)">
-        <div id="search-results"></div>
       </div>
       <div class="sb-section">
         <button id="sb-log-btn" onclick="openEntryPanel()">＋ Log a Drop</button>
@@ -348,7 +361,6 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
 
 <!-- LAYOUT TOGGLE -->
 <button id="layout-toggle" onclick="toggleLayout()">🖥 Desktop</button>
-<button id="copy-btn" onclick="copyAppCode()" title="Copy app code to clipboard" style="position:fixed;bottom:16px;left:110px;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;z-index:600;font-family:inherit">📋 Copy Code</button>
 
 <!-- DESKTOP ENTRY PANEL -->
 <div id="entry-panel">
@@ -526,6 +538,17 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     <button id="hunt-close" onclick="closeHunt()">✕ Exit</button>
   </div>
   <div id="hunt-list"></div>
+</div>
+
+<!-- MOBILE SEARCH OVERLAY -->
+<div id="mobile-search-overlay">
+  <div id="mobile-search-header">
+    <input id="mobile-search-input" type="text" placeholder="Store # or name..." oninput="mobileSearch(this.value)" autocomplete="off">
+    <button id="mobile-search-cancel" onclick="closeMobileSearch()">Cancel</button>
+  </div>
+  <div id="mobile-search-results">
+    <div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Type a store number or name</div>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -1148,6 +1171,47 @@ function openHunt(){
 }
 function closeHunt(){document.getElementById("hunt-overlay").classList.remove("open");}
 
+function openMobileSearch(){
+  document.getElementById('mobile-search-overlay').classList.add('open');
+  document.getElementById('mobile-search-input').value='';
+  document.getElementById('mobile-search-results').innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Type a store number or name</div>';
+  setTimeout(()=>document.getElementById('mobile-search-input').focus(),100);
+}
+
+function closeMobileSearch(){
+  document.getElementById('mobile-search-overlay').classList.remove('open');
+}
+
+function mobileSearch(query){
+  const results=document.getElementById('mobile-search-results');
+  if(!query.trim()){results.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Type a store number or name</div>';return;}
+  const q=query.toLowerCase();
+  const matches=STORES.filter(s=>String(s.id).includes(q)||s.label.toLowerCase().includes(q)||s.address.toLowerCase().includes(q)).slice(0,12);
+  if(!matches.length){results.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">No stores found</div>';return;}
+  results.innerHTML=matches.map(s=>{
+    const color=distColor(s.district);
+    const {status}=getStoreStatus(s.id);
+    const dot=status==='drop'?'#22c55e':status==='no_drop'?'#ef4444':'var(--muted)';
+    const statusText=status==='drop'?'Dropped this cycle':status==='no_drop'?'No drop confirmed':'Not yet reported';
+    return `<div class="mobile-search-result" onclick="mobileSpotlight(${s.id})">
+      <div class="msr-num" style="color:${color}">#${s.id}</div>
+      <div class="msr-info">
+        <div class="msr-name">${s.label}</div>
+        <div class="msr-meta">${s.district} · ${s.tier} tier · ${statusText}</div>
+      </div>
+      <div class="msr-status" style="background:${dot}"></div>
+    </div>`;
+  }).join('');
+}
+
+function mobileSpotlight(storeId){
+  const store=STORES.find(s=>s.id===storeId);
+  if(!store||!map) return;
+  closeMobileSearch();
+  map.setView([store.lat,store.lng],15,{animate:true});
+  setTimeout(()=>{ const m=markers[storeId]; if(m) m.openPopup(); },400);
+}
+
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500);}
 
 async function copyAppCode(){
@@ -1552,20 +1616,19 @@ function getPatternSummary(district){
   const predictability = topPct>=70?'HIGH':topPct>=50?'MEDIUM':'LOW';
   const predColor = predictability==='HIGH'?'#4ade80':predictability==='MEDIUM'?'#f59e0b':'#f87171';
 
-  // Avg start day/time
-  const startTimes = patterns.filter(p=>p.start).map(p=>{
-    const d=new Date(p.start); return isNaN(d)?null:d;
-  }).filter(Boolean);
-  let avgStart = null;
+  // Most common 1-hour window for start time
+  const startTimes = patterns.filter(p=>p.start).map(p=>{ const d=new Date(p.start); return isNaN(d)?null:d; }).filter(Boolean);
+  let commonWindow = null;
   if(startTimes.length){
-    const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    const dayCounts={};
-    startTimes.forEach(d=>{ const day=days[d.getDay()]; dayCounts[day]=(dayCounts[day]||0)+1; });
-    const topDay=Object.entries(dayCounts).sort((a,b)=>b[1]-a[1])[0];
-    const avgMins=Math.round(startTimes.reduce((s,d)=>s+d.getHours()*60+d.getMinutes(),0)/startTimes.length);
-    const h=Math.floor(avgMins/60), m=avgMins%60;
-    const ampm=h>=12?'pm':'am'; const h12=h>12?h-12:h||12;
-    avgStart=`${topDay[0]} ~${h12}:${String(m).padStart(2,'0')}${ampm}`;
+    // Count by hour bucket
+    const hourCounts={};
+    startTimes.forEach(d=>{
+      const h=d.getHours();
+      const label=`${h===0?12:h>12?h-12:h}${h>=12?'pm':'am'}–${(h+1)===12?12:(h+1)>12?(h+1)-12:(h+1)}${(h+1)>=12?'pm':'am'}`;
+      hourCounts[label]=(hourCounts[label]||0)+1;
+    });
+    const topWindow=Object.entries(hourCounts).sort((a,b)=>b[1]-a[1])[0];
+    commonWindow=`${topWindow[0]} (${topWindow[1]}x)`;
   }
 
   // Special flags
@@ -1574,7 +1637,7 @@ function getPatternSummary(district){
   specials.forEach(s=>{ specialCounts[s]=(specialCounts[s]||0)+1; });
   const specialSummary = Object.entries(specialCounts).map(([k,v])=>`${v} ${k}`).join(', ');
 
-  return { last, topMode: topMode?.[0], topPct, predictability, predColor, avgStart, specialSummary, total };
+  return { last, topMode: topMode?.[0], topPct, predictability, predColor, commonWindow, specialSummary, total };
 }
 
 function formatWaveShort(wave){
@@ -1639,8 +1702,8 @@ function openDistrictPanel(district){
             <div style="font-size:10px;color:var(--muted);margin-top:1px">${summary.topPct}% of waves</div>
           </div>
           <div>
-            <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Avg Start</div>
-            <div style="font-size:12px;font-weight:700">${summary.avgStart||'–'}</div>
+            <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Common Window</div>
+            <div style="font-size:12px;font-weight:700">${summary.commonWindow||'–'}</div>
             <div style="font-size:10px;color:var(--muted);margin-top:1px">${summary.total} waves analyzed</div>
           </div>
         </div>
@@ -1655,11 +1718,11 @@ function openDistrictPanel(district){
     patterns.forEach(p=>{
       const dateStr=p.start?new Date(p.start).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'';
       const waveShort=p.wave?p.wave.replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,'').substring(0,20):'–';
-      histHTML+=`<div style="padding:8px 0;border-bottom:1px solid var(--border)">
+      histHTML+=`<div style="padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="toggleWaveDropList(this,'${district}','${(p.wave||'').replace(/'/g,"\\'")}')">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <div style="flex:1;min-width:0">
             <div style="font-size:12px;font-weight:700;color:${color}">${formatModeShort(p.mode)}</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${waveShort}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${waveShort} <span style="color:${color};font-size:9px">▾ stores</span></div>
             ${p.details?`<div style="font-size:10px;color:var(--muted2);margin-top:2px;line-height:1.4">${p.details}</div>`:''}
           </div>
           <div style="text-align:right;flex-shrink:0">
@@ -1669,9 +1732,10 @@ function openDistrictPanel(district){
         </div>
         ${p.clusterA||p.clusterB?`<div style="display:flex;gap:12px;margin-top:5px">
           ${p.clusterA?`<div style="font-size:10px;color:var(--muted)">A: <span style="color:var(--text)">${new Date(p.clusterA).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span></div>`:''}
-          ${p.clusterB?`<div style="font-size:10px;color:var(--muted)">B: <span style="color:var(--text)">${new Date(p.clusterB).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span></div>`:''}
+          <div style="font-size:10px;color:var(--muted)">B: <span style="color:var(--text)">${p.clusterB&&p.clusterB!=='-'&&!isNaN(new Date(p.clusterB))?new Date(p.clusterB).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'None'}</span></div>
         </div>`:''}
         ${p.notes?`<div style="font-size:10px;color:var(--muted2);margin-top:3px;font-style:italic">${p.notes}</div>`:''}
+        <div class="wave-drop-list" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"></div>
       </div>`;
     });
     histHTML+=`</div>`;
@@ -1693,7 +1757,34 @@ function openDistrictPanel(district){
   setTimeout(()=>desktopMap&&desktopMap.invalidateSize(),260);
 }
 
-function updateSbWaveInfo(){
+function toggleWaveDropList(row, district, wave){
+  const list = row.querySelector('.wave-drop-list');
+  if(list.style.display !== 'none'){ list.style.display='none'; return; }
+
+  // Get all drops for this district+wave, sorted reverse chron
+  const drops = allDrops()
+    .filter(d=>d.district===district && d.wave===wave && d.result==='drop')
+    .sort((a,b)=>(b.timestamp||'').localeCompare(a.timestamp||''));
+
+  const color = distColor(district);
+
+  if(!drops.length){
+    list.innerHTML=`<div style="font-size:11px;color:var(--muted)">No drop records for this wave</div>`;
+  } else {
+    list.innerHTML = drops.map(d=>{
+      const store = STORES.find(s=>s.id===d.storeId);
+      const ts = d.timestamp ? new Date(d.timestamp).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : '';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:3px 0;font-size:11px;cursor:pointer" onclick="spotlightStore(${d.storeId})">
+        <span style="font-weight:800;color:${color};font-variant-numeric:tabular-nums;width:32px">#${d.storeId}</span>
+        <span style="flex:1;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${store?.label||''}</span>
+        <span style="color:var(--muted2);font-size:10px;flex-shrink:0">${ts}</span>
+        ${d.bottles?`<span style="color:var(--accent);font-size:10px;flex-shrink:0">${d.bottles}</span>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  list.style.display='block';
+}
   const wd=allDrops().filter(d=>d.wave===currentWave&&d.result==='drop');
   const el1=document.getElementById('sb-wave-name');
   const el2=document.getElementById('sb-wave-info');
