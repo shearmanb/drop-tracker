@@ -784,7 +784,8 @@ async function loadFromSheet(){
       topBottle:r[10]===true||r[10]==="TRUE"||r[10]==="Yes",
       minutesSinceMidnight:r[11]||null,dayOfWeek:r[12]||null,
       hellcatNotes:r[13]?String(r[13]):null,truckNotes:r[14]?String(r[14]):null,
-      needsReview:r[15]===true||r[15]==="TRUE"
+      needsReview:r[15]===true||r[15]==="TRUE",
+      dropId:r[16]?String(r[16]):null
     })).filter(d=>d.storeId);
     setLoad("Loading patterns...",82);
     try{
@@ -1204,6 +1205,20 @@ async function _syncFromSheetCore(){
   if(ok){refresh();buildWaveSelect();toast("Synced ✓");}else{toast("Sync failed — using cache");}
 }
 
+// ── DROP ID GENERATOR ──
+// Format: SRC-YYYYMMDD-HHMMSS-STOREID-SEQ
+let _dropIdSeq = 1;
+function generateDropId(source, storeId, date){
+  const d = date ? new Date(date) : new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const pad3 = n => String(n).padStart(3,'0');
+  const dateStr = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
+  const timeStr = `${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  const seq = pad3(_dropIdSeq++);
+  const src = source || 'APP';
+  return `${src}-${dateStr}-${timeStr}-${pad3(storeId||0)}-${seq}`;
+}
+
 // Use GET instead of POST to avoid CORS preflight issues with Apps Script
 async function scriptPost(action, payload){
   const encoded = encodeURIComponent(JSON.stringify(payload));
@@ -1212,9 +1227,11 @@ async function scriptPost(action, payload){
 }
 
 async function writeDropToSheet(drop){
+  const dropId = drop.dropId || generateDropId(drop._source||'APP', drop.storeId, drop.timestamp);
+  drop.dropId = dropId; // save back so we have it locally
   const row=[drop.wave||"",drop.storeId,drop.district||"",drop.result,drop.timestamp||"",
     drop.reporter||"",drop.bottles||"",drop.notes||"",drop.discordLink||"",
-    drop.dropQuality||"",drop.topBottle||false,"","","","",false];
+    drop.dropQuality||"",drop.topBottle||false,"","","","",false,dropId];
   try{const d=await scriptPost('addDrop',row);return d.success===true;}
   catch(e){return false;}
 }
@@ -1233,6 +1250,7 @@ function _quickMarkCore(storeId,action){
   const result=action==="scored"?"drop":action;
   const drop={_id:Date.now()+"_"+storeId,wave:currentWave,storeId,result,timestamp:now,
     district:STORES.find(s=>s.id===storeId)?.district||"",reporter:"ME",
+    _source:'APP',
     notes:action==="scored"?"GOT ONE ✅":action==="no_drop"?"Cleaned out":""};
   pendingDrops=pendingDrops.filter(d=>!(d.storeId===storeId&&d.wave===currentWave));
   pendingDrops.push(drop);
@@ -2443,6 +2461,7 @@ async function saveReviewDrop(idx){
   let serverMsg = '';
   try {
     const data = await scriptPost('updateDrop', {
+      dropId: drop.dropId || null,
       original: drop,
       updates: {wave, bottles, reporter, timestamp:ts, needsReview:false}
     });
