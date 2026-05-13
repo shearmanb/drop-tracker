@@ -2428,32 +2428,43 @@ function renderReviewList(){
 async function saveReviewDrop(idx){
   const drop = window._reviewDrops[idx];
   if(!drop){ toast('Error: drop not found'); return; }
-  const wave = document.getElementById('rv-wave-'+idx)?.value || drop.wave;
-  const bottles = document.getElementById('rv-bottles-'+idx)?.value || drop.bottles;
-  const reporter = document.getElementById('rv-reporter-'+idx)?.value || drop.reporter;
-  const ts = document.getElementById('rv-time-'+idx)?.value || drop.timestamp;
 
-  // Build correction row — same structure as addDrop but with a special flag
-  const row = [
-    wave||'', drop.storeId||'', drop.district||'', '', '', '',
-    reporter||'', '', bottles||'', drop.notes||'', '',
-    ts||'', '', ts||'',
-    drop.result==='drop'?'Drop':'No Drop', '', '', '', '', '', '',
-    '', '', ts?ts.split('T')[0]:'', '', '',
-    'REVIEWED' // marker for Apps Script
-  ];
+  const wave = document.getElementById('rv-wave-'+idx)?.value || drop.wave || '';
+  const bottles = document.getElementById('rv-bottles-'+idx)?.value || drop.bottles || '';
+  const reporter = document.getElementById('rv-reporter-'+idx)?.value || drop.reporter || '';
+  const ts = document.getElementById('rv-time-'+idx)?.value || drop.timestamp || '';
 
+  const btn = document.querySelector(`#rcard-${idx} .review-btn`);
+  if(btn){ btn.textContent = 'Saving...'; btn.disabled = true; }
+
+  let serverOk = false;
+  let serverMsg = '';
   try {
     const r = await fetch(SCRIPT_URL+'?action=updateDrop', {
       method:'POST',
-      body: JSON.stringify({original: drop, updates: {wave, bottles, reporter, timestamp:ts, needsReview:false}}),
+      body: JSON.stringify({
+        original: drop,
+        updates: {wave, bottles, reporter, timestamp:ts, needsReview:false}
+      }),
       headers:{'Content-Type':'application/json'}
     });
-    // Even if the server call fails, update locally
-  } catch(e){}
+    const data = await r.json();
+    serverOk = data.success === true;
+    serverMsg = data.error || '';
+    if(!serverOk){
+      // Show error but still update locally
+      toast('Sheet error: ' + (serverMsg||'row not found — updated locally only'));
+    }
+  } catch(e){
+    toast('Network error — updated locally only');
+  }
 
-  // Update local DROPS array
-  const localDrop = DROPS.find(d=>d.storeId===drop.storeId&&d.timestamp===drop.timestamp&&d.result===drop.result);
+  // Always update local DROPS array regardless of server result
+  const localDrop = DROPS.find(d=>
+    d.storeId==drop.storeId &&
+    d.result===drop.result &&
+    (d.timestamp===drop.timestamp || !drop.timestamp)
+  );
   if(localDrop){
     if(wave) localDrop.wave = wave;
     if(bottles) localDrop.bottles = bottles;
@@ -2465,7 +2476,8 @@ async function saveReviewDrop(idx){
   localStorage.setItem('cachedDrops', JSON.stringify(DROPS));
   document.getElementById('rcard-'+idx).style.display = 'none';
   updateReviewBadge();
-  toast('✓ Drop updated');
+
+  if(serverOk) toast('✓ Sheet updated');
 }
 
 function skipReviewDrop(cardId){
