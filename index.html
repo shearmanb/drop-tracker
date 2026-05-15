@@ -56,8 +56,19 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 #fab:active{transform:scale(0.93)}
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1e3a1e;border:1px solid #22c55e;color:#4ade80;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;z-index:4000;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
 #toast.show{opacity:1}
-.leaflet-popup-content-wrapper{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:12px!important;box-shadow:0 8px 32px rgba(0,0,0,0.7)!important;padding:0!important}
-.leaflet-popup-content{margin:0!important;width:250px!important}
+.scard-tabs{display:flex;border-bottom:1px solid var(--border);margin:0 -14px 12px -14px;padding:0 14px}
+.scard-tab{flex:1;padding:8px 4px;font-size:11px;font-weight:700;text-align:center;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all 0.15s}
+.scard-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+.scard-tab-panel{display:none}
+.scard-tab-panel.active{display:block}
+.scard-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.scard-stat-grid .sstat{flex:none}
+.scard-history-row{display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px}
+.scard-history-row:last-child{border-bottom:none}
+.shr-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.shr-wave{font-size:10px;color:var(--muted);margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shr-main{flex:1;min-width:0}border:1px solid var(--border)!important;border-radius:12px!important;box-shadow:0 8px 32px rgba(0,0,0,0.7)!important;padding:0!important}
+.leaflet-popup-content{margin:0!important;width:310px!important}
 .leaflet-popup-tip{background:var(--surface)!important}
 .leaflet-popup-close-button{color:var(--muted)!important;font-size:20px!important;top:8px!important;right:10px!important;z-index:10}
 .scard{padding:14px}
@@ -211,7 +222,97 @@ body.desktop #mobile-search-btn{display:none}
 .dp-hist-link{color:#60a5fa;font-size:12px;text-decoration:none;flex-shrink:0}
 body.desktop #layout-toggle{content:'📱 Mobile'}
 
-/* ═══ F9: QUICK DROP QUEUE ═══ */
+/* ═══ BOTTLE PICKER ═══ */
+.bp-wrap{position:relative}
+.bp-search{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;font-family:inherit}
+.bp-search::placeholder{color:var(--muted2)}
+.bp-search:focus{outline:none;border-color:var(--accent)}
+.bp-dropdown{background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-top:4px;max-height:180px;overflow-y:auto;display:none;box-shadow:0 4px 16px rgba(0,0,0,0.4);position:absolute;width:100%;z-index:100}
+.bp-dropdown.open{display:block}
+.bp-item{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;font-size:12px}
+.bp-item:hover{background:var(--surface)}
+.bp-item-tier{font-size:9px;font-weight:800;padding:2px 5px;border-radius:3px;flex-shrink:0}
+.bp-item-name{flex:1;font-weight:600}
+.bp-item-code{font-size:10px;color:var(--muted);font-family:monospace}
+.bp-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;min-height:0}
+.bp-chip{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:700;cursor:default;border:1.5px solid}
+.bp-chip-remove{background:none;border:none;color:inherit;cursor:pointer;font-size:14px;padding:0;line-height:1;opacity:0.7}
+.bp-chip-remove:hover{opacity:1}
+.bp-recents{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.bp-recent-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;width:100%;margin-bottom:2px}
+.bp-recent-chip{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--muted)}
+.bp-recent-chip:hover{border-color:var(--accent);color:var(--accent)}
+.bp-warn{font-size:10px;color:#f87171;margin-top:3px;display:none}
+.bp-warn.show{display:block}
+/* ═══ ISSUES QUEUE ═══ */
+#issues-badge{position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border-radius:10px;font-size:9px;font-weight:800;padding:1px 4px;min-width:14px;text-align:center;display:none}
+#issues-badge.show{display:block}
+#issues-btn{position:relative;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 8px;font-size:13px;cursor:pointer;flex-shrink:0}
+#issues-overlay{position:fixed;inset:0;background:var(--bg);z-index:4000;display:none;flex-direction:column}
+#issues-overlay.open{display:flex}
+#issues-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#issues-title{font-size:14px;font-weight:700}
+#issues-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
+#issues-filters{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;gap:6px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+#issues-filters::-webkit-scrollbar{display:none}
+.iq-filter{padding:4px 10px;border-radius:14px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);white-space:nowrap;font-family:inherit}
+.iq-filter.active{border-color:var(--accent);color:var(--accent);background:rgba(245,158,11,0.1)}
+#issues-list{flex:1;overflow-y:auto;padding:10px}
+#issues-summary{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 14px;font-size:11px;color:var(--muted);flex-shrink:0}
+.iq-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
+.iq-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:8px}
+.iq-card-left{flex:1;min-width:0}
+.iq-type-badge{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;padding:2px 6px;border-radius:4px;margin-bottom:4px;display:inline-block}
+.iqt-review{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)}
+.iqt-collision{background:rgba(245,158,11,0.15);color:var(--accent);border:1px solid rgba(245,158,11,0.3)}
+.iqt-bottles{background:rgba(96,165,250,0.15);color:#60a5fa;border:1px solid rgba(96,165,250,0.3)}
+.iqt-reporter{background:rgba(168,85,247,0.15);color:#d8b4fe;border:1px solid rgba(168,85,247,0.3)}
+.iqt-link{background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.3)}
+.iq-store{font-size:14px;font-weight:800}
+.iq-wave{font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.iq-detail{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:8px;padding:6px 8px;background:var(--bg);border-radius:6px}
+.iq-actions{display:flex;gap:6px}
+.iq-btn{flex:1;padding:8px;border-radius:8px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+.iq-btn-primary{background:var(--accent);color:#000}
+.iq-btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.iq-inline-edit{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:none}
+.iq-inline-edit.open{display:block}
+.iq-edit-row{display:flex;gap:6px;margin-bottom:6px;align-items:center}
+.iq-edit-label{font-size:10px;color:var(--muted);width:60px;flex-shrink:0;text-transform:uppercase;letter-spacing:0.5px}
+.iq-edit-input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit}
+.iq-edit-input:focus{outline:none;border-color:var(--accent)}
+.iq-edit-actions{display:flex;gap:6px;margin-top:6px}
+.iq-choice{flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;text-align:center;font-family:inherit}
+.iq-choice:hover{border-color:var(--accent);color:var(--accent);background:rgba(245,158,11,0.08)}
+
+/* ═══ F11: DISTRICT ANALYTICS ═══ */
+#analytics-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 8px;font-size:13px;cursor:pointer;flex-shrink:0;font-family:inherit}
+#analytics-btn:hover{border-color:var(--accent);color:var(--accent)}
+#analytics-overlay{position:fixed;inset:0;background:var(--bg);z-index:3000;display:none;flex-direction:column}
+#analytics-overlay.open{display:flex}
+#analytics-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#analytics-title{font-size:15px;font-weight:800}
+#analytics-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
+#analytics-body{flex:1;overflow-y:auto;padding:12px}
+.an-district-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
+.an-district-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.an-district-name{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums}
+.an-pred-score{font-size:28px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+.an-pred-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-top:2px;text-align:right}
+.an-stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px}
+.an-stat{background:var(--bg);border-radius:8px;padding:8px 10px}
+.an-stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:3px}
+.an-stat-val{font-size:13px;font-weight:700;line-height:1.2}
+.an-stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.an-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px}
+.an-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.an-bar-label{font-size:11px;color:var(--muted);width:80px;flex-shrink:0;text-align:right}
+.an-bar-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.an-bar-fill{height:100%;border-radius:4px;transition:width 0.4s}
+.an-bar-count{font-size:10px;color:var(--muted);width:24px;text-align:right;flex-shrink:0}
+.an-overdue{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:6px 10px;font-size:11px;color:#f87171;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.an-due-soon{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:6px 10px;font-size:11px;color:#f59e0b;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.an-fresh{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:6px 10px;font-size:11px;color:#4ade80;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 #queue-badge{position:relative;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 8px;font-size:13px;cursor:pointer;flex-shrink:0;display:none;align-items:center;gap:4px;font-family:inherit}
 #queue-badge.has-items{display:flex;border-color:#f59e0b;color:#f59e0b}
 #queue-badge-count{background:#f59e0b;color:#000;border-radius:10px;padding:1px 5px;font-size:10px;font-weight:800;line-height:1.4}
@@ -360,7 +461,9 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     <button id="new-wave-btn" onclick="openNewWave()">+ Wave</button>
     <button id="mobile-search-btn" onclick="openMobileSearch()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:14px;cursor:pointer;flex-shrink:0">🔍</button>
     <button id="dist-toggle" onclick="toggleDistMode()" title="Switch distance reference">🏠 #267</button>
-    <button id="queue-badge" onclick="openQueueOverlay()" title="Needs detail logging">📋 <span id="queue-badge-count">0</span></button>
+    <button id="analytics-btn" onclick="openAnalytics()" title="District Analytics">📊</button>
+    <button id="issues-btn" onclick="openIssues()" title="Data issues">📋<span id="issues-badge"></span></button>
+    <button id="queue-badge" onclick="openQueueOverlay()" title="Needs detail logging">⚡ <span id="queue-badge-count">0</span></button>
     <button id="review-badge" onclick="openReviewOverlay()" title="Needs review">⚠️</button>
     <button id="fillin-btn" onclick="openFillinOverlay()" title="Data quality tasks">✏️</button>
     <button id="sync-btn" onclick="syncFromSheet()" title="Sync">⟳</button>
@@ -412,6 +515,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
       </div>
       <div class="sb-section">
         <button id="sb-log-btn" onclick="openEntryPanel()">＋ Log a Drop</button>
+        <button onclick="openAnalytics()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px">📊 District Analytics</button>
       </div>
     </div>
   </div>
@@ -497,7 +601,14 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     <!-- Optional fields -->
     <div class="ef-section">
       <div class="ef-label">Bottles <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
-      <input class="ef-input" id="ef-bottles" type="text" placeholder="e.g. jd12, hh 19, stagg">
+      <div class="bp-wrap">
+        <input class="bp-search ef-input" id="ef-bp-search" type="text" placeholder="Type EHT, Stagg, HH22...">
+        <div class="bp-dropdown" id="ef-bp-dropdown"></div>
+        <div id="ef-bp-recents" class="bp-recents"></div>
+        <div id="ef-bp-chips" class="bp-chips" style="margin-top:6px"></div>
+        <div class="bp-warn" id="ef-bp-warn"></div>
+      </div>
+      <input type="hidden" id="ef-bottles">
     </div>
 
     <div class="ef-section">
@@ -572,7 +683,14 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     </div>
     <div class="modal-section">
       <div class="modal-label">Bottles <span style="color:var(--muted);font-weight:400;text-transform:none">(optional)</span></div>
-      <input class="modal-input" id="f-bottles" type="text" placeholder="e.g. HH22, Stagg, OF11">
+      <div class="bp-wrap">
+        <input class="bp-search modal-input" id="mob-bp-search" type="text" placeholder="Type EHT, Stagg, HH22...">
+        <div class="bp-dropdown" id="mob-bp-dropdown"></div>
+        <div id="mob-bp-recents" class="bp-recents" style="margin-top:6px"></div>
+        <div id="mob-bp-chips" class="bp-chips" style="margin-top:6px"></div>
+        <div class="bp-warn" id="mob-bp-warn"></div>
+      </div>
+      <input type="hidden" id="f-bottles">
     </div>
     <div class="modal-section">
       <div class="modal-label">Reporter</div>
@@ -613,7 +731,11 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
 <div id="hunt-overlay">
   <div id="hunt-header">
     <div id="hunt-title">🚗 Hunt Mode</div>
-    <button id="hunt-close" onclick="closeHunt()">✕ Exit</button>
+    <div style="display:flex;gap:6px">
+      <button id="hunt-mode-state" onclick="setHuntMode('state')" style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🌐 State</button>
+      <button id="hunt-mode-district" onclick="setHuntMode('district')" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📍 District</button>
+      <button id="hunt-close" onclick="closeHunt()">✕ Exit</button>
+    </div>
   </div>
   <div id="hunt-list"></div>
 </div>
@@ -627,6 +749,33 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
   <div id="mobile-search-results">
     <div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Type a store number or name</div>
   </div>
+</div>
+
+<!-- ISSUES QUEUE OVERLAY -->
+<div id="issues-overlay">
+  <div id="issues-header">
+    <div id="issues-title">📋 Data Issues</div>
+    <button id="issues-close" onclick="closeIssues()">✕ Done</button>
+  </div>
+  <div id="issues-summary"></div>
+  <div id="issues-filters">
+    <button class="iq-filter active" data-filter="all" onclick="setIssueFilter('all',this)">All</button>
+    <button class="iq-filter" data-filter="collision" onclick="setIssueFilter('collision',this)">⚠️ Collisions</button>
+    <button class="iq-filter" data-filter="review" onclick="setIssueFilter('review',this)">🔍 Review</button>
+    <button class="iq-filter" data-filter="bottles" onclick="setIssueFilter('bottles',this)">🥃 No Bottles</button>
+    <button class="iq-filter" data-filter="reporter" onclick="setIssueFilter('reporter',this)">👤 No Reporter</button>
+    <button class="iq-filter" data-filter="link" onclick="setIssueFilter('link',this)">🔗 No Link</button>
+  </div>
+  <div id="issues-list"></div>
+</div>
+
+<!-- F11: DISTRICT ANALYTICS OVERLAY -->
+<div id="analytics-overlay">
+  <div id="analytics-header">
+    <div id="analytics-title">📊 District Analytics</div>
+    <button id="analytics-close" onclick="closeAnalytics()">✕ Close</button>
+  </div>
+  <div id="analytics-body"></div>
 </div>
 
 <!-- F9: QUICK DROP QUEUE OVERLAY -->
@@ -705,12 +854,87 @@ const ZOOM_DOT = 10;   // <= 10: dots only
 const ZOOM_MID = 12;   // 11-12: number + tier
 const ZOOM_FULL = 13;  // >= 13: full pin with tier + glow
 
-let STORES=[], DROPS=[], PATTERNS=[], currentWave="2026.04.27 - MM BO EHT";
+let STORES=[], DROPS=[], PATTERNS=[], currentWave=null;
 let activeDistricts=new Set(["ALL"]);
 let pendingDrops=JSON.parse(localStorage.getItem("pendingDrops")||"[]");
 let currentResult="drop", markers={}, recognition=null;
 let userLat=38.9278, userLng=-77.1823;
 let currentZoom=11;
+
+// ── CACHE: allDrops() ──
+// Invalidated whenever DROPS or pendingDrops changes
+let _allDropsCache = null;
+function allDrops(){
+  if(!_allDropsCache) _allDropsCache = [...DROPS, ...pendingDrops];
+  return _allDropsCache;
+}
+function invalidateDropCache(){
+  _allDropsCache = null;
+  _dropOrderCache = {};
+  _storeHistoryCache = {};
+  _storeStatusCache = {};
+}
+
+// ── CACHE: getDropOrder() ──
+let _dropOrderCache = {};
+function getDropOrderCached(storeId, wave){
+  const key = storeId+'|'+wave;
+  if(_dropOrderCache[key] !== undefined) return _dropOrderCache[key];
+  const result = _getDropOrderCore(storeId, wave);
+  _dropOrderCache[key] = result;
+  return result;
+}
+
+// ── CACHE: getStoreHistory() ──
+let _storeHistoryCache = {};
+function getStoreHistory(storeId){
+  if(_storeHistoryCache[storeId]) return _storeHistoryCache[storeId];
+  const result = allDrops()
+    .filter(d=>d.storeId==storeId&&d.wave)
+    .sort((a,b)=>(b.timestamp||"").localeCompare(a.timestamp||""))
+    .slice(0,10);
+  _storeHistoryCache[storeId] = result;
+  return result;
+}
+
+// ── CACHE: getStoreStatus() ──
+let _storeStatusCache = {};
+function getStoreStatus(storeId){
+  const key = storeId+'|'+currentWave;
+  if(_storeStatusCache[key]) return _storeStatusCache[key];
+  const local=pendingDrops.filter(d=>d.storeId==storeId&&d.wave===currentWave);
+  const server=DROPS.filter(d=>d.storeId==storeId&&d.wave===currentWave);
+  const all=[...local,...server];
+  let result;
+  if(!all.length) result = {status:"unknown",drop:null};
+  else {
+    const drop=all.find(d=>d.result==="drop");
+    if(drop) result = {status:"drop",drop};
+    else {
+      const nodrop=all.find(d=>d.result==="no_drop");
+      result = nodrop ? {status:"no_drop",drop:nodrop} : {status:"unknown",drop:all[0]};
+    }
+  }
+  _storeStatusCache[key] = result;
+  return result;
+}
+
+// ── DYNAMIC DISTRICTS ──
+// Derived from STORES data, not hardcoded
+// Priority order preserved for known districts
+const DISTRICT_PRIORITY = ['D14','D17','D18','D07','D20','D16','D12'];
+function getActiveDistricts(){
+  const fromStores = [...new Set(STORES.map(s=>s.district).filter(Boolean))];
+  // Sort by priority order, unknown districts go at end
+  return fromStores.sort((a,b)=>{
+    const ai = DISTRICT_PRIORITY.indexOf(a);
+    const bi = DISTRICT_PRIORITY.indexOf(b);
+    if(ai===-1&&bi===-1) return a.localeCompare(b);
+    if(ai===-1) return 1;
+    if(bi===-1) return -1;
+    return ai-bi;
+  });
+}
 
 // Distance mode: 'home' = from store 267, 'live' = from current GPS
 let distMode = 'home';
@@ -753,79 +977,125 @@ function allDrops(){ return [...DROPS,...pendingDrops]; }
 function distColor(d){ return DC[d]||"#64748b"; }
 function distZ(d){ return DISTRICT_Z[d]||100; }
 
+const CACHE_VERSION = '4'; // bump when schema changes
+
 function setLoad(msg,pct){
   document.getElementById("load-msg").textContent=msg;
   document.getElementById("load-bar").style.width=pct+"%";
 }
 
+function parseStore(r){
+  return {
+    id:Number(r[0]),label:String(r[1]||""),district:String(r[2]||""),
+    address:String(r[3]||""),qRank:Number(r[4]||0),tier:String(r[5]||"C"),
+    sRank:Number(r[6]||99),sRankLabel:String(r[7]||""),
+    hh22:r[8]===true||r[8]==="TRUE"||r[8]==="true",
+    bb30:r[9]===true||r[9]==="TRUE"||r[9]==="true",
+    jd14:r[10]===true||r[10]==="TRUE"||r[10]==="true",
+    lat:Number(r[11]||0),lng:Number(r[12]||0)
+  };
+}
+
+function parseDrop(r){
+  return {
+    wave:String(r[0]||"").trim()||null,storeId:Number(r[1]||0),
+    district:String(r[2]||""),result:String(r[3]||"unknown"),
+    timestamp:r[4]?String(r[4]):null,reporter:String(r[5]||""),
+    bottles:r[6]?String(r[6]):null,notes:r[7]?String(r[7]):null,
+    discordLink:r[8]?String(r[8]):null,dropQuality:r[9]||null,
+    topBottle:r[10]===true||r[10]==="TRUE"||r[10]==="Yes",
+    minutesSinceMidnight:r[11]||null,dayOfWeek:r[12]||null,
+    hellcatNotes:r[13]?String(r[13]):null,truckNotes:r[14]?String(r[14]):null,
+    needsReview:r[15]===true||r[15]==="TRUE",
+    dropId:r[16]?String(r[16]):null
+  };
+}
+
+function parsePattern(r){
+  return {
+    wave:String(r[0]||"").trim()||null,
+    district:String(r[1]||"").trim(),
+    mode:String(r[2]||"").trim()||null,
+    start:r[3]?String(r[3]).trim():null,
+    clusterA:r[4]?String(r[4]).trim():null,
+    clusterB:r[5]?String(r[5]).trim():null,
+    details:r[6]?String(r[6]).trim():null,
+    special:r[7]?String(r[7]).trim():null,
+    notes:r[8]?String(r[8]).trim():null,
+  };
+}
+
+function autoDetectWave(drops){
+  // Pick the most recent wave label by date prefix
+  const waves = [...new Set(drops.map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w)))].sort();
+  return waves.length ? waves[waves.length-1] : null;
+}
+
 async function loadFromSheet(){
   try{
-    setLoad("Loading stores...",20);
-    const sr=await fetch(SCRIPT_URL+"?action=getStores");
-    const srows=await sr.json();
-    STORES=srows.slice(1).map(r=>({
-      id:Number(r[0]),label:String(r[1]||""),district:String(r[2]||""),
-      address:String(r[3]||""),qRank:Number(r[4]||0),tier:String(r[5]||"C"),
-      sRank:Number(r[6]||99),sRankLabel:String(r[7]||""),
-      hh22:r[8]===true||r[8]==="TRUE"||r[8]==="true",
-      bb30:r[9]===true||r[9]==="TRUE"||r[9]==="true",
-      jd14:r[10]===true||r[10]==="TRUE"||r[10]==="true",
-      lat:Number(r[11]||0),lng:Number(r[12]||0)
-    })).filter(s=>s.id&&s.lat);
-    setLoad("Loading drops...",55);
-    const dr=await fetch(SCRIPT_URL+"?action=getDrops");
-    const drows=await dr.json();
-    DROPS=drows.slice(1).map(r=>({
-      wave:String(r[0]||"").trim()||null,storeId:Number(r[1]||0),
-      district:String(r[2]||""),result:String(r[3]||"unknown"),
-      timestamp:r[4]?String(r[4]):null,reporter:String(r[5]||""),
-      bottles:r[6]?String(r[6]):null,notes:r[7]?String(r[7]):null,
-      discordLink:r[8]?String(r[8]):null,dropQuality:r[9]||null,
-      topBottle:r[10]===true||r[10]==="TRUE"||r[10]==="Yes",
-      minutesSinceMidnight:r[11]||null,dayOfWeek:r[12]||null,
-      hellcatNotes:r[13]?String(r[13]):null,truckNotes:r[14]?String(r[14]):null,
-      needsReview:r[15]===true||r[15]==="TRUE",
-      dropId:r[16]?String(r[16]):null
-    })).filter(d=>d.storeId);
-    setLoad("Loading patterns...",82);
-    try{
-      const pr=await fetch(SCRIPT_URL+"?action=getPatterns");
-      const prows=await pr.json();
-      PATTERNS=prows.slice(1).map(r=>({
-        wave:String(r[0]||"").trim()||null,
-        district:String(r[1]||"").trim(),
-        mode:String(r[2]||"").trim()||null,
-        start:r[3]?String(r[3]).trim():null,
-        clusterA:r[4]?String(r[4]).trim():null,
-        clusterB:r[5]?String(r[5]).trim():null,
-        details:r[6]?String(r[6]).trim():null,
-        special:r[7]?String(r[7]).trim():null,
-        notes:r[8]?String(r[8]).trim():null,
-      })).filter(p=>p.district);
-      localStorage.setItem("cachedPatterns",JSON.stringify(PATTERNS));
-    }catch(e){ console.warn("Patterns load failed",e); PATTERNS=[]; }
+    setLoad("Loading data...",20);
+    // ── PARALLEL FETCH — all three at once ──
+    const [sr, dr, pr] = await Promise.all([
+      fetch(SCRIPT_URL+"?action=getStores"),
+      fetch(SCRIPT_URL+"?action=getDrops"),
+      fetch(SCRIPT_URL+"?action=getPatterns").catch(()=>null)
+    ]);
+    setLoad("Parsing...",65);
+    const [srows, drows] = await Promise.all([sr.json(), dr.json()]);
 
+    STORES = srows.slice(1).map(parseStore).filter(s=>s.id&&s.lat);
+    DROPS  = drows.slice(1).map(parseDrop).filter(d=>d.storeId);
+
+    if(pr){
+      try{
+        const prows = await pr.json();
+        PATTERNS = prows.slice(1).map(parsePattern).filter(p=>p.district);
+      }catch(e){ console.warn("Patterns parse failed",e); PATTERNS=[]; }
+    }
+
+    // Auto-detect current wave if not set or stale
+    const detected = autoDetectWave(DROPS);
+    if(!currentWave || !DROPS.some(d=>d.wave===currentWave)){
+      currentWave = detected;
+    }
+
+    invalidateDropCache();
     setLoad("Building map...",90);
-    localStorage.setItem("cachedStores",JSON.stringify(STORES));
-    localStorage.setItem("cachedDrops",JSON.stringify(DROPS));
-    localStorage.setItem("cacheTime",Date.now());
+
+    // Cache with version tag
+    localStorage.setItem("cachedStores", JSON.stringify(STORES));
+    localStorage.setItem("cachedDrops",  JSON.stringify(DROPS));
+    localStorage.setItem("cachedPatterns", JSON.stringify(PATTERNS));
+    localStorage.setItem("cacheTime",    Date.now());
+    localStorage.setItem("cacheWave",    currentWave||'');
+    localStorage.setItem("cacheVersion", CACHE_VERSION);
     lastSyncTime = Date.now();
     updateSyncBadge();
     return true;
-  }catch(e){ console.error(e); return false; }
+  }catch(e){ console.error("loadFromSheet failed:",e); return false; }
 }
 
 function loadFromCache(){
-  const s=localStorage.getItem("cachedStores"),d=localStorage.getItem("cachedDrops");
-  if(s&&d){
-    STORES=JSON.parse(s); DROPS=JSON.parse(d);
-    const cp=localStorage.getItem("cachedPatterns");
-    if(cp) PATTERNS=JSON.parse(cp);
-    const ct = localStorage.getItem("cacheTime");
-    if(ct){ lastSyncTime = parseInt(ct); updateSyncBadge(); }
-    return true;
+  // Bust cache if schema version changed
+  if(localStorage.getItem("cacheVersion") !== CACHE_VERSION){
+    console.log("Cache version mismatch — clearing");
+    ['cachedStores','cachedDrops','cachedPatterns','cacheTime','cacheWave','cacheVersion']
+      .forEach(k=>localStorage.removeItem(k));
+    return false;
   }
-  return false;
+  const s=localStorage.getItem("cachedStores"), d=localStorage.getItem("cachedDrops");
+  if(!s||!d) return false;
+  STORES = JSON.parse(s);
+  DROPS  = JSON.parse(d);
+  const cp = localStorage.getItem("cachedPatterns");
+  if(cp) PATTERNS = JSON.parse(cp);
+  const cw = localStorage.getItem("cacheWave");
+  if(cw) currentWave = cw;
+  else currentWave = autoDetectWave(DROPS);
+  const ct = localStorage.getItem("cacheTime");
+  if(ct){ lastSyncTime = parseInt(ct); updateSyncBadge(); }
+  invalidateDropCache();
+  return true;
 }
 
 async function init(){
@@ -971,25 +1241,6 @@ function makePin(store,status){
   }
 }
 
-function getStoreStatus(storeId){
-  const local=pendingDrops.filter(d=>d.storeId==storeId&&d.wave===currentWave);
-  const server=DROPS.filter(d=>d.storeId==storeId&&d.wave===currentWave);
-  const all=[...local,...server];
-  if(!all.length) return {status:"unknown",drop:null};
-  const drop=all.find(d=>d.result==="drop");
-  if(drop) return {status:"drop",drop};
-  const nodrop=all.find(d=>d.result==="no_drop");
-  if(nodrop) return {status:"no_drop",drop:nodrop};
-  return {status:"unknown",drop:all[0]};
-}
-
-function getStoreHistory(storeId){
-  return allDrops()
-    .filter(d=>d.storeId==storeId&&d.wave)
-    .sort((a,b)=>(b.timestamp||"").localeCompare(a.timestamp||""))
-    .slice(0,10);
-}
-
 function timeSince(ts){
   if(!ts) return null;
   const d=new Date(ts);if(isNaN(d)) return null;
@@ -999,9 +1250,8 @@ function timeSince(ts){
   return d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
 }
 
-// Returns drop order info for a store within its district for a given wave
-// e.g. { order: 2, total: 5, label: '2nd', sameTime: false, mode: 'Rolling Window' }
-function getDropOrder(storeId, wave){
+// Returns drop order info — memoized via getDropOrderCached
+function _getDropOrderCore(storeId, wave){
   const store = STORES.find(s=>s.id===storeId);
   if(!store) return null;
   const district = store.district;
@@ -1050,89 +1300,153 @@ function getDropOrder(storeId, wave){
   return { order, total, label, sameTime, mode };
 }
 
+// Public API — always use this, not _getDropOrderCore directly
+function getDropOrder(storeId, wave){
+  return getDropOrderCached(storeId, wave);
+}
+
 function buildPopup(store){
+  try { return _buildPopupCore(store); }
+  catch(e){
+    console.error('buildPopup error for store',store?.id, e);
+    return `<div class="scard"><div style="padding:12px;color:var(--muted);font-size:12px">⚠ Error loading store data</div></div>`;
+  }
+}
+
+function _buildPopupCore(store){
   const {status,drop}=getStoreStatus(store.id);
   const color=distColor(store.district);
   const history=getStoreHistory(store.id);
   const totalDrops=allDrops().filter(d=>d.storeId==store.id&&d.result==="drop").length;
   const qRank10=(store.qRank*10/3).toFixed(1);
-  let statusHTML="";
-  if(status==="drop"){const ts=drop?.timestamp?timeSince(drop.timestamp):"time unknown";statusHTML=`<div class="drop-status ds-drop">✓ Dropped · ${ts}</div>`;}
-  else if(status==="no_drop"){statusHTML=`<div class="drop-status ds-nodrop">✕ No Drop Confirmed</div>`;}
-  else{statusHTML=`<div class="drop-status ds-unknown">? No Data This Cycle</div>`;}
+
+  // Current cycle order
+  const currentOrd = status==='drop' ? getDropOrder(store.id, currentWave) : null;
+
+  // Last drop (most recent drop across all waves)
+  const lastDrop = history.find(h=>h.result==='drop');
+  const lastDropDate = lastDrop?.timestamp ? new Date(lastDrop.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : '–';
+  const lastDropTime = lastDrop?.timestamp ? new Date(lastDrop.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : '';
+
+  // Most common drop time
+  const recentDropTimes=history.filter(h=>h.result==='drop'&&h.timestamp).slice(0,10).map(h=>new Date(h.timestamp)).filter(d=>!isNaN(d));
+  let commonTime='no data';
+  if(recentDropTimes.length>=2){
+    const hc={};
+    recentDropTimes.forEach(d=>{const h=d.getHours();const l=`${h===0?12:h>12?h-12:h}${h>=12?'pm':'am'}`;hc[l]=(hc[l]||0)+1;});
+    const top=Object.entries(hc).sort((a,b)=>b[1]-a[1])[0];
+    commonTime=`${top[0]} (${Math.round(top[1]/recentDropTimes.length*100)}%)`;
+  } else if(recentDropTimes.length===1){
+    const h=recentDropTimes[0].getHours();
+    commonTime=`${h===0?12:h>12?h-12:h}${h>=12?'pm':'am'}`;
+  }
+
+  // Status HTML
+  let statusHTML='';
+  if(status==='drop'){
+    const ts=drop?.timestamp?timeSince(drop.timestamp):'time unknown';
+    statusHTML=`<div class="drop-status ds-drop">✓ Dropped this cycle · ${ts}</div>`;
+  } else if(status==='no_drop'){
+    statusHTML=`<div class="drop-status ds-nodrop">✕ No Drop This Cycle</div>`;
+  } else {
+    statusHTML=`<div class="drop-status ds-unknown">? Not Yet Reported</div>`;
+  }
+
+  // Badges
   const badges=`<div class="scard-badges">
     <span class="badge badge-${store.tier}">${store.tier}</span>
     ${store.hh22?'<span class="badge badge-hh22">⭐HH22</span>':""}
     ${store.bb30?'<span class="badge badge-bb30">🏆BB30</span>':""}
   </div>`;
-  let histHTML="";
-  if(history.length){
-    histHTML=`<div class="scard-history"><div class="hist-title">History (${totalDrops} drops)</div>`;
-    history.forEach(h=>{
-      const dot=h.result==="drop"?"#22c55e":"#ef4444";
-      const ds=h.timestamp?new Date(h.timestamp).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"2-digit"}):"";
-      const tm=h.timestamp?new Date(h.timestamp).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}):"";
-      const ord = h.result==='drop' && h.wave ? getDropOrder(store.id, h.wave) : null;
-      const ordHTML = ord ? `<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:${ord.sameTime?'rgba(37,99,235,0.15)':'rgba(16,185,129,0.15)'};color:${ord.sameTime?'#60a5fa':'#34d399'}">${ord.label}${ord.sameTime?'':' of '+ord.total}</span>` : '';
-      const modeHTML = ord?.mode ? `<span style="font-size:9px;color:var(--muted2)">${formatModeShort(ord.mode)}</span>` : '';
-      histHTML+=`<div class="hist-item"><div class="hist-dot" style="background:${dot}"></div>
-        <div class="hist-main">
-          <div class="hist-wave" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">${h.wave||"Unlabeled"} ${ordHTML} ${modeHTML}</div>
-          ${h.bottles?`<div class="hist-bottles">${h.bottles}</div>`:""}
-          ${h.dropQuality?`<div style="display:inline-flex;align-items:center;gap:3px;font-size:10px;color:#f59e0b;font-weight:700">★ Q${h.dropQuality}</div>`:''}
-          ${ds?`<div class="hist-time">${ds}${tm?' · <span style="color:var(--accent)">'+tm+'</span>':''}${h.reporter?" · "+h.reporter:""}</div>`:""}
+
+  // ── TAB A: SUMMARY ──
+  const currentOrdHTML = currentOrd
+    ? `<div style="font-size:11px;margin-top:4px">${currentOrd.sameTime?'<span style="color:#60a5fa">Same time as district</span>':`<span style="color:#34d399">${currentOrd.label} of ${currentOrd.total} in district</span>`}</div>`
+    : '';
+  const tabA=`
+    ${statusHTML}
+    ${currentOrdHTML}
+    <div class="scard-stat-grid" style="margin-top:10px">
+      <div class="sstat"><div class="sstat-label">Last Drop</div><div class="sstat-val" style="font-size:11px;color:${color}">${lastDropDate}</div>${lastDropTime?`<div style="font-size:10px;color:var(--accent)">${lastDropTime}</div>`:''}</div>
+      <div class="sstat"><div class="sstat-label">Common Time</div><div class="sstat-val" style="font-size:11px;color:${color}">${commonTime}</div></div>
+      <div class="sstat"><div class="sstat-label">qRank</div><div class="sstat-val" style="color:${color}">${qRank10}/10</div></div>
+      <div class="sstat"><div class="sstat-label">Sales Rank</div><div class="sstat-val">${store.sRankLabel}</div></div>
+      <div class="sstat"><div class="sstat-label">Total Drops</div><div class="sstat-val">${totalDrops}</div></div>
+      <div class="sstat"><div class="sstat-label">District</div><div class="sstat-val" style="color:${color}">${store.district}</div></div>
+    </div>
+    <div class="scard-actions" style="margin-top:10px">${
+      status==='drop'
+        ?`<button class="scard-btn btn-danger" onclick="quickMark(${store.id},'no_drop')">Cleaned Out</button>
+          <button class="scard-btn btn-primary" onclick="quickMark(${store.id},'scored')">Got One ✅</button>`
+        :`<button class="scard-btn btn-primary" onclick="quickDrop(${store.id})">⚡ Quick Drop</button>
+          <button class="scard-btn btn-secondary" onclick="openModalForStore(${store.id})">📝 Log</button>
+          <button class="scard-btn btn-secondary" onclick="openDirections(${store.lat},${store.lng})" style="flex:0;padding:9px 8px">~${calcTime(calcDist(store.lat,store.lng))} ↗</button>`
+    }</div>`;
+
+  // ── TAB B: ORDER HISTORY ──
+  const dropsWithOrder = history.filter(h=>h.result==='drop');
+  let tabB='';
+  if(!dropsWithOrder.length){
+    tabB='<div style="padding:16px 0;text-align:center;color:var(--muted);font-size:12px">No drop history yet</div>';
+  } else {
+    tabB=dropsWithOrder.map(h=>{
+      const ord=h.wave?getDropOrder(store.id,h.wave):null;
+      const ds=h.timestamp?new Date(h.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'–';
+      const tm=h.timestamp?new Date(h.timestamp).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'';
+      const ordLabel=ord?(ord.sameTime?'<span style="color:#60a5fa">Same time</span>':`<span style="color:#34d399">${ord.label} of ${ord.total}</span>`):'<span style="color:var(--muted2)">–</span>';
+      const waveShort=(h.wave||'?').replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,'').substring(0,16);
+      return `<div class="scard-history-row">
+        <div class="shr-dot" style="background:#22c55e"></div>
+        <div class="shr-main">
+          <div class="shr-wave">${waveShort}</div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="font-size:11px;font-weight:600">${ds}</span>
+            ${tm?`<span style="font-size:11px;color:var(--accent)">${tm}</span>`:''}
+            ${ordLabel}
+          </div>
         </div>
-        ${h.discordLink?`<a class="hist-link" href="${h.discordLink}" target="_blank">↗</a>`:""}
+        ${h.discordLink?`<a class="hist-link" href="${h.discordLink}" target="_blank">↗</a>`:''}
       </div>`;
-    });
-    histHTML+=`</div>`;
-  }
-  const actions=status==="drop"
-    ?`<button class="scard-btn btn-danger" onclick="quickMark(${store.id},'no_drop')">Cleaned Out</button>
-       <button class="scard-btn btn-primary" onclick="quickMark(${store.id},'scored')">Got One ✅</button>`
-    :`<button class="scard-btn btn-primary" onclick="quickDrop(${store.id})">⚡ Quick Drop</button>
-      <button class="scard-btn btn-secondary" onclick="openModalForStore(${store.id})">📝 Log Details</button>
-      <button class="scard-btn btn-secondary" onclick="openDirections(${store.lat},${store.lng})" style="flex:0;padding:9px 8px">~${calcTime(calcDist(store.lat,store.lng))} ↗</button>`;
-  // Most common drop time window from last 10 drops
-  const recentDropTimes = history
-    .filter(h=>h.result==='drop'&&h.timestamp)
-    .slice(0,10)
-    .map(h=>new Date(h.timestamp))
-    .filter(d=>!isNaN(d));
-  let commonTimeHTML = '<div class="sstat-val" style="font-size:10px;color:var(--muted)">no data</div>';
-  if(recentDropTimes.length>=2){
-    const hourCounts={};
-    recentDropTimes.forEach(d=>{
-      const h=d.getHours();
-      const label=`${h===0?12:h>12?h-12:h}${h>=12?'pm':'am'}`;
-      hourCounts[label]=(hourCounts[label]||0)+1;
-    });
-    const top=Object.entries(hourCounts).sort((a,b)=>b[1]-a[1])[0];
-    const pct=Math.round(top[1]/recentDropTimes.length*100);
-    commonTimeHTML=`<div class="sstat-val" style="color:${color}">${top[0]}</div><div style="font-size:9px;color:var(--muted)">${pct}% of drops</div>`;
-  } else if(recentDropTimes.length===1){
-    const h=recentDropTimes[0].getHours();
-    const label=`${h===0?12:h>12?h-12:h}${h>=12?'pm':'am'}`;
-    commonTimeHTML=`<div class="sstat-val" style="color:${color}">${label}</div><div style="font-size:9px;color:var(--muted)">1 drop</div>`;
+    }).join('');
   }
 
+  // ── TAB C: BOTTLES ──
+  const dropsWithBottles = history.filter(h=>h.result==='drop'&&h.bottles);
+  let tabC='';
+  if(!dropsWithBottles.length){
+    tabC='<div style="padding:16px 0;text-align:center;color:var(--muted);font-size:12px">No bottle data yet</div>';
+  } else {
+    tabC=dropsWithBottles.map(h=>{
+      const ds=h.timestamp?new Date(h.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'–';
+      const waveShort=(h.wave||'?').replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,'').substring(0,16);
+      return `<div class="scard-history-row">
+        <div class="shr-dot" style="background:#22c55e"></div>
+        <div class="shr-main">
+          <div class="shr-wave">${waveShort} · ${ds}</div>
+          <div style="color:var(--accent);font-size:11px;font-weight:600">${bottleChipsHTML(h.bottles,true)||h.bottles}</div>
+          ${h.dropQuality?`<div style="font-size:10px;color:#f59e0b">★ Q${h.dropQuality}</div>`:''}
+        </div>
+        ${h.discordLink?`<a class="hist-link" href="${h.discordLink}" target="_blank">↗</a>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  const uid=store.id; // for tab switching
   return `<div class="scard">
     <div class="scard-district" style="color:${color}">${store.district}</div>
     <div class="scard-name">#${store.id} · ${store.label}</div>
     <div class="scard-addr">${store.address}</div>
     ${badges}
-    <div class="scard-stats">
-      <div class="sstat"><div class="sstat-label">qRank</div><div class="sstat-val" style="color:${color}">${qRank10}/10</div></div>
-      <div class="sstat"><div class="sstat-label">Sales Rank</div><div class="sstat-val">${store.sRankLabel}</div></div>
-      <div class="sstat"><div class="sstat-label">All Drops</div><div class="sstat-val">${totalDrops}</div></div>
-      <div class="sstat"><div class="sstat-label">Common Time</div>${commonTimeHTML}</div>
+    <div class="scard-tabs">
+      <div class="scard-tab active" id="stab-a-${uid}" onclick="switchSTab(${uid},'a')">Summary</div>
+      <div class="scard-tab" id="stab-b-${uid}" onclick="switchSTab(${uid},'b')">Order</div>
+      <div class="scard-tab" id="stab-c-${uid}" onclick="switchSTab(${uid},'c')">Bottles</div>
     </div>
-    ${statusHTML}
-    <div class="scard-actions">${actions}</div>
-    ${histHTML}
+    <div class="scard-tab-panel active" id="spanel-a-${uid}">${tabA}</div>
+    <div class="scard-tab-panel" id="spanel-b-${uid}">${tabB}</div>
+    <div class="scard-tab-panel" id="spanel-c-${uid}">${tabC}</div>
   </div>`;
 }
-
 function renderMarkers(){
   Object.values(markers).forEach(m=>map.removeLayer(m));
   markers={};
@@ -1147,9 +1461,16 @@ function renderMarkers(){
       opacity:visible?1:0.06,
       zIndexOffset:distZ(store.district)
     });
-    m.bindPopup(()=>buildPopup(store),{maxWidth:270,className:""});
+    m.bindPopup(()=>buildPopup(store),{maxWidth:320,className:""});
     m.addTo(map);
     markers[store.id]=m;
+  });
+}
+
+function switchSTab(uid, tab){
+  ['a','b','c'].forEach(t=>{
+    document.getElementById('stab-'+t+'-'+uid)?.classList.toggle('active', t===tab);
+    document.getElementById('spanel-'+t+'-'+uid)?.classList.toggle('active', t===tab);
   });
 }
 
@@ -1167,11 +1488,12 @@ function buildWaveSelect(){
   const waves=[...new Set(allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
   const sel=document.getElementById("wave-select");
   sel.innerHTML="";
-  waves.forEach(w=>{const o=document.createElement("option");o.value=w;o.textContent=w;if(w===currentWave)o.selected=true;sel.appendChild(o);});
-  // Only set currentWave from dropdown on initial load, never override it
-  if(!currentWave&&waves.length){ currentWave=waves[0]; sel.value=waves[0]; }
+  // Include currentWave even if not in drops yet (newly created)
+  const allWaves = currentWave && !waves.includes(currentWave) ? [currentWave,...waves] : waves;
+  allWaves.forEach(w=>{const o=document.createElement("option");o.value=w;o.textContent=w;if(w===currentWave)o.selected=true;sel.appendChild(o);});
+  if(!currentWave && waves.length){ currentWave=waves[0]; sel.value=waves[0]; }
   else if(currentWave){ sel.value=currentWave; }
-  sel.onchange=()=>{currentWave=sel.value;refresh();};
+  sel.onchange=()=>{currentWave=sel.value;invalidateDropCache();refresh();};
 }
 
 function buildDistrictBar(){
@@ -1182,8 +1504,8 @@ function buildDistrictBar(){
   ac.className="d-chip";ac.style.cssText=allA?"background:#21262d;border-color:#60a5fa;color:#e6edf3":"";
   ac.innerHTML="All";ac.onclick=()=>{activeDistricts=new Set(["ALL"]);refresh();};
   bar.appendChild(ac);
-  // District chips in priority order
-  ["D14","D17","D18","D07","D20","D16","D12"].forEach(d=>{
+  // District chips — dynamically derived from store data
+  getActiveDistricts().forEach(d=>{
     const color=DC[d];
     const stores=STORES.filter(s=>s.district===d);if(!stores.length)return;
     const wd=allDrops().filter(x=>x.wave===currentWave&&x.district===d&&x.result==="drop").length;
@@ -1205,6 +1527,522 @@ async function _syncFromSheetCore(){
   if(ok){refresh();buildWaveSelect();toast("Synced ✓");}else{toast("Sync failed — using cache");}
 }
 
+// ═══════════════════════════════════════════
+// BOTTLE MASTER LIST + PICKER
+// ═══════════════════════════════════════════
+
+const BOTTLES = [
+  // S TIER
+  {id:1,  name:"George T. Stagg",           brand:"Buffalo Trace", tier:"S", codes:["Stagg","GTStag","GTS","stagg"]},
+  {id:2,  name:"William Larue Weller",       brand:"Buffalo Trace", tier:"S", codes:["WLW","WL","WellerSib","wlw","wlweller"]},
+  {id:3,  name:"Eagle Rare 17 Year",         brand:"Buffalo Trace", tier:"S", codes:["ER17","EagleRare17","er17"]},
+  {id:4,  name:"Thomas H. Handy Rye",        brand:"Buffalo Trace", tier:"S", codes:["THH","Handy","thh"]},
+  {id:5,  name:"Sazerac 18 Year Rye",        brand:"Buffalo Trace", tier:"S", codes:["Saz18","Sazerac18","saz18"]},
+  {id:6,  name:"Pappy Van Winkle 15yr",      brand:"Van Winkle",    tier:"S", codes:["PVW15","Pappy15","pvw15","pappy15"]},
+  {id:7,  name:"Pappy Van Winkle 20yr",      brand:"Van Winkle",    tier:"S", codes:["PVW20","Pappy20","pvw20"]},
+  {id:8,  name:"Pappy Van Winkle 23yr",      brand:"Van Winkle",    tier:"S", codes:["PVW23","Pappy23","pvw23"]},
+  {id:9,  name:"Old Rip Van Winkle 10yr",    brand:"Van Winkle",    tier:"S", codes:["ORVW","Pappy10","orvw"]},
+  {id:10, name:"Van Winkle Spc Reserve 12yr",brand:"Van Winkle",    tier:"S", codes:["VSR12","Pappy12","vsr12"]},
+  {id:11, name:"Heaven Hill 22 Year",        brand:"Heaven Hill",   tier:"S", codes:["HH22","hh22","hh 22"]},
+  {id:12, name:"Old Fitzgerald 1924",        brand:"Heaven Hill",   tier:"S", codes:["OFitz1924","OldFitz1924","ofitz1924"], warn:"⚠️ Different from OFo1924 (Old Forester)"},
+  {id:13, name:"EH Taylor Barrel Proof",     brand:"Buffalo Trace", tier:"S", codes:["EHTBP","EHT BP","EHTbp","ehtbp"]},
+  {id:14, name:"EH Taylor Warehouse C",      brand:"Buffalo Trace", tier:"S", codes:["CC","EHT CC","EHTCC","ehtcc"]},
+  {id:15, name:"EH Taylor BiB",              brand:"Buffalo Trace", tier:"S", codes:["EHTbib","EHT BiB","ehtbib"]},
+  {id:16, name:"Blanton's Straight from Barrel",brand:"Buffalo Trace",tier:"S",codes:["BSFB","BlantonsBarrel","bsfb"]},
+  {id:17, name:"Four Roses Limited Edition SB",brand:"Four Roses",  tier:"S", codes:["4RLE","FR LE","4RLESB","4rle"]},
+  {id:18, name:"Michter's 10 Year",          brand:"Michter's",     tier:"S", codes:["M10","M10r","m10"]},
+  {id:19, name:"Michter's 20 Year",          brand:"Michter's",     tier:"S", codes:["M20","Mich20","m20"]},
+  {id:20, name:"Michter's Celebration",      brand:"Michter's",     tier:"S", codes:["MMCA","MC","mmca"]},
+  {id:21, name:"Russell's Reserve 13 Year",  brand:"Wild Turkey",   tier:"S", codes:["RR13","RR 13","rr13"]},
+  {id:22, name:"Russell's Reserve 15 Year",  brand:"Wild Turkey",   tier:"S", codes:["RR15","RR 15","rr15"]},
+  {id:23, name:"Double Eagle Very Rare",     brand:"Buffalo Trace", tier:"S", codes:["DEVR","DoubleEagle","devr"]},
+  {id:24, name:"Weller Millennium",          brand:"Buffalo Trace", tier:"S", codes:["WM","WellerMill","wm","weller mill"]},
+  {id:25, name:"Old Forester President's Choice",brand:"Old Forester",tier:"S",codes:["OFPC","OFPresidents","ofpc"]},
+  // A TIER
+  {id:26, name:"Eagle Rare 10 Year",         brand:"Buffalo Trace", tier:"A", codes:["ER","ER10","er","er10","eaglerare"]},
+  {id:27, name:"EH Taylor Small Batch",      brand:"Buffalo Trace", tier:"A", codes:["EHT","EHTsm","EHTsmall","EH","eht","eh","ehtsm"]},
+  {id:28, name:"EH Taylor Rye",              brand:"Buffalo Trace", tier:"A", codes:["EHTRye","EHT Rye","ehtrye"]},
+  {id:29, name:"EH Taylor Single Barrel",    brand:"Buffalo Trace", tier:"A", codes:["EHTsi","EHT SB","ehtsi"]},
+  {id:30, name:"Weller Full Proof",          brand:"Buffalo Trace", tier:"A", codes:["WFP","Wfp","wfp","weller fp"]},
+  {id:31, name:"Weller Single Barrel",       brand:"Buffalo Trace", tier:"A", codes:["WLSB","WellerSB","WellerSingle","wlsb"]},
+  {id:32, name:"Weller CYPB",                brand:"Buffalo Trace", tier:"A", codes:["CYBP","WellerCYBP","cybp"]},
+  {id:33, name:"Blanton's Gold Edition",     brand:"Buffalo Trace", tier:"A", codes:["Bgold","BG","BlantonsGold","bgold","bg"]},
+  {id:34, name:"Heaven Hill 90th Anniversary",brand:"Heaven Hill",  tier:"A", codes:["HH90","HH 90","hh90"]},
+  {id:35, name:"Old Fitzgerald 11yr BiB",    brand:"Heaven Hill",   tier:"A", codes:["OF11","OFitz11","of11"]},
+  {id:36, name:"Elijah Craig Barrel Proof",  brand:"Heaven Hill",   tier:"A", codes:["ECBP","EC BP","ecbp"]},
+  {id:37, name:"Elijah Craig 15 Year",       brand:"Heaven Hill",   tier:"A", codes:["EC15","EC 15","ec15"]},
+  {id:38, name:"Elmer T. Lee",               brand:"Buffalo Trace", tier:"A", codes:["ETL","ElmerTLee","etl"]},
+  {id:39, name:"Old Forester Birthday Bourbon",brand:"Old Forester",tier:"A", codes:["OFBB","OF BB","ofbb"]},
+  {id:40, name:"Old Forester 1924 10yr",     brand:"Old Forester",  tier:"A", codes:["OFo1924","ofo1924","OF1924","of1924"], warn:"⚠️ Different from OFitz1924 (Old Fitzgerald/HH) — OF1924 is ambiguous!"},
+  {id:41, name:"Michter's Toasted Barrel",   brand:"Michter's",     tier:"A", codes:["MTBF","MTB","mtbf","mtb"]},
+  {id:42, name:"Bomberger's Declaration",    brand:"Michter's",     tier:"A", codes:["BO12","Bombergers","bo12"]},
+  {id:43, name:"Penelope Omega",             brand:"Penelope",      tier:"A", codes:["Pomega","PenelopeOmega","pomega"]},
+  {id:44, name:"Penelope 13 Year",           brand:"Penelope",      tier:"A", codes:["Penelope13","Pen13","penelope13"]},
+  {id:45, name:"Wild Turkey Master's Keep KC12",brand:"Wild Turkey",tier:"A", codes:["KC12","WTMK","WT KC12","kc12"]},
+  {id:46, name:"Russell's Reserve SiB",      brand:"Wild Turkey",   tier:"A", codes:["RR","RRSIB","WSIB","rr","rrsib"]},
+  {id:47, name:"Four Roses Small Batch Select",brand:"Four Roses",  tier:"A", codes:["FRSBS","4R SBS","frsbs"]},
+  {id:48, name:"Bardstown Discovery Series", brand:"Bardstown",     tier:"A", codes:["BDS","BardstownDisco","bds"]},
+  {id:49, name:"Kentucky Owl",               brand:"Stoli Group",   tier:"A", codes:["KO","KentuckyOwl","ko"]},
+  {id:50, name:"Calumet Farm 18 Year",       brand:"Calumet",       tier:"A", codes:["Cal18","Calumet18","cal18"]},
+  {id:51, name:"Weller Antique BiB",         brand:"Buffalo Trace", tier:"A", codes:["WABIB","WellerBiB","wabib"]},
+  {id:52, name:"Abraham Bowman Limited",     brand:"A. Smith Bowman",tier:"A",codes:["ASB","BowmanLE","asb"]},
+  {id:53, name:"WhistlePig Boss Hog",        brand:"WhistlePig",    tier:"A", codes:["WP","BossHog","wp","bosshog"]},
+  // B TIER
+  {id:54, name:"Old Weller Antique 107",     brand:"Buffalo Trace", tier:"B", codes:["OWA","owa"]},
+  {id:55, name:"Blanton's Original",         brand:"Buffalo Trace", tier:"B", codes:["Blantons","Blanton","BLA","blantons","bla"]},
+  {id:56, name:"Elijah Craig Toasted Barrel",brand:"Heaven Hill",   tier:"B", codes:["ECT","eC","ECTR","ect","ec"]},
+  {id:57, name:"Penelope Rio",               brand:"Penelope",      tier:"B", codes:["Rio","PenelopeRio","rio"]},
+  {id:58, name:"Penelope Toasted",           brand:"Penelope",      tier:"B", codes:["PTB","PenToast","ptb"]},
+  {id:59, name:"Wild Turkey Rare Breed",     brand:"Wild Turkey",   tier:"B", codes:["WTRB","WT RB","wtrb"]},
+  {id:60, name:"1792 BiB Full Proof",        brand:"Barton",        tier:"B", codes:["1792FP","1792 BiB FP","1792fp"]},
+  {id:61, name:"Old Elk 7 Year",             brand:"Old Elk",       tier:"B", codes:["OE7","OE 7","oe7"]},
+  {id:62, name:"Rock Hill Farms",            brand:"Buffalo Trace", tier:"B", codes:["RHF","rhf"]},
+  {id:63, name:"Old Forester 1920",          brand:"Old Forester",  tier:"B", codes:["OF1920","of1920"]},
+  {id:64, name:"Jack Daniel's TN Honey LE",  brand:"Jack Daniel's", tier:"B", codes:["JDTH","JD TH","jdth","jd12","JD12"]},
+  {id:65, name:"Phavana",                    brand:"Phavana",       tier:"B", codes:["Phavana","phavana"]},
+  {id:66, name:"Elijah Craig Evan Williams", brand:"Heaven Hill",   tier:"B", codes:["ECEW","ecew"]},
+  // C TIER
+  {id:67, name:"Wild Turkey 8 Year",         brand:"Wild Turkey",   tier:"C", codes:["WT8","WT 8","wt8"]},
+  {id:68, name:"Green River",                brand:"Green River",   tier:"C", codes:["GR","GTG","gr"]},
+  {id:69, name:"Unknown / Other",            brand:"–",             tier:"C", codes:["?","unknown"]}
+];
+
+// Build flat lookup: lowercase token → bottle
+const BOTTLE_LOOKUP = {};
+BOTTLES.forEach(b => b.codes.forEach(c => { BOTTLE_LOOKUP[c.toLowerCase().replace(/\s+/g,'')] = b; }));
+
+function bottleTierColors(tier){
+  if(tier==='S') return {bg:'#854d0e',color:'#fef08a',border:'#92400e'};
+  if(tier==='A') return {bg:'#1e3a5f',color:'#93c5fd',border:'#1d4ed8'};
+  if(tier==='B') return {bg:'#1a2e1a',color:'#86efac',border:'#166534'};
+  return {bg:'#2d1515',color:'#fca5a5',border:'#7f1d1d'};
+}
+
+function normalizeBottlesText(text){
+  if(!text) return {matched:[], unmatched:[]};
+  let tokens = text.split(/,|\band\b/i).map(t=>t.trim()).filter(Boolean);
+  if(tokens.length===1 && tokens[0].includes(' ')){
+    const spaceTokens = tokens[0].split(/\s+/).filter(Boolean);
+    if(spaceTokens.length > 1) tokens = spaceTokens;
+  }
+  const matched = [], unmatched = [], seen = new Set();
+  tokens.forEach(raw => {
+    const key = raw.toLowerCase().replace(/\s+/g,'');
+    let bottle = BOTTLE_LOOKUP[key];
+    if(!bottle){
+      const keys = Object.keys(BOTTLE_LOOKUP);
+      for(const k of keys){ if(k.startsWith(key)||key.startsWith(k)){ bottle=BOTTLE_LOOKUP[k]; break; } }
+    }
+    if(bottle && !seen.has(bottle.id)){ matched.push({bottle,raw}); seen.add(bottle.id); }
+    else if(!bottle && raw.length>0) unmatched.push(raw);
+  });
+  return {matched, unmatched};
+}
+
+function bottleChipsHTML(bottlesStr, small=false){
+  if(!bottlesStr) return '';
+  const {matched, unmatched} = normalizeBottlesText(bottlesStr);
+  let html = '<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:2px">';
+  matched.forEach(({bottle}) => {
+    const c = bottleTierColors(bottle.tier);
+    const sz = small?'9px':'10px';
+    const warn = bottle.warn?` title="${bottle.warn}"`:'';
+    html += `<span${warn} style="font-size:${sz};font-weight:700;padding:2px 6px;border-radius:4px;background:${c.bg};color:${c.color};border:1px solid ${c.border};white-space:nowrap">${bottle.warn?'⚠️ ':''}${bottle.name}</span>`;
+  });
+  unmatched.forEach(raw => {
+    html += `<span style="font-size:${small?'9px':'10px'};font-weight:600;padding:2px 6px;border-radius:4px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);white-space:nowrap">${raw}</span>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+// ── BOTTLE PICKER ──
+const pickerState = {
+  ef:  {selected:[],inputId:'ef-bp-search', dropId:'ef-bp-dropdown', chipsId:'ef-bp-chips', recentsId:'ef-bp-recents', warnId:'ef-bp-warn',  hiddenId:'ef-bottles'},
+  mob: {selected:[],inputId:'mob-bp-search',dropId:'mob-bp-dropdown',chipsId:'mob-bp-chips',recentsId:'mob-bp-recents',warnId:'mob-bp-warn', hiddenId:'f-bottles'}
+};
+
+function getRecentBottles(){ try{ return JSON.parse(localStorage.getItem('recentBottles')||'[]'); }catch(e){ return []; } }
+function saveRecentBottle(id){ let r=getRecentBottles().filter(x=>x!==id); r.unshift(id); localStorage.setItem('recentBottles',JSON.stringify(r.slice(0,8))); }
+
+function pickerInit(ctx){
+  const s=pickerState[ctx]; s.selected=[];
+  pickerRenderChips(ctx); pickerRenderRecents(ctx);
+  const inp=document.getElementById(s.inputId);
+  if(!inp) return;
+  inp.value='';
+  inp.oninput=()=>pickerSearch(ctx,inp.value);
+  inp.onblur=()=>setTimeout(()=>pickerCloseDropdown(ctx),200);
+  inp.onfocus=()=>{ if(inp.value) pickerSearch(ctx,inp.value); };
+  const hidden=document.getElementById(s.hiddenId);
+  if(hidden) hidden.value='';
+}
+
+function pickerSearch(ctx, query){
+  const s=pickerState[ctx];
+  const drop=document.getElementById(s.dropId);
+  if(!query.trim()){ drop.classList.remove('open'); return; }
+  const q=query.toLowerCase().replace(/\s+/g,'');
+  const results=BOTTLES.filter(b=>{
+    if(s.selected.find(sel=>sel.id===b.id)) return false;
+    return b.codes.some(c=>c.toLowerCase().replace(/\s+/g,'').includes(q))||
+           b.name.toLowerCase().replace(/\s+/g,'').includes(q)||
+           b.brand.toLowerCase().replace(/\s+/g,'').includes(q);
+  }).slice(0,12);
+  if(!results.length){ drop.classList.remove('open'); return; }
+  drop.innerHTML=results.map(b=>{
+    const tc=bottleTierColors(b.tier);
+    return `<div class="bp-item" onmousedown="pickerAdd('${ctx}',${b.id})">
+      <span class="bp-item-tier" style="background:${tc.bg};color:${tc.color}">${b.tier}</span>
+      <span class="bp-item-name">${b.warn?'⚠️ ':''}${b.name}</span>
+      <span class="bp-item-code">${b.codes[0]}</span>
+    </div>`;
+  }).join('');
+  drop.classList.add('open');
+}
+
+function pickerCloseDropdown(ctx){ document.getElementById(pickerState[ctx].dropId)?.classList.remove('open'); }
+
+function pickerAdd(ctx, bottleId){
+  const s=pickerState[ctx];
+  const bottle=BOTTLES.find(b=>b.id===bottleId);
+  if(!bottle||s.selected.find(b=>b.id===bottleId)) return;
+  s.selected.push(bottle);
+  saveRecentBottle(bottleId);
+  const warn=document.getElementById(s.warnId);
+  if(warn){
+    const ofConflict=s.selected.filter(b=>b.id===40||b.id===12);
+    if(ofConflict.length>1){ warn.textContent='⚠️ Both OFitz1924 and OFo1924 selected — are you sure?'; warn.classList.add('show'); }
+    else if(bottle.warn){ warn.textContent=bottle.warn; warn.classList.add('show'); }
+    else { warn.classList.remove('show'); }
+  }
+  const inp=document.getElementById(s.inputId);
+  if(inp) inp.value='';
+  pickerCloseDropdown(ctx);
+  pickerRenderChips(ctx);
+  pickerUpdateHidden(ctx);
+}
+
+function pickerRemove(ctx, bottleId){
+  pickerState[ctx].selected=pickerState[ctx].selected.filter(b=>b.id!==bottleId);
+  const s=pickerState[ctx];
+  const warn=document.getElementById(s.warnId);
+  if(warn&&!s.selected.some(b=>b.id===40||b.id===12)) warn.classList.remove('show');
+  pickerRenderChips(ctx);
+  pickerUpdateHidden(ctx);
+}
+
+function pickerRenderChips(ctx){
+  const s=pickerState[ctx];
+  const cont=document.getElementById(s.chipsId);
+  if(!cont) return;
+  if(!s.selected.length){ cont.innerHTML=''; return; }
+  cont.innerHTML=s.selected.map(b=>{
+    const tc=bottleTierColors(b.tier);
+    return `<div class="bp-chip" style="background:${tc.bg};color:${tc.color};border-color:${tc.border}">
+      <span>${b.name}</span>
+      <button class="bp-chip-remove" onmousedown="pickerRemove('${ctx}',${b.id})">×</button>
+    </div>`;
+  }).join('');
+}
+
+function pickerRenderRecents(ctx){
+  const s=pickerState[ctx];
+  const cont=document.getElementById(s.recentsId);
+  if(!cont) return;
+  const recents=getRecentBottles().map(id=>BOTTLES.find(b=>b.id===id)).filter(Boolean).slice(0,6);
+  if(!recents.length){ cont.innerHTML=''; return; }
+  cont.innerHTML='<div class="bp-recent-label">Recently used</div>'+
+    recents.map(b=>`<button class="bp-recent-chip" onmousedown="pickerAdd('${ctx}',${b.id})">${b.codes[0]}</button>`).join('');
+}
+
+function pickerUpdateHidden(ctx){
+  const s=pickerState[ctx];
+  const hidden=document.getElementById(s.hiddenId);
+  if(hidden) hidden.value=s.selected.map(b=>b.codes[0]).join(', ');
+}
+
+function pickerSetFromText(ctx, text){
+  if(!text) return;
+  const {matched}=normalizeBottlesText(text);
+  const s=pickerState[ctx];
+  s.selected=[];
+  matched.forEach(({bottle})=>{ if(!s.selected.find(b=>b.id===bottle.id)) s.selected.push(bottle); });
+  pickerRenderChips(ctx);
+  pickerUpdateHidden(ctx);
+}
+
+function pickerGetValue(ctx){ return pickerState[ctx].selected.map(b=>b.codes[0]).join(', '); }
+
+// ═══════════════════════════════════════════
+// ISSUES QUEUE
+// ═══════════════════════════════════════════
+
+let issueFilter = 'all';
+let issueCorrections = JSON.parse(localStorage.getItem('issueCorrections')||'[]');
+
+function safeId(str){ return String(str).replace(/[^a-zA-Z0-9_-]/g,'_'); }
+
+function buildIssues(){
+  const issues=[];
+  const recentWaves=[...new Set(allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse().slice(0,4);
+
+  // TYPE 1: OF1924 collision
+  allDrops().filter(d=>d.bottles&&/\bOF1924\b/i.test(d.bottles)).forEach(d=>{
+    const store=STORES.find(s=>s.id===d.storeId);
+    issues.push({type:'collision',id:'col_'+safeId(d.storeId+'_'+d.wave),drop:d,store,
+      label:'⚠️ OF1924 Collision',
+      detail:'This drop has "OF1924" which could be Old Fitzgerald 1924 (HH, S-tier) or Old Forester 1924 10yr (BF, A-tier). Which one?',
+      priority:1});
+  });
+
+  // TYPE 2: needsReview
+  allDrops().filter(d=>d.needsReview&&!d._id).forEach(d=>{
+    const store=STORES.find(s=>s.id===d.storeId);
+    const missing=[];
+    if(!d.wave||d.wave.trim()==='') missing.push('wave label');
+    if(!d.timestamp) missing.push('timestamp');
+    if(!d.reporter) missing.push('reporter');
+    issues.push({type:'review',id:'rev_'+safeId(d.storeId+'_'+(d.timestamp||Math.random())),drop:d,store,
+      label:'🔍 Needs Review',detail:'Missing: '+(missing.join(', ')||'Flagged for review'),priority:2});
+  });
+
+  // TYPE 3: missing bottles (recent waves)
+  allDrops().filter(d=>d.result==='drop'&&!d.bottles&&recentWaves.includes(d.wave)).forEach(d=>{
+    const store=STORES.find(s=>s.id===d.storeId);
+    issues.push({type:'bottles',id:'bot_'+safeId(d.storeId+'_'+d.wave),drop:d,store,
+      label:'🥃 No Bottles Logged',detail:`Drop confirmed but no bottles entered. Wave: ${d.wave||'unknown'}`,priority:3});
+  });
+
+  // TYPE 4: missing reporter (recent waves)
+  allDrops().filter(d=>(!d.reporter||d.reporter==='')&&d.result==='drop'&&recentWaves.includes(d.wave)).forEach(d=>{
+    const store=STORES.find(s=>s.id===d.storeId);
+    issues.push({type:'reporter',id:'rep_'+safeId(d.storeId+'_'+d.wave),drop:d,store,
+      label:'👤 No Reporter',detail:`Who reported this drop? Wave: ${d.wave||'unknown'}`,priority:4});
+  });
+
+  // TYPE 5: missing Discord link (recent waves)
+  allDrops().filter(d=>!d.discordLink&&d.result==='drop'&&recentWaves.includes(d.wave)).forEach(d=>{
+    const store=STORES.find(s=>s.id===d.storeId);
+    issues.push({type:'link',id:'lnk_'+safeId(d.storeId+'_'+d.wave),drop:d,store,
+      label:'🔗 No Discord Link',detail:`Drop has no Discord link. Wave: ${d.wave||'unknown'}`,priority:5});
+  });
+
+  const seen=new Set();
+  return issues.filter(i=>{ if(seen.has(i.id)) return false; seen.add(i.id); return true; })
+    .sort((a,b)=>a.priority-b.priority||(b.drop?.timestamp||'').localeCompare(a.drop?.timestamp||''));
+}
+
+function updateIssuesBadge(){
+  const count=buildIssues().length;
+  const badge=document.getElementById('issues-badge');
+  if(badge){ badge.textContent=count>99?'99+':String(count); badge.classList.toggle('show',count>0); }
+}
+
+function openIssues(){
+  issueFilter='all';
+  document.querySelectorAll('.iq-filter').forEach(b=>b.classList.toggle('active',b.dataset.filter==='all'));
+  renderIssuesList();
+  document.getElementById('issues-overlay').classList.add('open');
+}
+function closeIssues(){ document.getElementById('issues-overlay').classList.remove('open'); }
+function setIssueFilter(filter, btn){
+  issueFilter=filter;
+  document.querySelectorAll('.iq-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderIssuesList();
+}
+
+function renderIssuesList(){
+  const all=buildIssues();
+  const filtered=issueFilter==='all'?all:all.filter(i=>i.type===issueFilter);
+  const counts={};
+  all.forEach(i=>{ counts[i.type]=(counts[i.type]||0)+1; });
+
+  const summary=document.getElementById('issues-summary');
+  if(summary) summary.innerHTML=`${all.length} issue${all.length!==1?'s':''} total · `+
+    Object.entries({collision:'Collisions',review:'Needs Review',bottles:'No Bottles',reporter:'No Reporter',link:'No Link'})
+      .filter(([k])=>counts[k])
+      .map(([k,label])=>`<span style="color:var(--muted)">${counts[k]} ${label}</span>`)
+      .join(' · ');
+
+  const list=document.getElementById('issues-list');
+  if(!filtered.length){
+    list.innerHTML=`<div style="padding:32px;text-align:center;color:var(--muted);font-size:13px"><div style="font-size:32px;margin-bottom:8px">✓</div><div>No issues${issueFilter!=='all'?' in this category':''}</div></div>`;
+    return;
+  }
+
+  list.innerHTML=filtered.map(issue=>{
+    const color=distColor(issue.store?.district||'D14');
+    const d=issue.drop;
+    const ts=d?.timestamp?new Date(d.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'';
+    const bottlesDisplay=d?.bottles?`<div style="margin-top:4px">${bottleChipsHTML(d.bottles,true)}</div>`:'';
+    let actionsHTML='';
+
+    if(issue.type==='collision'){
+      actionsHTML=`<div style="margin-top:8px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.8px">Which bottle?</div>
+        <div style="display:flex;gap:6px">
+          <button class="iq-choice" onclick="resolveCollision('${issue.id}','OFitz1924',this)">OFitz1924<br><span style="font-size:9px;color:var(--muted)">Old Fitzgerald · HH · S-tier</span></button>
+          <button class="iq-choice" onclick="resolveCollision('${issue.id}','OFo1924',this)">OFo1924<br><span style="font-size:9px;color:var(--muted)">Old Forester 1924 · BF · A-tier</span></button>
+        </div>
+      </div>`;
+    } else if(issue.type==='review'){
+      actionsHTML=`<div class="iq-inline-edit" id="edit_${issue.id}">
+        <div class="iq-edit-row"><span class="iq-edit-label">Wave</span><input class="iq-edit-input" id="wave_${issue.id}" value="${d?.wave||''}" placeholder="YYYY.MM.DD-DXX-bottles"></div>
+        <div class="iq-edit-row"><span class="iq-edit-label">Reporter</span><input class="iq-edit-input" id="rep_i_${issue.id}" value="${d?.reporter||''}" placeholder="Reporter name"></div>
+        <div class="iq-edit-actions">
+          <button class="iq-btn iq-btn-secondary" onclick="toggleIssueEdit('${issue.id}')">Cancel</button>
+          <button class="iq-btn iq-btn-primary" onclick="saveIssueEdit('${issue.id}')">Save</button>
+        </div>
+      </div>
+      <div class="iq-actions">
+        <button class="iq-btn iq-btn-secondary" onclick="skipIssue('${issue.id}',this)">Skip</button>
+        <button class="iq-btn iq-btn-primary" onclick="toggleIssueEdit('${issue.id}')">Edit</button>
+      </div>`;
+    } else if(issue.type==='bottles'){
+      actionsHTML=`<div class="iq-inline-edit" id="edit_${issue.id}">
+        <div class="iq-edit-row"><span class="iq-edit-label">Bottles</span><input class="iq-edit-input" id="bot_${issue.id}" placeholder="e.g. EHT, ER, HH22"></div>
+        <div class="iq-edit-actions">
+          <button class="iq-btn iq-btn-secondary" onclick="toggleIssueEdit('${issue.id}')">Cancel</button>
+          <button class="iq-btn iq-btn-primary" onclick="saveBotEdit('${issue.id}')">Save</button>
+        </div>
+      </div>
+      <div class="iq-actions">
+        <button class="iq-btn iq-btn-secondary" onclick="skipIssue('${issue.id}',this)">Skip</button>
+        <button class="iq-btn iq-btn-primary" onclick="toggleIssueEdit('${issue.id}')">Add Bottles</button>
+      </div>`;
+    } else if(issue.type==='reporter'){
+      actionsHTML=`<div class="iq-inline-edit" id="edit_${issue.id}">
+        <div class="iq-edit-row"><span class="iq-edit-label">Reporter</span><input class="iq-edit-input" id="rpt_${issue.id}" placeholder="Discord username"></div>
+        <div class="iq-edit-actions">
+          <button class="iq-btn iq-btn-secondary" onclick="toggleIssueEdit('${issue.id}')">Cancel</button>
+          <button class="iq-btn iq-btn-primary" onclick="saveReporterEdit('${issue.id}')">Save</button>
+        </div>
+      </div>
+      <div class="iq-actions">
+        <button class="iq-btn iq-btn-secondary" onclick="skipIssue('${issue.id}',this)">Skip</button>
+        <button class="iq-btn iq-btn-primary" onclick="toggleIssueEdit('${issue.id}')">Add Reporter</button>
+      </div>`;
+    } else if(issue.type==='link'){
+      actionsHTML=`<div class="iq-inline-edit" id="edit_${issue.id}">
+        <div class="iq-edit-row"><span class="iq-edit-label">Link</span><input class="iq-edit-input" id="lnk2_${issue.id}" type="url" placeholder="https://discord.com/channels/..."></div>
+        <div class="iq-edit-actions">
+          <button class="iq-btn iq-btn-secondary" onclick="toggleIssueEdit('${issue.id}')">Cancel</button>
+          <button class="iq-btn iq-btn-primary" onclick="saveLinkEdit('${issue.id}')">Save</button>
+        </div>
+      </div>
+      <div class="iq-actions">
+        <button class="iq-btn iq-btn-secondary" onclick="skipIssue('${issue.id}',this)">Skip</button>
+        <button class="iq-btn iq-btn-primary" onclick="toggleIssueEdit('${issue.id}')">Add Link</button>
+      </div>`;
+    }
+
+    return `<div class="iq-card" id="iqcard_${issue.id}">
+      <div class="iq-card-header">
+        <div class="iq-card-left">
+          <span class="iq-type-badge iqt-${issue.type}">${issue.label}</span>
+          <div class="iq-store" style="color:${color}">#${d?.storeId} · ${issue.store?.label||''}</div>
+          <div class="iq-wave">${issue.store?.district||''} · ${d?.wave||'no wave label'} · ${ts}</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);flex-shrink:0">${issue.store?.tier||'?'} tier</div>
+      </div>
+      <div class="iq-detail">${issue.detail}${bottlesDisplay}</div>
+      ${actionsHTML}
+    </div>`;
+  }).join('');
+}
+
+function toggleIssueEdit(id){
+  document.getElementById('edit_'+id)?.classList.toggle('open');
+}
+function skipIssue(id, btn){
+  const card=document.getElementById('iqcard_'+id);
+  if(card){ card.style.opacity='0.4'; card.style.pointerEvents='none'; }
+  if(btn) btn.textContent='Skipped';
+}
+function resolveCard(issueId){
+  const card=document.getElementById('iqcard_'+issueId);
+  if(card){ card.style.background='rgba(34,197,94,0.08)'; card.style.borderColor='#22c55e'; setTimeout(()=>card.remove(),600); }
+}
+function resolveCollision(issueId, correctCode, btn){
+  const issues=buildIssues();
+  const issue=issues.find(i=>i.id===issueId);
+  if(!issue) return;
+  const d=issue.drop;
+  const newBottles=(d.bottles||'').replace(/\bOF1924\b/gi, correctCode);
+  const idx=DROPS.findIndex(x=>x.storeId===d.storeId&&x.wave===d.wave&&x.bottles===d.bottles);
+  if(idx>=0) DROPS[idx].bottles=newBottles;
+  const pidx=pendingDrops.findIndex(x=>x.storeId===d.storeId&&x.wave===d.wave&&(x.bottles||'')===(d.bottles||''));
+  if(pidx>=0){ pendingDrops[pidx].bottles=newBottles; localStorage.setItem('pendingDrops',JSON.stringify(pendingDrops)); }
+  invalidateDropCache();
+  issueCorrections.push({issueId,type:'collision',storeId:d.storeId,wave:d.wave,field:'bottles',value:newBottles,resolved:true,ts:Date.now()});
+  localStorage.setItem('issueCorrections',JSON.stringify(issueCorrections));
+  resolveCard(issueId);
+  scriptPost('updateDrop',{dropId:d.dropId,original:d,updates:{bottles:newBottles}}).catch(()=>{});
+  toast('Collision resolved ✓');
+  updateIssuesBadge();
+}
+async function saveIssueEdit(issueId){
+  const issues=buildIssues();
+  const issue=issues.find(i=>i.id===issueId);
+  if(!issue) return;
+  const d=issue.drop;
+  const wave=document.getElementById('wave_'+issueId)?.value||d?.wave||'';
+  const reporter=document.getElementById('rep_i_'+issueId)?.value||d?.reporter||'';
+  const idx=DROPS.findIndex(x=>x.storeId===d.storeId&&x.wave===d.wave);
+  if(idx>=0){ DROPS[idx].wave=wave; DROPS[idx].reporter=reporter; DROPS[idx].needsReview=false; }
+  invalidateDropCache();
+  issueCorrections.push({issueId,type:'review',storeId:d.storeId,wave,reporter,resolved:true,ts:Date.now()});
+  localStorage.setItem('issueCorrections',JSON.stringify(issueCorrections));
+  resolveCard(issueId);
+  const ok=await scriptPost('updateDrop',{dropId:d.dropId,original:d,updates:{wave,reporter,needsReview:false}}).then(r=>r.success).catch(()=>false);
+  toast(ok?'Review item saved ✓':'Saved locally (sheet sync pending)');
+  updateIssuesBadge();
+}
+async function saveBotEdit(issueId){
+  const issues=buildIssues();
+  const issue=issues.find(i=>i.id===issueId);
+  if(!issue) return;
+  const d=issue.drop;
+  const bottles=document.getElementById('bot_'+issueId)?.value||'';
+  const idx=DROPS.findIndex(x=>x.storeId===d.storeId&&x.wave===d.wave);
+  if(idx>=0) DROPS[idx].bottles=bottles;
+  invalidateDropCache();
+  resolveCard(issueId);
+  const ok=await scriptPost('updateDrop',{dropId:d.dropId,original:d,updates:{bottles}}).then(r=>r.success).catch(()=>false);
+  toast(ok?'Bottles saved ✓':'Saved locally (sheet sync pending)');
+  updateIssuesBadge();
+}
+async function saveReporterEdit(issueId){
+  const issues=buildIssues();
+  const issue=issues.find(i=>i.id===issueId);
+  if(!issue) return;
+  const d=issue.drop;
+  const reporter=document.getElementById('rpt_'+issueId)?.value||'';
+  const idx=DROPS.findIndex(x=>x.storeId===d.storeId&&x.wave===d.wave);
+  if(idx>=0) DROPS[idx].reporter=reporter;
+  invalidateDropCache();
+  resolveCard(issueId);
+  const ok=await scriptPost('updateDrop',{dropId:d.dropId,original:d,updates:{reporter}}).then(r=>r.success).catch(()=>false);
+  toast(ok?'Reporter saved ✓':'Saved locally (sheet sync pending)');
+  updateIssuesBadge();
+}
+async function saveLinkEdit(issueId){
+  const issues=buildIssues();
+  const issue=issues.find(i=>i.id===issueId);
+  if(!issue) return;
+  const d=issue.drop;
+  const link=document.getElementById('lnk2_'+issueId)?.value||'';
+  const idx=DROPS.findIndex(x=>x.storeId===d.storeId&&x.wave===d.wave);
+  if(idx>=0) DROPS[idx].discordLink=link;
+  invalidateDropCache();
+  resolveCard(issueId);
+  const ok=await scriptPost('updateDrop',{dropId:d.dropId,original:d,updates:{discordLink:link}}).then(r=>r.success).catch(()=>false);
+  toast(ok?'Link saved ✓':'Saved locally (sheet sync pending)');
+  updateIssuesBadge();
+}
+
 // ── DROP ID GENERATOR ──
 // Format: SRC-YYYYMMDD-HHMMSS-STOREID-SEQ
 let _dropIdSeq = 1;
@@ -1219,10 +2057,12 @@ function generateDropId(source, storeId, date){
   return `${src}-${dateStr}-${timeStr}-${pad3(storeId||0)}-${seq}`;
 }
 
+const SCRIPT_TOKEN = 'bourbon2026';
+
 // Use GET instead of POST to avoid CORS preflight issues with Apps Script
 async function scriptPost(action, payload){
   const encoded = encodeURIComponent(JSON.stringify(payload));
-  const r = await fetch(SCRIPT_URL+'?action='+action+'&data='+encoded);
+  const r = await fetch(SCRIPT_URL+'?action='+action+'&data='+encoded+'&token='+SCRIPT_TOKEN);
   return await r.json();
 }
 
@@ -1241,7 +2081,7 @@ async function flushPending(){
   const toFlush=[...pendingDrops];let flushed=0;
   for(const d of toFlush){const ok=await writeDropToSheet(d);if(ok){pendingDrops=pendingDrops.filter(p=>p._id!==d._id);flushed++;}}
   localStorage.setItem("pendingDrops",JSON.stringify(pendingDrops));
-  if(flushed)toast(`Synced ${flushed} drop(s) ✓`);
+  if(flushed){ invalidateDropCache(); toast(`Synced ${flushed} drop(s) ✓`); }
 }
 
 function _quickMarkCore(storeId,action){
@@ -1255,6 +2095,7 @@ function _quickMarkCore(storeId,action){
   pendingDrops=pendingDrops.filter(d=>!(d.storeId===storeId&&d.wave===currentWave));
   pendingDrops.push(drop);
   localStorage.setItem("pendingDrops",JSON.stringify(pendingDrops));
+  invalidateDropCache();
   setTimeout(()=>{refresh();flushPending();},80);
   toast(action==="scored"?"🥃 Got one!":action==="no_drop"?"Cleaned out marked":"Drop logged");
 }
@@ -1267,11 +2108,12 @@ function openModalForStore(id){map.closePopup();modalStorePreset=id;_openModal()
 function _openModal(){
   document.getElementById("modal-overlay").classList.add("open");
   document.getElementById("f-store").value=modalStorePreset||"";
-  document.getElementById("f-bottles").value="";document.getElementById("f-reporter").value="";
+  document.getElementById("f-reporter").value="";
   document.getElementById("f-notes").value="";document.getElementById("f-link").value="";
   document.getElementById("f-time").value=new Date().toISOString().slice(0,16);
   document.getElementById("paste-input").value="";document.getElementById("parse-result").textContent="";
   setResult("drop");
+  pickerInit('mob');
 }
 function closeModal(){document.getElementById("modal-overlay").classList.remove("open");}
 function setResult(r){
@@ -1310,6 +2152,7 @@ async function confirmLog(){
     pendingDrops.push(drop);
   }
   localStorage.setItem("pendingDrops",JSON.stringify(pendingDrops));
+  invalidateDropCache();
   closeModal();refresh();btn.textContent="Save Drop ✓";
   toast(`Logged ${toLog.length} store(s) — syncing...`);
   await flushPending();
@@ -1354,10 +2197,31 @@ async function confirmNewWave(){
   toast("New wave: "+label+" — all stores reset");
 }
 
+let huntMode = 'state'; // 'state' or 'district'
+
+function setHuntMode(mode){
+  huntMode = mode;
+  const stateBtn = document.getElementById('hunt-mode-state');
+  const distBtn = document.getElementById('hunt-mode-district');
+  if(stateBtn && distBtn){
+    stateBtn.style.background = mode==='state' ? 'var(--accent)' : 'var(--surface2)';
+    stateBtn.style.color = mode==='state' ? '#000' : 'var(--muted)';
+    stateBtn.style.border = mode==='state' ? 'none' : '1px solid var(--border)';
+    distBtn.style.background = mode==='district' ? 'var(--accent)' : 'var(--surface2)';
+    distBtn.style.color = mode==='district' ? '#000' : 'var(--muted)';
+    distBtn.style.border = mode==='district' ? 'none' : '1px solid var(--border)';
+  }
+  openHunt();
+}
+
 document.getElementById("hunt-btn").onclick=openHunt;
 function openHunt(){
+  // State mode = all stores, District mode = active district filter
   const stores=STORES
-    .filter(s=>activeDistricts.has("ALL")||activeDistricts.has(s.district))
+    .filter(s=>{
+      if(huntMode==='state') return true;
+      return activeDistricts.has('ALL') || activeDistricts.has(s.district);
+    })
     .map(s=>{
       const {status,drop}=getStoreStatus(s.id);
       const distMi=calcDist(s.lat, s.lng);
@@ -1390,7 +2254,10 @@ function openHunt(){
       </div>${statusHTML}<div class="hunt-actions">${actions}</div>
     </div>`;
   }).join("");
-  document.getElementById("hunt-overlay").classList.add("open");
+  document.getElementById('hunt-overlay').classList.add("open");
+  document.getElementById('hunt-title').textContent = huntMode==='state'
+    ? `🚗 Hunt Mode — All Stores`
+    : `🚗 Hunt Mode — Selected Districts`;
 }
 function closeHunt(){document.getElementById("hunt-overlay").classList.remove("open");}
 
@@ -1432,14 +2299,13 @@ function mobileSpotlight(storeId){
   if(!store||!map) return;
   closeMobileSearch();
   map.setView([store.lat,store.lng],15,{animate:true});
-  // Open popup after zoom settles — retry a couple times in case marker isn't ready
-  let attempts=0;
-  const tryOpen=()=>{
-    const m=markers[storeId];
-    if(m){ m.openPopup(); return; }
-    if(++attempts<5) setTimeout(tryOpen,150);
-  };
-  setTimeout(tryOpen,350);
+  // Just highlight the marker — don't open popup
+  const m=markers[storeId];
+  if(m){
+    // Brief bounce effect to indicate which store
+    const el=m.getElement();
+    if(el){ el.style.transition='transform 0.15s'; el.style.transform='scale(1.6)'; setTimeout(()=>el.style.transform='',400); }
+  }
 }
 
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500);}
@@ -1464,7 +2330,7 @@ function openEntryPanel(){
   document.getElementById('entry-panel').classList.add('open');
   efPopulateWaves();
   efClearSuccess();
-  // Focus paste field
+  pickerInit('ef');
   setTimeout(()=>document.getElementById('ef-paste').focus(), 100);
 }
 
@@ -2038,7 +2904,7 @@ function _buildSbDistrictsCore(){
   allDiv.onclick=()=>{activeDistricts=new Set(['ALL']);buildSbDistricts();renderDesktopMarkers();updateDesktopStats();};
   c.appendChild(allDiv);
 
-  ['D14','D17','D18','D07','D20','D16','D12'].forEach(d=>{
+  getActiveDistricts().forEach(d=>{
     const color=DC[d];
     const stores=STORES.filter(s=>s.district===d);if(!stores.length)return;
     const dropped=allDrops().filter(x=>x.wave===currentWave&&x.district===d&&x.result==='drop').length;
@@ -2149,7 +3015,12 @@ function spotlightStore(storeId){
   desktopMap.setView([store.lat,store.lng],15,{animate:true});
   document.getElementById('search-results').innerHTML='';
   document.getElementById('store-search').value='#'+storeId+' '+store.label;
-  openDetailPanel(storeId);
+  // Highlight marker briefly — don't auto-open panel
+  const m=desktopMarkers[storeId];
+  if(m){
+    const el=m.getElement();
+    if(el){ el.style.transition='transform 0.15s'; el.style.transform='scale(1.6)'; setTimeout(()=>el.style.transform='',400); }
+  }
 }
 
 function openDetailPanel(storeId){
@@ -2227,8 +3098,214 @@ function quickMark(storeId,action){
 }
 
 // ═══════════════════════════════════════════
-// F9 — QUICK DROP + NEEDS LOGGING QUEUE
+// F11 — DISTRICT ANALYTICS
 // ═══════════════════════════════════════════
+
+function openAnalytics(){
+  document.getElementById('analytics-overlay').classList.add('open');
+  renderAnalytics();
+}
+function closeAnalytics(){
+  document.getElementById('analytics-overlay').classList.remove('open');
+}
+
+function computeDistrictAnalytics(district){
+  const color = distColor(district);
+  const stores = STORES.filter(s=>s.district===district);
+  const patterns = getDistrictPatterns(district, 999);
+  const distDrops = allDrops().filter(d=>d.district===district&&d.result==='drop'&&d.wave);
+
+  // ── WAVES for this district ──
+  const waveSet = [...new Set([
+    ...patterns.map(p=>p.wave),
+    ...distDrops.map(d=>d.wave)
+  ].filter(w=>w&&/^\d{4}/.test(w)))].sort();
+  const totalWaves = waveSet.length;
+
+  // ── PREDICTABILITY ──
+  const patternsWithMode = patterns.filter(p=>p.mode);
+  let predScore = 0, topMode = null, topModePct = 0;
+  if(patternsWithMode.length){
+    const modeCounts = {};
+    patternsWithMode.forEach(p=>{ modeCounts[p.mode]=(modeCounts[p.mode]||0)+1; });
+    const sorted = Object.entries(modeCounts).sort((a,b)=>b[1]-a[1]);
+    topMode = sorted[0][0];
+    topModePct = Math.round(sorted[0][1]/patternsWithMode.length*100);
+    predScore = topModePct;
+  }
+  const predColor = predScore>=70?'#4ade80':predScore>=50?'#f59e0b':'#f87171';
+  const predLabel = predScore>=70?'HIGH':predScore>=50?'MEDIUM':'LOW';
+
+  // ── DROP WINDOW (common hour) ──
+  const timestamps = distDrops
+    .filter(d=>d.timestamp)
+    .map(d=>new Date(d.timestamp))
+    .filter(d=>!isNaN(d));
+  const hourCounts = {};
+  timestamps.forEach(d=>{
+    const h=d.getHours();
+    const label=`${h===0?12:h>12?h-12:h}${h>=12?'pm':'am'}`;
+    hourCounts[label]=(hourCounts[label]||0)+1;
+  });
+  const hoursSorted = Object.entries(hourCounts).sort((a,b)=>b[1]-a[1]);
+  const commonHour = hoursSorted[0]?.[0] || '–';
+  const commonHourPct = hoursSorted[0] ? Math.round(hoursSorted[0][1]/timestamps.length*100) : 0;
+
+  // Top 3 hours for bar chart
+  const topHours = hoursSorted.slice(0,5);
+  const maxHourCount = topHours[0]?.[1]||1;
+
+  // ── DAY OF WEEK ──
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const dayCounts = {Sun:0,Mon:0,Tue:0,Wed:0,Thu:0,Fri:0,Sat:0};
+  timestamps.forEach(d=>{ dayCounts[days[d.getDay()]]++; });
+  const daysSorted = Object.entries(dayCounts).sort((a,b)=>b[1]-a[1]);
+  const topDay = daysSorted[0]?.[0]||'–';
+  const topDayPct = timestamps.length ? Math.round(daysSorted[0][1]/timestamps.length*100) : 0;
+  const maxDayCount = daysSorted[0]?.[1]||1;
+
+  // ── WAVE FREQUENCY (avg days between waves) ──
+  const waveDates = waveSet
+    .map(w=>{ const m=w.match(/^(\d{4})\.(\d{2})\.(\d{2})/); return m?new Date(`${m[1]}-${m[2]}-${m[3]}`):null; })
+    .filter(Boolean).sort((a,b)=>a-b);
+  let avgDaysBetween = null;
+  if(waveDates.length>=2){
+    const gaps = [];
+    for(let i=1;i<waveDates.length;i++) gaps.push((waveDates[i]-waveDates[i-1])/(1000*60*60*24));
+    avgDaysBetween = Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length);
+  }
+
+  // ── DAYS SINCE LAST WAVE ──
+  const lastWaveDate = waveDates.length ? waveDates[waveDates.length-1] : null;
+  const daysSinceLast = lastWaveDate ? Math.floor((Date.now()-lastWaveDate)/(1000*60*60*24)) : null;
+  let dueStatus = null;
+  if(daysSinceLast!==null && avgDaysBetween){
+    const pct = daysSinceLast/avgDaysBetween;
+    if(pct>=1.2) dueStatus='overdue';
+    else if(pct>=0.85) dueStatus='due-soon';
+    else dueStatus='fresh';
+  }
+
+  // ── MODE BREAKDOWN ──
+  const modeCounts2 = {};
+  patternsWithMode.forEach(p=>{ modeCounts2[p.mode]=(modeCounts2[p.mode]||0)+1; });
+  const modesSorted = Object.entries(modeCounts2).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxModeCount = modesSorted[0]?.[1]||1;
+
+  return {
+    district, color, stores, totalWaves,
+    predScore, predColor, predLabel, topMode, topModePct,
+    commonHour, commonHourPct, topHours, maxHourCount,
+    topDay, topDayPct, daysSorted, maxDayCount,
+    avgDaysBetween, daysSinceLast, dueStatus, lastWaveDate,
+    modesSorted, maxModeCount, timestamps
+  };
+}
+
+function renderAnalytics(){
+  const body = document.getElementById('analytics-body');
+  const districts = getActiveDistricts();
+
+  body.innerHTML = districts.map(district=>{
+    const a = computeDistrictAnalytics(district);
+    const {color} = a;
+
+    // Due status banner
+    let dueHTML = '';
+    if(a.dueStatus==='overdue'){
+      dueHTML=`<div class="an-overdue">🔴 Overdue — ${a.daysSinceLast}d since last wave (avg ${a.avgDaysBetween}d)</div>`;
+    } else if(a.dueStatus==='due-soon'){
+      dueHTML=`<div class="an-due-soon">🟡 Due soon — ${a.daysSinceLast}d since last wave (avg ${a.avgDaysBetween}d)</div>`;
+    } else if(a.dueStatus==='fresh'){
+      dueHTML=`<div class="an-fresh">✓ Recent — ${a.daysSinceLast}d since last wave (avg ${a.avgDaysBetween}d)</div>`;
+    }
+
+    // Time of day bars
+    const hourBars = a.topHours.map(([label,count])=>`
+      <div class="an-bar-row">
+        <div class="an-bar-label">${label}</div>
+        <div class="an-bar-track"><div class="an-bar-fill" style="width:${Math.round(count/a.maxHourCount*100)}%;background:${color}"></div></div>
+        <div class="an-bar-count">${count}</div>
+      </div>`).join('');
+
+    // Day of week bars
+    const dayBars = a.daysSorted.filter(([,c])=>c>0).slice(0,5).map(([label,count])=>`
+      <div class="an-bar-row">
+        <div class="an-bar-label">${label}</div>
+        <div class="an-bar-track"><div class="an-bar-fill" style="width:${Math.round(count/a.maxDayCount*100)}%;background:${color}88"></div></div>
+        <div class="an-bar-count">${count}</div>
+      </div>`).join('');
+
+    // Mode breakdown bars
+    const modeBars = a.modesSorted.map(([mode,count])=>`
+      <div class="an-bar-row">
+        <div class="an-bar-label" style="font-size:10px;width:90px">${formatModeShort(mode)}</div>
+        <div class="an-bar-track"><div class="an-bar-fill" style="width:${Math.round(count/a.maxModeCount*100)}%;background:${color}66"></div></div>
+        <div class="an-bar-count">${count}</div>
+      </div>`).join('');
+
+    return `<div class="an-district-card">
+      <div class="an-district-header">
+        <div>
+          <div class="an-district-name" style="color:${color}">${district}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${a.stores.length} stores · ${a.totalWaves} waves tracked</div>
+        </div>
+        <div style="text-align:right">
+          <div class="an-pred-score" style="color:${a.predColor}">${a.predScore}%</div>
+          <div class="an-pred-label" style="color:${a.predColor}">Predictability</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${a.predLabel}</div>
+        </div>
+      </div>
+
+      ${dueHTML}
+
+      <div class="an-stats-grid">
+        <div class="an-stat">
+          <div class="an-stat-label">Common Time</div>
+          <div class="an-stat-val" style="color:${color}">${a.commonHour}</div>
+          <div class="an-stat-sub">${a.commonHourPct}% of drops</div>
+        </div>
+        <div class="an-stat">
+          <div class="an-stat-label">Top Day</div>
+          <div class="an-stat-val" style="color:${color}">${a.topDay}</div>
+          <div class="an-stat-sub">${a.topDayPct}% of drops</div>
+        </div>
+        <div class="an-stat">
+          <div class="an-stat-label">Avg Frequency</div>
+          <div class="an-stat-val">${a.avgDaysBetween?a.avgDaysBetween+'d':'–'}</div>
+          <div class="an-stat-sub">between waves</div>
+        </div>
+        <div class="an-stat">
+          <div class="an-stat-label">Top Mode</div>
+          <div class="an-stat-val" style="font-size:11px">${a.topMode?formatModeShort(a.topMode):'–'}</div>
+          <div class="an-stat-sub">${a.topModePct}% of waves</div>
+        </div>
+        <div class="an-stat">
+          <div class="an-stat-label">Last Wave</div>
+          <div class="an-stat-val" style="font-size:11px">${a.lastWaveDate?a.lastWaveDate.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'–'}</div>
+          <div class="an-stat-sub">${a.daysSinceLast!==null?a.daysSinceLast+'d ago':''}</div>
+        </div>
+        <div class="an-stat">
+          <div class="an-stat-label">Drop Data</div>
+          <div class="an-stat-val">${a.timestamps.length}</div>
+          <div class="an-stat-sub">timed drops</div>
+        </div>
+      </div>
+
+      ${a.topHours.length?`
+      <div class="an-section-title">Drop Time Distribution</div>
+      ${hourBars}`:''}
+
+      ${a.daysSorted.filter(([,c])=>c>0).length?`
+      <div class="an-section-title" style="margin-top:10px">Day of Week</div>
+      ${dayBars}`:''}
+
+      ${a.modesSorted.length?`
+      <div class="an-section-title" style="margin-top:10px">Mode Breakdown</div>
+      ${modeBars}`:''}
+    </div>`;
+  }).join('');
+}
 
 // quickDrops: { storeId, wave, timestamp, district } — logged instantly, details pending
 // We store these separately from pendingDrops so we know they need filling in
@@ -2254,6 +3331,7 @@ function quickDrop(storeId){
   pendingDrops = pendingDrops.filter(d=>!(d.storeId===storeId&&d.wave===currentWave));
   pendingDrops.push({...drop});
   localStorage.setItem('pendingDrops', JSON.stringify(pendingDrops));
+  invalidateDropCache();
   updateQueueBadge();
   refresh();
   flushPending();
@@ -2392,7 +3470,7 @@ function renderReviewList(){
     list.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px">No drops matching this filter 🎉</div>';
     return;
   }
-  const waves = [...new Set(allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
+  const waves = [...new Set([currentWave,...allDrops().map(d=>d.wave)].filter(w=>w&&/^\\d{4}/.test(w)))].sort().reverse();
   const waveOptions = waves.map(w=>`<option value="${w}">${w}</option>`).join('');
 
   // Store drops in a map so onclick can look them up safely — no JSON in HTML
@@ -2720,7 +3798,7 @@ function buildDesktopHeader(){
   // Populate wave select
   const sbWaveSel = document.getElementById('sb-wave-select');
   if(sbWaveSel){
-    const waves = [...new Set(allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
+    const waves = [...new Set([currentWave,...allDrops().map(d=>d.wave)].filter(w=>w&&/^\\d{4}/.test(w)))].sort().reverse();
     waves.forEach(w=>{
       const o=document.createElement('option');o.value=w;o.textContent=w;
       if(w===currentWave)o.selected=true;sbWaveSel.appendChild(o);
@@ -2772,7 +3850,7 @@ function openDistrictPanel(district){
 // buildSbDistricts: calls core then injects behavior tags
 function buildSbDistricts(){
   _buildSbDistrictsCore();
-  ['D14','D17','D18','D07','D20','D16','D12'].forEach(d=>{
+  getActiveDistricts().forEach(d=>{
     const rows = document.querySelectorAll('#sb-districts .sb-district');
     rows.forEach(row=>{
       const name = row.querySelector('.sb-district-name');
@@ -2795,6 +3873,7 @@ async function initAndDetect(){
   updateQueueBadge();
   updateReviewBadge();
   updateFillinBadge();
+  updateIssuesBadge();
   if(detectLayout()){
     activateDesktop();
     setTimeout(()=>{buildDesktopHeader();buildDesktopBadges();},200);
