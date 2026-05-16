@@ -11,23 +11,14 @@ Two entries use OF1924 for different bottles — Old Fitzgerald 1924 (Heaven Hil
 
 ### In Progress / Next Sprint
 
-**F4 — Needs Review Queue**
-Surface the 121 drops flagged needsReview=true (missing wave labels, incomplete data). Show in a filterable list. Let user assign wave labels, fix timestamps, mark complete. Sync corrections back to Google Sheet.
-
 **F5 — Mobile Store Spotlight**
 When user taps a search result in mobile search overlay, close overlay, zoom map to that pin at zoom 15, auto-open the store card popup.
 
-**F9 — Quick Drop + Needs Logging Queue**
-Add "Quick Drop ⚡" button to store card (one tap, no form, pin goes green instantly). Add "Log Details" second button. Add 📋 badge in header showing count of quick-logged drops needing details. Tapping badge opens queue overlay showing each pending drop with amber tags for missing fields (bottles, reporter, discord link). "Fill In Details" opens entry panel pre-filled with store # and timestamp.
+**F11 — BottleDrops persistence** *(picker UI complete — sheet backend pending)*
+Create Bottles + BottleDrops tabs in Google Sheet. Add `getBottles` and `addBottleDrop` Apps Script actions. Wire picker's confirmed/absent/rumored status through to sheet. Idle-time bottle filling with wave-keyword pre-suggestion.
 
-**F10 — Idle Time Mode**
-A "Fill In" button that surfaces data quality tasks as a card-by-card queue — missing bottles, missing reporters, missing discord links, untiered stores, unlabeled waves. Easiest/quickest tasks first. One card at a time, skip or complete.
-
-**F12 — Desktop Polish**
-Fix layout issues, ensure hunt/dist-toggle hidden on desktop, version bump to v0.3.
-
-**F14 — District Behavior Tags**
-Each district tagged as Random / Day-Locked / Bulk / Unknown. Set once by user. Shows in sidebar and pattern panel. Informs hunting decisions.
+**Issues badge on desktop sidebar**
+Show count of open issues (collision flags, needs-review, missing data) as a badge in the desktop sidebar header. Currently the Issues queue is accessible but not surfaced.
 
 ---
 
@@ -123,17 +114,29 @@ Reminder to check app during active drop windows based on historical district pa
 ## ✅ Completed Features
 
 - Map with 79 stores, dynamic zoom pins (dot/mid/full), district colors
-- Google Sheets backend — live sync, read + write
+- Google Sheets backend — live sync, read + write (GET-based, no CORS issues)
 - Wave selector, new wave creation, wave reset fix
 - District filter chips (mobile) + sidebar with pattern history (desktop)
-- Store cards with full history, Discord links, tier badges, HH22/BB30 flags
+- Store cards — tabbed (Summary / Order / Bottles) with full drop history
 - Log a drop — voice, paste, manual (mobile)
 - Hunt mode — sorted by tier + distance + estimated drive time
+- Hunt mode State/District toggle
 - Distance toggle — home (#267) vs live GPS
 - Desktop layout — sidebar, map, sliding detail panel
 - Desktop entry panel — paste Discord text, auto-parse reporter/time/store, write to sheet
 - Auto-calc MinutesSinceMidnight + DayOfWeek on entry
 - Pattern analysis — per district, last 6-10 waves, predictability rating, common time window
-- Mobile search overlay — 🔍 button, full screen, zoom + open card on tap
+- Mobile search — zoom + bounce pin
+- Desktop search — zoom + bounce pin
 - Version badge + last sync time (bottom right of map)
-- GitHub hosted at shearmanb.github.io/drop-tracker
+- Drop IDs — unique per drop, backfilled 778 rows
+- Performance caching — allDrops(), getStoreStatus(), getStoreHistory(), getDropOrder() memoized
+- Cache versioning — schema changes bust stale cache automatically
+- F4 — Needs Review Queue (⚠️ badge, filterable overlay, sheet sync)
+- F9 — Quick Drop ⚡ + Needs Logging Queue (📋 badge, detail fill queue)
+- F10 — Idle Fill-In Mode (✏️ badge, missing fields task queue)
+- F11 — Bottle picker UI (69 bottles, search-as-you-type, tier badges, recents, collision warnings, confirmed/absent/rumored status)
+- F12 — Desktop polish (v0.4, mobile buttons hidden on desktop, sidebar controls)
+- F14 — District behavior tags (Random/Day-Locked/Bulk/Unknown)
+- Token auth on Apps Script write actions
+- GitHub Pages hosting at shearmanb.github.io/drop-tracker

@@ -216,9 +216,9 @@ See `DATAMODEL.md` for full data model reference.
 
 ### Next up (high priority)
 - **F5** — Mobile store spotlight: search result tap → zoom map to pin at zoom 15, auto-open store card
-- **F9** — Quick Drop ⚡ button + Needs Logging Queue
-- **F4** — Needs Review Queue (121 drops flagged needsReview=true)
-- **F12** — Desktop polish, hide hunt/dist-toggle on desktop, bump to v0.3
+- **F11** — BottleDrops sheet tab + Apps Script actions (picker UI is done; persistence is not)
+- **Issues badge** — add badge count to desktop sidebar for Issues queue
+- **Waves management** — list waves, set status, add notes, expected date
 
 ---
 
