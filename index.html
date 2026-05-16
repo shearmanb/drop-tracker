@@ -50,14 +50,9 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 #map-wrap{flex:1;position:relative}
 #map{width:100%;height:100%}
 #zoom-badge{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(13,17,23,0.85);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--muted);z-index:500;pointer-events:none;transition:opacity 0.3s;white-space:nowrap}
-#app-meta{position:absolute;bottom:82px;right:10px;background:rgba(13,17,23,0.8);border:1px solid var(--border);border-radius:8px;padding:4px 8px;z-index:500;pointer-events:none;text-align:right;line-height:1.5}
+#app-meta{position:absolute;bottom:76px;right:10px;background:rgba(13,17,23,0.8);border:1px solid var(--border);border-radius:8px;padding:4px 8px;z-index:500;pointer-events:none;text-align:right;line-height:1.5}
 #app-meta .meta-version{font-size:10px;font-weight:700;color:var(--accent);font-family:monospace}
 #app-meta .meta-sync{font-size:9px;color:var(--muted2)}
-#bottom-bar{background:var(--surface);border-top:1px solid var(--border);padding:4px 10px;display:flex;flex-shrink:0}
-.bstat{flex:1;text-align:center}
-.bstat+.bstat{border-left:1px solid var(--border)}
-.bval{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
-.blabel{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-top:0px}
 #fab{position:absolute;bottom:16px;right:16px;width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:26px;cursor:pointer;box-shadow:0 4px 16px rgba(245,158,11,0.4);z-index:500;display:flex;align-items:center;justify-content:center}
 #fab:active{transform:scale(0.93)}
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1e3a1e;border:1px solid #22c55e;color:#4ade80;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;z-index:4000;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
@@ -143,12 +138,7 @@ textarea.modal-input{resize:vertical;min-height:56px}
 .wave-modal-sub{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
 .wave-actions{display:flex;gap:8px;margin-top:14px}
 .wave-btn{flex:1;padding:11px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
-#hunt-overlay{position:fixed;inset:0;background:var(--bg);z-index:3000;display:none;flex-direction:column}
-#hunt-overlay.open{display:flex}
-#hunt-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-#hunt-title{font-size:14px;font-weight:700}
-#hunt-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
-#hunt-list{flex:1;overflow-y:auto;padding:10px}
+#hunt-list{padding:10px}
 .hunt-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
 .hunt-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
 .hunt-store-num{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
@@ -161,7 +151,7 @@ textarea.modal-input{resize:vertical;min-height:56px}
 .hunt-btn{flex:1;padding:10px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
 .you-dot{width:14px;height:14px;border-radius:50%;background:#60a5fa;border:3px solid #fff;box-shadow:0 0 0 3px rgba(96,165,250,0.3)}
 
-#layout-toggle{position:fixed;bottom:16px;left:16px;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;z-index:600;font-family:inherit}
+#layout-toggle-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 8px;font-size:14px;cursor:pointer;flex-shrink:0}
 #dm-num-toggle{position:absolute;top:10px;right:10px;background:rgba(13,17,23,0.85);border:1px solid var(--border);color:var(--muted);border-radius:16px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;z-index:500;font-family:inherit;display:none}
 #dm-num-toggle.show{display:block}
 #dm-num-toggle.active{border-color:var(--accent);color:var(--accent)}
@@ -231,7 +221,6 @@ body.desktop #mobile-search-btn{display:none}
 .dp-hist-bottles{color:var(--accent);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dp-hist-meta{color:var(--muted2);font-size:10px;margin-top:1px}
 .dp-hist-link{color:#60a5fa;font-size:12px;text-decoration:none;flex-shrink:0}
-body.desktop #layout-toggle{content:'📱 Mobile'}
 
 /* ═══ BOTTLE PICKER ═══ */
 .bp-wrap{position:relative}
@@ -258,13 +247,7 @@ body.desktop #layout-toggle{content:'📱 Mobile'}
 .bp-warn.show{display:block}
 /* ═══ ISSUES QUEUE ═══ */
 #issues-badge{background:#ef4444;color:#fff;border-radius:8px;font-size:9px;font-weight:800;padding:1px 4px;min-width:14px;text-align:center;display:none;line-height:1.4}
-#issues-overlay{position:fixed;inset:0;background:var(--bg);z-index:4000;display:none;flex-direction:column}
-#issues-overlay.open{display:flex}
-#issues-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-#issues-title{font-size:14px;font-weight:700}
-#issues-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
-#issues-filters{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;gap:6px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
-#issues-filters::-webkit-scrollbar{display:none}
+#issues-filters{padding:6px 12px;display:flex;gap:5px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;flex-wrap:wrap}
 .iq-filter{padding:4px 10px;border-radius:14px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);white-space:nowrap;font-family:inherit}
 .iq-filter.active{border-color:var(--accent);color:var(--accent);background:rgba(245,158,11,0.1)}
 #issues-list{flex:1;overflow-y:auto;padding:10px}
@@ -295,13 +278,44 @@ body.desktop #layout-toggle{content:'📱 Mobile'}
 .iq-choice{flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;text-align:center;font-family:inherit}
 .iq-choice:hover{border-color:var(--accent);color:var(--accent);background:rgba(245,158,11,0.08)}
 
-/* ═══ F11: DISTRICT ANALYTICS ═══ */
-#analytics-overlay{position:fixed;inset:0;background:var(--bg);z-index:3000;display:none;flex-direction:column}
-#analytics-overlay.open{display:flex}
-#analytics-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-#analytics-title{font-size:15px;font-weight:800}
-#analytics-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
-#analytics-body{flex:1;overflow-y:auto;padding:12px}
+/* ═══ TAB NAVIGATION SYSTEM ═══ */
+#tab-content{flex:1;position:relative;overflow:hidden}
+.tab-panel{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
+.tab-panel.active{display:flex}
+#tab-map{flex-direction:column}
+#tab-hunt,#tab-log,#tab-stats{overflow-y:auto;-webkit-overflow-scrolling:touch}
+#tab-bar{height:56px;display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;z-index:600}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:none;background:none;color:var(--muted);font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;position:relative;padding:6px 0;transition:color 0.15s}
+.tab-btn.active{color:var(--accent)}
+.tab-btn-icon{font-size:19px;line-height:1}
+.tab-badge{background:#ef4444;color:#fff;border-radius:8px;font-size:8px;font-weight:800;padding:1px 4px;margin-left:2px;vertical-align:middle}
+.tab-badge-amber{background:#f59e0b;color:#000}
+/* ═══ STATS STRIP ═══ */
+#stats-strip{background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;cursor:pointer;user-select:none}
+#ss-compact{display:flex;align-items:center;justify-content:space-between;padding:5px 12px;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
+#ss-compact .ss-nums{display:flex;gap:14px}
+#ss-compact .ss-pct{color:var(--accent)}
+#ss-chevron{font-size:10px;color:var(--muted);line-height:1}
+#ss-expanded{display:none;padding:6px 10px 8px;gap:0}
+#ss-expanded .bstat{flex:1;text-align:center}
+#ss-expanded .bstat+.bstat{border-left:1px solid var(--border)}
+#ss-expanded .bval{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+#ss-expanded .blabel{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px}
+/* ═══ HUNT TAB ═══ */
+#hunt-controls{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+#hunt-tab-title{font-size:12px;font-weight:700;flex:1}
+#hunt-list-scroll{flex:1;overflow-y:auto;padding:10px;-webkit-overflow-scrolling:touch}
+/* ═══ LOG TAB ═══ */
+#log-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#log-new-drop-btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
+.log-section{border-top:1px solid var(--border);padding:12px}
+.log-section-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.log-section-hdr select{font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 4px;font-family:inherit;margin-left:auto}
+/* ═══ STATS TAB ═══ */
+#stats-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#stats-wave-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+#stats-divider{height:4px;background:var(--border);margin:4px 0}
+#analytics-body{padding:12px}
 .an-district-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
 .an-district-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .an-district-name{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums}
@@ -322,12 +336,7 @@ body.desktop #layout-toggle{content:'📱 Mobile'}
 .an-due-soon{background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);border-radius:8px;padding:6px 10px;font-size:11px;color:#f59e0b;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 .an-fresh{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);border-radius:8px;padding:6px 10px;font-size:11px;color:#4ade80;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
 #queue-badge-count{background:#f59e0b;color:#000;border-radius:8px;padding:1px 4px;font-size:9px;font-weight:800;line-height:1.4}
-#queue-overlay{position:fixed;inset:0;background:var(--bg);z-index:3000;display:none;flex-direction:column}
-#queue-overlay.open{display:flex}
-#queue-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-#queue-title{font-size:14px;font-weight:700}
-#queue-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
-#queue-list{flex:1;overflow-y:auto;padding:10px}
+#queue-list{padding:6px 0}
 .queue-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
 .queue-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .queue-store-num{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}
@@ -339,13 +348,8 @@ body.desktop #layout-toggle{content:'📱 Mobile'}
 .queue-actions{display:flex;gap:6px}
 .queue-btn{flex:1;padding:9px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
 /* ═══ F4: REVIEW QUEUE ═══ */
-#review-overlay{position:fixed;inset:0;background:var(--bg);z-index:3000;display:none;flex-direction:column}
-#review-overlay.open{display:flex}
-#review-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px}
-#review-title{font-size:14px;font-weight:700;flex:1}
-#review-filter{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer;font-family:inherit}
-#review-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
-#review-list{flex:1;overflow-y:auto;padding:10px}
+#review-filter{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;font-size:10px;cursor:pointer;font-family:inherit}
+#review-list{padding:6px 0}
 .review-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px}
 .review-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
 .review-store{font-size:14px;font-weight:800}
@@ -357,13 +361,7 @@ body.desktop #layout-toggle{content:'📱 Mobile'}
 .review-actions{display:flex;gap:6px}
 .review-btn{flex:1;padding:8px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
 /* ═══ F10: IDLE FILL-IN MODE ═══ */
-#fillin-overlay{position:fixed;inset:0;background:var(--bg);z-index:3000;display:none;flex-direction:column}
-#fillin-overlay.open{display:flex}
-#fillin-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-#fillin-title{font-size:14px;font-weight:700}
-#fillin-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:inherit}
-#fillin-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px 16px}
-#fillin-progress{width:100%;max-width:420px;margin-bottom:16px}
+#fillin-progress{margin-bottom:12px}
 #fillin-prog-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:6px}
 #fillin-prog-fill{height:100%;background:#a855f7;border-radius:2px;transition:width 0.3s}
 #fillin-prog-label{font-size:11px;color:var(--muted);text-align:center}
@@ -462,34 +460,125 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     <select class="cycle-select" id="wave-select"></select>
     <button id="sync-btn" onclick="syncFromSheet()" title="Sync">⟳</button>
     <button id="mobile-search-btn" onclick="openMobileSearch()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:14px;cursor:pointer;flex-shrink:0">🔍</button>
-    <button id="hunt-btn">🚗 Hunt</button>
-  </div>
-  <div id="tools-strip">
-    <button class="tool-btn" id="new-wave-btn" onclick="openNewWave()">+ Wave</button>
-    <button class="tool-btn" id="analytics-btn" onclick="openAnalytics()">📊 Analytics</button>
-    <button class="tool-btn" id="issues-btn" onclick="openIssues()">📋 Issues<span class="tbadge" id="issues-badge" style="display:none"></span></button>
-    <button class="tool-btn" id="queue-badge" onclick="openQueueOverlay()" style="display:none">⚡ Queue <span class="tbadge tbadge-amber" id="queue-badge-count">0</span></button>
-    <button class="tool-btn" id="review-badge" onclick="openReviewOverlay()" style="display:none">⚠️ Review</button>
-    <button class="tool-btn" id="fillin-btn" onclick="openFillinOverlay()" style="display:none">✏️ Fill-in</button>
-    <button class="tool-btn" id="dist-toggle" onclick="toggleDistMode()">🏠 #267</button>
-    <button class="tool-btn" id="dm-mode-btn" onclick="toggleDistrictMapMode()">🗺 Map Mode</button>
+    <button id="layout-toggle-btn" onclick="toggleLayout()" title="Switch to Desktop">🖥</button>
   </div>
   <div id="district-bar"></div>
-  <div id="map-wrap">
-    <div id="map"></div>
-    <div id="zoom-badge">zoom in to see store numbers</div>
-    <button id="dm-num-toggle" onclick="toggleDmNums()"># Show Nums</button>
-    <div id="app-meta">
-      <div class="meta-version">v0.4</div>
-      <div class="meta-sync" id="meta-sync">not synced</div>
+  <div id="tab-content">
+
+    <!-- ── MAP TAB ── -->
+    <div id="tab-map" class="tab-panel active">
+      <div id="stats-strip" onclick="toggleStatsStrip()">
+        <div id="ss-compact">
+          <div class="ss-nums">
+            <span style="color:#4ade80">✓ <span id="ss-drop">–</span></span>
+            <span style="color:#f87171">✕ <span id="ss-nodrop">–</span></span>
+            <span style="color:var(--muted)">? <span id="ss-unknown">–</span></span>
+            <span class="ss-pct"><span id="ss-pct">–</span></span>
+          </div>
+          <span id="ss-chevron">˅</span>
+        </div>
+        <div id="ss-expanded" style="display:none">
+          <div style="display:flex;border-top:1px solid var(--border)">
+            <div class="bstat" style="flex:1;text-align:center;padding:6px 0"><div class="bval" id="stat-dropped" style="color:#22c55e;font-size:18px;font-weight:700">–</div><div class="blabel" style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Dropped</div></div>
+            <div class="bstat" style="flex:1;text-align:center;padding:6px 0;border-left:1px solid var(--border)"><div class="bval" id="stat-nodrop" style="color:#ef4444;font-size:18px;font-weight:700">–</div><div class="blabel" style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">No Drop</div></div>
+            <div class="bstat" style="flex:1;text-align:center;padding:6px 0;border-left:1px solid var(--border)"><div class="bval" id="stat-unknown" style="color:var(--muted);font-size:18px;font-weight:700">–</div><div class="blabel" style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Unknown</div></div>
+            <div class="bstat" style="flex:1;text-align:center;padding:6px 0;border-left:1px solid var(--border)"><div class="bval" id="stat-pct" style="color:var(--accent);font-size:18px;font-weight:700">–</div><div class="blabel" style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px">Coverage</div></div>
+          </div>
+        </div>
+      </div>
+      <div id="map-wrap" style="flex:1;position:relative">
+        <div id="map" style="width:100%;height:100%"></div>
+        <div id="zoom-badge">zoom in to see store numbers</div>
+        <button id="dm-num-toggle" onclick="toggleDmNums()"># Show Nums</button>
+        <div id="app-meta">
+          <div class="meta-version">v0.4</div>
+          <div class="meta-sync" id="meta-sync">not synced</div>
+        </div>
+        <button id="fab" onclick="openModal()">＋</button>
+      </div>
     </div>
-    <button id="fab" onclick="openModal()">＋</button>
-  </div>
-  <div id="bottom-bar">
-    <div class="bstat"><div class="bval" id="stat-dropped" style="color:#22c55e">–</div><div class="blabel">Dropped</div></div>
-    <div class="bstat"><div class="bval" id="stat-nodrop" style="color:#ef4444">–</div><div class="blabel">No Drop</div></div>
-    <div class="bstat"><div class="bval" id="stat-unknown" style="color:var(--muted)">–</div><div class="blabel">Unknown</div></div>
-    <div class="bstat"><div class="bval" id="stat-pct" style="color:var(--accent)">–</div><div class="blabel">Coverage</div></div>
+
+    <!-- ── HUNT TAB ── -->
+    <div id="tab-hunt" class="tab-panel">
+      <div id="hunt-controls">
+        <div id="hunt-tab-title">🚗 Hunt Mode</div>
+        <button id="hunt-mode-state" onclick="setHuntMode('state')" style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🌐 All</button>
+        <button id="hunt-mode-district" onclick="setHuntMode('district')" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📍 District</button>
+        <button id="dist-toggle" onclick="toggleDistMode()" class="tool-btn" style="padding:4px 8px;font-size:10px;margin-left:auto">🏠 #267</button>
+      </div>
+      <div id="hunt-list"></div>
+    </div>
+
+    <!-- ── LOG TAB ── -->
+    <div id="tab-log" class="tab-panel">
+      <div id="log-scroll">
+        <div style="padding:12px">
+          <button id="log-new-drop-btn" onclick="openModal()">＋ Log New Drop</button>
+        </div>
+        <div class="log-section" id="log-fillin-section">
+          <div class="log-section-hdr">✏️ Fill-in Tasks <span class="tab-badge tab-badge-amber" id="log-fillin-count" style="display:none">0</span></div>
+          <div id="fillin-progress">
+            <div id="fillin-prog-bar"><div id="fillin-prog-fill" style="width:0%"></div></div>
+            <div id="fillin-prog-label">Loading tasks...</div>
+          </div>
+          <div id="fillin-card-area"></div>
+        </div>
+        <div class="log-section" id="log-queue-section">
+          <div class="log-section-hdr">⚡ Quick Queue <span class="tab-badge tab-badge-amber" id="log-queue-count" style="display:none">0</span></div>
+          <div id="queue-list"></div>
+        </div>
+        <div class="log-section" id="log-review-section">
+          <div class="log-section-hdr">⚠️ Needs Review <span class="tab-badge" id="log-review-count" style="display:none">0</span>
+            <select id="review-filter" onchange="renderReviewList()">
+              <option value="all">All issues</option>
+              <option value="no_wave">Missing wave</option>
+              <option value="no_time">Missing time</option>
+              <option value="incomplete">Incomplete</option>
+            </select>
+          </div>
+          <div id="review-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STATS TAB ── -->
+    <div id="tab-stats" class="tab-panel">
+      <div id="stats-scroll">
+        <div id="stats-wave-bar">
+          <span style="font-size:12px;font-weight:700;flex:1">📊 Analytics &amp; Data</span>
+          <button class="tool-btn" id="new-wave-btn" onclick="openNewWave()" style="border-color:var(--accent);color:var(--accent);padding:4px 10px">+ Wave</button>
+          <button class="tool-btn" id="dm-mode-btn" onclick="toggleDistrictMapMode()" style="padding:4px 8px;font-size:10px">🗺 Map Mode</button>
+        </div>
+        <div id="issues-summary"></div>
+        <div id="issues-filters">
+          <button class="iq-filter active" data-filter="all" onclick="setIssueFilter('all',this)">All</button>
+          <button class="iq-filter" data-filter="collision" onclick="setIssueFilter('collision',this)">⚠️ Collisions</button>
+          <button class="iq-filter" data-filter="review" onclick="setIssueFilter('review',this)">🔍 Review</button>
+          <button class="iq-filter" data-filter="bottles" onclick="setIssueFilter('bottles',this)">🥃 Bottles</button>
+          <button class="iq-filter" data-filter="reporter" onclick="setIssueFilter('reporter',this)">👤 Reporter</button>
+          <button class="iq-filter" data-filter="link" onclick="setIssueFilter('link',this)">🔗 Link</button>
+        </div>
+        <div id="issues-list"></div>
+        <div id="stats-divider"></div>
+        <div id="analytics-body"></div>
+      </div>
+    </div>
+
+  </div><!-- end #tab-content -->
+
+  <div id="tab-bar">
+    <button class="tab-btn active" data-tab="map" onclick="switchTab('map')">
+      <span class="tab-btn-icon">📍</span><span>Map</span>
+    </button>
+    <button class="tab-btn" data-tab="hunt" onclick="switchTab('hunt')">
+      <span class="tab-btn-icon">🚗</span><span>Hunt</span>
+    </button>
+    <button class="tab-btn" data-tab="log" onclick="switchTab('log')">
+      <span class="tab-btn-icon">✏️</span><span>Log <span class="tab-badge tab-badge-amber" id="log-tab-badge" style="display:none">0</span></span>
+    </button>
+    <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">
+      <span class="tab-btn-icon">📊</span><span>Stats <span class="tab-badge" id="stats-tab-badge" style="display:none">!</span></span>
+    </button>
   </div>
 </div>
 
@@ -545,8 +634,6 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
   </div>
 </div>
 
-<!-- LAYOUT TOGGLE -->
-<button id="layout-toggle" onclick="toggleLayout()">🖥 Desktop</button>
 
 <!-- DESKTOP ENTRY PANEL -->
 <div id="entry-panel">
@@ -734,17 +821,6 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
   </div>
 </div>
 
-<div id="hunt-overlay">
-  <div id="hunt-header">
-    <div id="hunt-title">🚗 Hunt Mode</div>
-    <div style="display:flex;gap:6px">
-      <button id="hunt-mode-state" onclick="setHuntMode('state')" style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🌐 State</button>
-      <button id="hunt-mode-district" onclick="setHuntMode('district')" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">📍 District</button>
-      <button id="hunt-close" onclick="closeHunt()">✕ Exit</button>
-    </div>
-  </div>
-  <div id="hunt-list"></div>
-</div>
 
 <!-- MOBILE SEARCH OVERLAY -->
 <div id="mobile-search-overlay">
@@ -757,71 +833,6 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
   </div>
 </div>
 
-<!-- ISSUES QUEUE OVERLAY -->
-<div id="issues-overlay">
-  <div id="issues-header">
-    <div id="issues-title">📋 Data Issues</div>
-    <button id="issues-close" onclick="closeIssues()">✕ Done</button>
-  </div>
-  <div id="issues-summary"></div>
-  <div id="issues-filters">
-    <button class="iq-filter active" data-filter="all" onclick="setIssueFilter('all',this)">All</button>
-    <button class="iq-filter" data-filter="collision" onclick="setIssueFilter('collision',this)">⚠️ Collisions</button>
-    <button class="iq-filter" data-filter="review" onclick="setIssueFilter('review',this)">🔍 Review</button>
-    <button class="iq-filter" data-filter="bottles" onclick="setIssueFilter('bottles',this)">🥃 No Bottles</button>
-    <button class="iq-filter" data-filter="reporter" onclick="setIssueFilter('reporter',this)">👤 No Reporter</button>
-    <button class="iq-filter" data-filter="link" onclick="setIssueFilter('link',this)">🔗 No Link</button>
-  </div>
-  <div id="issues-list"></div>
-</div>
-
-<!-- F11: DISTRICT ANALYTICS OVERLAY -->
-<div id="analytics-overlay">
-  <div id="analytics-header">
-    <div id="analytics-title">📊 District Analytics</div>
-    <button id="analytics-close" onclick="closeAnalytics()">✕ Close</button>
-  </div>
-  <div id="analytics-body"></div>
-</div>
-
-<!-- F9: QUICK DROP QUEUE OVERLAY -->
-<div id="queue-overlay">
-  <div id="queue-header">
-    <div id="queue-title">📋 Needs Detail Logging</div>
-    <button id="queue-close" onclick="closeQueueOverlay()">✕ Close</button>
-  </div>
-  <div id="queue-list"></div>
-</div>
-
-<!-- F4: NEEDS REVIEW OVERLAY -->
-<div id="review-overlay">
-  <div id="review-header">
-    <div id="review-title">⚠️ Needs Review</div>
-    <select id="review-filter" onchange="renderReviewList()">
-      <option value="all">All issues</option>
-      <option value="no_wave">Missing wave</option>
-      <option value="no_time">Missing time</option>
-      <option value="incomplete">Incomplete</option>
-    </select>
-    <button id="review-close" onclick="closeReviewOverlay()">✕ Close</button>
-  </div>
-  <div id="review-list"></div>
-</div>
-
-<!-- F10: FILL-IN / IDLE MODE OVERLAY -->
-<div id="fillin-overlay">
-  <div id="fillin-header">
-    <div id="fillin-title">✏️ Fill In Details</div>
-    <button id="fillin-close" onclick="closeFillinOverlay()">✕ Close</button>
-  </div>
-  <div id="fillin-body">
-    <div id="fillin-progress">
-      <div id="fillin-prog-bar"><div id="fillin-prog-fill" style="width:0%"></div></div>
-      <div id="fillin-prog-label">Loading tasks...</div>
-    </div>
-    <div id="fillin-card-area"></div>
-  </div>
-</div>
 
 <div id="toast"></div>
 
@@ -945,7 +956,84 @@ function getActiveDistricts(){
 // Distance mode: 'home' = from store 267, 'live' = from current GPS
 let distMode = 'home';
 
-// District Map Mode — shows simple color dots for all stores (no drop status)
+// ═══ TAB NAVIGATION ═══
+let currentTab = 'map';
+
+function switchTab(tab){
+  currentTab = tab;
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const panel = document.getElementById('tab-'+tab);
+  const btn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+  if(panel) panel.classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(tab==='map'){ setTimeout(()=>{ if(map) map.invalidateSize(); },50); }
+  if(tab==='hunt') renderHuntTab();
+  if(tab==='log') renderLogTab();
+  if(tab==='stats') renderStatsTab();
+}
+
+function renderHuntTab(){
+  openHunt();
+  const title = document.getElementById('hunt-tab-title');
+  if(title) title.textContent = huntMode==='state' ? '🚗 Hunt — All Stores' : '🚗 Hunt — Selected Districts';
+}
+
+function renderLogTab(){
+  fillinTasks = buildFillinTasks();
+  fillinIdx = 0;
+  renderFillinCard();
+  renderQueueList();
+  renderReviewList();
+  // Update section counts
+  const fc = document.getElementById('log-fillin-count');
+  const qc = document.getElementById('log-queue-count');
+  const rc = document.getElementById('log-review-count');
+  const fn = fillinTasks.length;
+  const qn = quickDropItems.length;
+  const rn = getNeedsReviewDrops().length;
+  if(fc){ fc.textContent=fn; fc.style.display=fn?'inline':'none'; }
+  if(qc){ qc.textContent=qn; qc.style.display=qn?'inline':'none'; }
+  if(rc){ rc.textContent=rn; rc.style.display=rn?'inline':'none'; }
+}
+
+function renderStatsTab(){
+  renderAnalytics();
+  renderIssuesList();
+  updateIssuesBadge();
+}
+
+function updateTabBadges(){
+  const fn = buildFillinTasks().length;
+  const qn = quickDropItems.length;
+  const rn = getNeedsReviewDrops().length;
+  const logTotal = fn + qn + rn;
+  const issuesN = buildIssues().length;
+  const logBadge = document.getElementById('log-tab-badge');
+  if(logBadge){ logBadge.textContent=logTotal; logBadge.style.display=logTotal?'inline':'none'; }
+  const statsBadge = document.getElementById('stats-tab-badge');
+  if(statsBadge){ statsBadge.style.display=issuesN?'inline':'none'; }
+}
+
+// ═══ STATS STRIP ═══
+let statsStripExpanded = false;
+
+function toggleStatsStrip(){
+  statsStripExpanded = !statsStripExpanded;
+  const exp = document.getElementById('ss-expanded');
+  const chev = document.getElementById('ss-chevron');
+  if(exp) exp.style.display = statsStripExpanded ? 'block' : 'none';
+  if(chev) chev.textContent = statsStripExpanded ? '˄' : '˅';
+}
+
+function updateStatsStrip(d, n, u, pct){
+  const sd=document.getElementById('ss-drop'), sn=document.getElementById('ss-nodrop'),
+        su=document.getElementById('ss-unknown'), sp=document.getElementById('ss-pct');
+  if(sd) sd.textContent=d; if(sn) sn.textContent=n;
+  if(su) su.textContent=u; if(sp) sp.textContent=pct+'%';
+}
+
+// ═══ District Map Mode — shows simple color dots ═══
 let districtMapMode = false;
 let dmShowNums = false;
 
@@ -1018,7 +1106,7 @@ function toggleDistMode(){
     btn.classList.remove('live');
   }
   // Re-render hunt mode if open, refresh markers
-  if(document.getElementById('hunt-overlay').classList.contains('open')) openHunt();
+  if(currentTab==='hunt') openHunt();
 }
 
 function allDrops(){ return [...DROPS,...pendingDrops]; }
@@ -1532,10 +1620,13 @@ function updateStats(){
   const rel=STORES.filter(s=>activeDistricts.has("ALL")||activeDistricts.has(s.district));
   let d=0,n=0,u=0;
   rel.forEach(s=>{const {status}=getStoreStatus(s.id);if(status==="drop")d++;else if(status==="no_drop")n++;else u++;});
-  document.getElementById("stat-dropped").textContent=d;
-  document.getElementById("stat-nodrop").textContent=n;
-  document.getElementById("stat-unknown").textContent=u;
-  document.getElementById("stat-pct").textContent=rel.length?Math.round((d+n)/rel.length*100)+"%":"–";
+  const pct=rel.length?Math.round((d+n)/rel.length*100):0;
+  const statD=document.getElementById("stat-dropped"); if(statD) statD.textContent=d;
+  const statN=document.getElementById("stat-nodrop"); if(statN) statN.textContent=n;
+  const statU=document.getElementById("stat-unknown"); if(statU) statU.textContent=u;
+  const statP=document.getElementById("stat-pct"); if(statP) statP.textContent=pct+"%";
+  updateStatsStrip(d, n, u, pct);
+  updateTabBadges();
 }
 
 function buildWaveSelect(){
@@ -1905,13 +1996,8 @@ function updateIssuesBadge(){
   if(badge){ badge.textContent=count>99?'99+':String(count); badge.style.display=count>0?'inline-block':'none'; }
 }
 
-function openIssues(){
-  issueFilter='all';
-  document.querySelectorAll('.iq-filter').forEach(b=>b.classList.toggle('active',b.dataset.filter==='all'));
-  renderIssuesList();
-  document.getElementById('issues-overlay').classList.add('open');
-}
-function closeIssues(){ document.getElementById('issues-overlay').classList.remove('open'); }
+function openIssues(){ switchTab('stats'); }
+function closeIssues(){ switchTab('map'); }
 function setIssueFilter(filter, btn){
   issueFilter=filter;
   document.querySelectorAll('.iq-filter').forEach(b=>b.classList.remove('active'));
@@ -2277,10 +2363,9 @@ function setHuntMode(mode){
     distBtn.style.color = mode==='district' ? '#000' : 'var(--muted)';
     distBtn.style.border = mode==='district' ? 'none' : '1px solid var(--border)';
   }
-  openHunt();
+  renderHuntTab();
 }
 
-document.getElementById("hunt-btn").onclick=openHunt;
 function openHunt(){
   // State mode = all stores, District mode = active district filter
   const stores=STORES
@@ -2320,12 +2405,8 @@ function openHunt(){
       </div>${statusHTML}<div class="hunt-actions">${actions}</div>
     </div>`;
   }).join("");
-  document.getElementById('hunt-overlay').classList.add("open");
-  document.getElementById('hunt-title').textContent = huntMode==='state'
-    ? `🚗 Hunt Mode — All Stores`
-    : `🚗 Hunt Mode — Selected Districts`;
 }
-function closeHunt(){document.getElementById("hunt-overlay").classList.remove("open");}
+function closeHunt(){ switchTab('map'); }
 
 function openMobileSearch(){
   document.getElementById('mobile-search-overlay').classList.add('open');
@@ -2690,7 +2771,7 @@ function toggleLayout(){
 function activateDesktop(){
   isDesktop=true;
   document.body.classList.add('desktop');
-  document.getElementById('layout-toggle').textContent='📱 Mobile';
+  const lb=document.getElementById('layout-toggle-btn'); if(lb) lb.textContent='📱';
   document.getElementById('desktop-main').style.display='flex';
   if(!desktopMap) buildDesktopMap();
   buildSidebar();
@@ -2702,7 +2783,7 @@ function activateDesktop(){
 function activateMobile(){
   isDesktop=false;
   document.body.classList.remove('desktop');
-  document.getElementById('layout-toggle').textContent='🖥 Desktop';
+  const lb=document.getElementById('layout-toggle-btn'); if(lb) lb.textContent='🖥';
   document.getElementById('desktop-main').style.display='none';
 }
 
@@ -3173,13 +3254,8 @@ function quickMark(storeId,action){
 // F11 — DISTRICT ANALYTICS
 // ═══════════════════════════════════════════
 
-function openAnalytics(){
-  document.getElementById('analytics-overlay').classList.add('open');
-  renderAnalytics();
-}
-function closeAnalytics(){
-  document.getElementById('analytics-overlay').classList.remove('open');
-}
+function openAnalytics(){ switchTab('stats'); }
+function closeAnalytics(){ switchTab('map'); }
 
 function computeDistrictAnalytics(district){
   const color = distColor(district);
@@ -3465,27 +3541,10 @@ function quickDrop(storeId){
   toast('⚡ Quick drop logged — tap 📋 to add details');
 }
 
-function updateQueueBadge(){
-  const btn = document.getElementById('queue-badge');
-  const count = document.getElementById('queue-badge-count');
-  const n = quickDropItems.length;
-  if(n>0){
-    btn.style.display='inline-flex';
-    btn.classList.add('active');
-    count.textContent = n;
-  } else {
-    btn.style.display='none';
-    btn.classList.remove('active');
-  }
-}
+function updateQueueBadge(){ updateTabBadges(); }
 
-function openQueueOverlay(){
-  renderQueueList();
-  document.getElementById('queue-overlay').classList.add('open');
-}
-function closeQueueOverlay(){
-  document.getElementById('queue-overlay').classList.remove('open');
-}
+function openQueueOverlay(){ switchTab('log'); }
+function closeQueueOverlay(){ switchTab('map'); }
 
 function renderQueueList(){
   const list = document.getElementById('queue-list');
@@ -3568,26 +3627,10 @@ function getReviewIssues(d){
   return issues;
 }
 
-function updateReviewBadge(){
-  const btn = document.getElementById('review-badge');
-  const n = getNeedsReviewDrops().length;
-  if(n>0){
-    btn.style.display='inline-flex';
-    btn.classList.add('active');
-    btn.innerHTML = '⚠️ Review <span class="tbadge">' + n + '</span>';
-  } else {
-    btn.style.display='none';
-    btn.classList.remove('active');
-  }
-}
+function updateReviewBadge(){ updateTabBadges(); }
 
-function openReviewOverlay(){
-  renderReviewList();
-  document.getElementById('review-overlay').classList.add('open');
-}
-function closeReviewOverlay(){
-  document.getElementById('review-overlay').classList.remove('open');
-}
+function openReviewOverlay(){ switchTab('log'); }
+function closeReviewOverlay(){ switchTab('map'); }
 
 function renderReviewList(){
   const filter = document.getElementById('review-filter')?.value||'all';
@@ -3769,29 +3812,10 @@ function buildFillinTasks(){
   return tasks;
 }
 
-function updateFillinBadge(){
-  const btn = document.getElementById('fillin-btn');
-  const waveDrops = allDrops().filter(d=>d.wave===currentWave&&d.result==='drop');
-  const missing = waveDrops.filter(d=>!d.bottles||!d.reporter||d.reporter==='?').length;
-  if(missing>0){
-    btn.style.display='inline-flex';
-    btn.classList.add('active');
-    btn.innerHTML = '✏️ Fill-in <span class="tbadge tbadge-amber">' + missing + '</span>';
-  } else {
-    btn.style.display='none';
-    btn.classList.remove('active');
-  }
-}
+function updateFillinBadge(){ updateTabBadges(); }
 
-function openFillinOverlay(){
-  fillinTasks = buildFillinTasks();
-  fillinIdx = 0;
-  document.getElementById('fillin-overlay').classList.add('open');
-  renderFillinCard();
-}
-function closeFillinOverlay(){
-  document.getElementById('fillin-overlay').classList.remove('open');
-}
+function openFillinOverlay(){ switchTab('log'); }
+function closeFillinOverlay(){ switchTab('map'); }
 
 function renderFillinCard(){
   const total = fillinTasks.length;
