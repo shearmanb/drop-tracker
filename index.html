@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>🥃 Drop Tracker</title>
+<title>🦄 Unicorn Slayer</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -53,8 +53,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 #app-meta{position:absolute;bottom:76px;right:10px;background:rgba(13,17,23,0.8);border:1px solid var(--border);border-radius:8px;padding:4px 8px;z-index:500;pointer-events:none;text-align:right;line-height:1.5}
 #app-meta .meta-version{font-size:10px;font-weight:700;color:var(--accent);font-family:monospace}
 #app-meta .meta-sync{font-size:9px;color:var(--muted2)}
-#fab{position:absolute;bottom:16px;right:16px;width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:26px;cursor:pointer;box-shadow:0 4px 16px rgba(245,158,11,0.4);z-index:500;display:flex;align-items:center;justify-content:center}
-#fab:active{transform:scale(0.93)}
+#fab{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:52px;height:52px;border-radius:50%;background:var(--accent);border:none;color:#000;font-size:26px;cursor:pointer;box-shadow:0 4px 16px rgba(245,158,11,0.4);z-index:500;display:flex;align-items:center;justify-content:center}
+#fab:active{transform:translateX(-50%) scale(0.93)}
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1e3a1e;border:1px solid #22c55e;color:#4ade80;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;z-index:4000;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
 #toast.show{opacity:1}
 .scard-tabs{display:flex;border-bottom:1px solid var(--border);margin:0 -14px 12px -14px;padding:0 14px}
@@ -449,14 +449,14 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
 <body>
 
 <div id="loading">
-  <div class="lg">🥃</div>
+  <div class="lg">🦄</div>
   <div class="msg" id="load-msg">Loading stores...</div>
   <div class="bar-wrap"><div class="bar" id="load-bar"></div></div>
 </div>
 
 <div id="app">
   <div id="header">
-    <span class="logo-sm">🥃</span>
+    <span class="logo-sm">🦄</span>
     <select class="cycle-select" id="wave-select"></select>
     <button id="sync-btn" onclick="syncFromSheet()" title="Sync">⟳</button>
     <button id="mobile-search-btn" onclick="openMobileSearch()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:14px;cursor:pointer;flex-shrink:0">🔍</button>
