@@ -146,7 +146,6 @@ status = "confirmed" / "absent" / "rumored"
 
 ### In the entry panel (desktop logging):
 
-
 ```
 BOTTLES
 [ Search bottles... type EHT, Stagg, etc ]
@@ -167,7 +166,10 @@ Added bottles:
   Stagg                  [absent    ▾]  [✕]  ← "No Stagg" scenario
 ```
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
 Status dropdown per bottle: confirmed / absent / rumored
 
 ### Quick Drop mode
