@@ -13,6 +13,7 @@ Current version: v0.4
 - [ ] Test Quick Drop ⚡ flow end to end
 - [ ] Verify v0.4 loads cleanly (no console errors)
 - [ ] Add issues badge count to desktop sidebar
+- [ ] F11 — Add bottle status (confirmed/absent/rumored) dropdown to picker chips — UI added, needs BottleDrops sheet tab + Apps Script actions to actually persist
 
 ---
 
@@ -57,6 +58,12 @@ Current version: v0.4
 
 ## ✅ COMPLETED
 
+- [x] F4 — Needs Review Queue (⚠️ badge, overlay, sheet sync)
+- [x] F9 — Quick Drop ⚡ + Needs Logging Queue (📋 badge, detail fill queue)
+- [x] F10 — Idle Fill-In Mode (✏️ badge, missing fields task queue)
+- [x] F11 — Bottle picker UI (69 bottles, search, recents, tier badges, collision warnings) — BottleDrops sheet tab pending
+- [x] F12 — Desktop polish (v0.4, mobile buttons hidden, sidebar controls)
+- [x] F14 — District behavior tags (Random/Day-Locked/Bulk/Unknown)
 - [x] Map with 79 stores, dynamic zoom pins (dot → mid → full), district colors
 - [x] Google Sheets backend — live sync read + write (GET-based, no CORS issues)
 - [x] Wave selector, new wave creation, wave reset bug fix

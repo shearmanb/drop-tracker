@@ -59,6 +59,10 @@ Both must be kept in sync whenever markers, status, or wave changes.
 - `cacheTime` — timestamp of last sheet sync
 - `pendingDrops` — quick-logged drops not yet flushed to sheet
 - `forceLayout` — "desktop" or "mobile" layout override
+- `quickDropItems` — quick-logged drops pending detail entry
+- `recentBottles` — array of recently used bottle IDs (up to 8)
+- `issueCorrections` — pending issue queue corrections not yet synced
+- `districtBehaviors` — per-district behavior tag overrides (Random/Day-Locked/Bulk/Unknown)
 
 ### Key global variables
 ```js
@@ -70,6 +74,11 @@ activeDistricts // Set — "ALL" or Set of "D14" etc
 pendingDrops  // array — quick-logged drops in localStorage
 markers       // object — mobile map markers by storeId
 desktopMarkers // object — desktop map markers by storeId
+quickDropItems  // array — quick-logged drops pending detail entry
+fillinTasks   // array — current idle fill-in task queue
+fillinIdx     // number — current position in fillinTasks
+issueFilter   // string — current issues queue filter
+issueCorrections // object — pending issue corrections not yet synced
 ```
 
 ---
@@ -203,7 +212,7 @@ See `FEATURES.md` for detailed feature specs.
 See `F11_BOTTLES_SPEC.md` for bottle system spec.  
 See `DATAMODEL.md` for full data model reference.
 
-**Current version:** v0.2
+**Current version:** v0.4
 
 ### Next up (high priority)
 - **F5** — Mobile store spotlight: search result tap → zoom map to pin at zoom 15, auto-open store card
