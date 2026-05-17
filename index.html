@@ -1363,17 +1363,20 @@ function makePin(store,status){
   // ── DOTS (zoom ≤ 10) ──
   if(z<=ZOOM_DOT){
     if(status==="drop"){
+      // White ring + colored border = "confirmed, resolved"
       return L.divIcon({className:"",
-        html:`<div style="width:8px;height:8px;border-radius:50%;background:transparent;border:1.5px dashed ${color};opacity:0.35"></div>`,
-        iconSize:[8,8],iconAnchor:[4,4]});
+        html:`<div style="width:9px;height:9px;border-radius:50%;background:white;border:2.5px solid ${color};box-shadow:0 1px 4px rgba(0,0,0,0.18)"></div>`,
+        iconSize:[9,9],iconAnchor:[4,4]});
     } else if(status==="no_drop"){
+      // Tiny gray = "nothing here, skip"
       return L.divIcon({className:"",
-        html:`<div style="width:7px;height:7px;border-radius:50%;background:#7f1d1d;opacity:0.5"></div>`,
+        html:`<div style="width:7px;height:7px;border-radius:50%;background:#94a3b8;box-shadow:0 1px 3px rgba(0,0,0,0.12);opacity:0.5"></div>`,
         iconSize:[7,7],iconAnchor:[3,3]});
     } else {
+      // Solid color + white halo + layered shadow = Apple-style "live" pin
       return L.divIcon({className:"",
-        html:`<div style="width:10px;height:10px;border-radius:50%;background:${color};box-shadow:0 0 4px ${color}88"></div>`,
-        iconSize:[10,10],iconAnchor:[5,5]});
+        html:`<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,0.95);box-shadow:0 2px 6px rgba(0,0,0,0.28),0 0 0 1px ${color}55"></div>`,
+        iconSize:[12,12],iconAnchor:[6,6]});
     }
   }
 
@@ -1383,31 +1386,34 @@ function makePin(store,status){
 
   if(z<=ZOOM_MID){
     if(status==="drop"){
+      // White bg + colored border — clearly confirmed, clearly readable
       return L.divIcon({className:"",
-        html:`<div style="display:flex;flex-direction:column;align-items:center;opacity:0.38">
-          <div style="width:${w}px;border-radius:6px;border:1.5px dashed ${color};padding:2px 4px;text-align:center">
+        html:`<div style="display:flex;flex-direction:column;align-items:center">
+          <div style="width:${w}px;border-radius:6px;border:2px solid ${color};background:white;padding:2px 4px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.1)">
             <div style="font-size:${numSize}px;font-weight:800;color:${color};font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
-            <div style="font-size:8px;font-weight:700;color:${color};line-height:1;opacity:0.8">${tier}</div>
+            <div style="font-size:8px;font-weight:700;color:${color};line-height:1;opacity:0.7">${tier}</div>
           </div>
           <div style="width:1.5px;height:4px;background:${color}"></div>
         </div>`,
         iconSize:[w,34],iconAnchor:[w/2,34]});
     } else if(status==="no_drop"){
+      // Light gray chip, heavily muted — "skip this one"
       return L.divIcon({className:"",
         html:`<div style="display:flex;flex-direction:column;align-items:center;opacity:0.45">
-          <div style="width:${w}px;border-radius:6px;border:1.5px solid #7f1d1d;background:#1a0808;padding:2px 4px;text-align:center">
-            <div style="font-size:${numSize}px;font-weight:800;color:#ef4444;font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
-            <div style="font-size:8px;font-weight:700;color:#7f1d1d;line-height:1">✕</div>
+          <div style="width:${w}px;border-radius:6px;border:1.5px solid #cbd5e1;background:#f1f5f9;padding:2px 4px;text-align:center">
+            <div style="font-size:${numSize}px;font-weight:800;color:#64748b;font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
+            <div style="font-size:8px;font-weight:700;color:#94a3b8;line-height:1">✕</div>
           </div>
-          <div style="width:1.5px;height:4px;background:#7f1d1d"></div>
+          <div style="width:1.5px;height:4px;background:#94a3b8"></div>
         </div>`,
         iconSize:[w,34],iconAnchor:[w/2,34]});
     } else {
+      // Solid district color + white text + colored glow = primary hunting target
       return L.divIcon({className:"",
         html:`<div style="display:flex;flex-direction:column;align-items:center">
-          <div style="width:${w}px;border-radius:6px;border:2.5px solid ${color};background:#0d1117;padding:2px 4px;text-align:center;box-shadow:0 0 7px ${color}55">
-            <div style="font-size:${numSize}px;font-weight:800;color:${color};font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
-            <div style="font-size:8px;font-weight:700;color:${color};line-height:1;opacity:0.85">${tier}</div>
+          <div style="width:${w}px;border-radius:6px;background:${color};padding:2px 4px;text-align:center;box-shadow:0 2px 6px ${color}55,0 1px 3px rgba(0,0,0,0.15)">
+            <div style="font-size:${numSize}px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;line-height:1.2;text-shadow:0 1px 2px rgba(0,0,0,0.2)">${num}</div>
+            <div style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.85);line-height:1">${tier}</div>
           </div>
           <div style="width:2px;height:4px;background:${color}"></div>
         </div>`,
@@ -1419,30 +1425,30 @@ function makePin(store,status){
   const wf=num.length>2?46:42;
   if(status==="drop"){
     return L.divIcon({className:"",
-      html:`<div style="display:flex;flex-direction:column;align-items:center;opacity:0.35">
-        <div style="width:${wf}px;border-radius:8px;border:1.5px dashed ${color};padding:3px 5px;text-align:center">
+      html:`<div style="display:flex;flex-direction:column;align-items:center">
+        <div style="width:${wf}px;border-radius:8px;border:2px solid ${color};background:white;padding:3px 5px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.1)">
           <div style="font-size:14px;font-weight:800;color:${color};font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
-          <div style="font-size:9px;font-weight:700;color:${color};line-height:1;opacity:0.8">${tier}</div>
+          <div style="font-size:9px;font-weight:700;color:${color};line-height:1;opacity:0.7">${tier}</div>
         </div>
-        <div style="width:1.5px;height:5px;background:${color}"></div>
+        <div style="width:2px;height:5px;background:${color}"></div>
       </div>`,
       iconSize:[wf,38],iconAnchor:[wf/2,38]});
   } else if(status==="no_drop"){
     return L.divIcon({className:"",
-      html:`<div style="display:flex;flex-direction:column;align-items:center;opacity:0.5">
-        <div style="width:${wf}px;border-radius:8px;border:1.5px solid #7f1d1d;background:#1a0808;padding:3px 5px;text-align:center">
-          <div style="font-size:14px;font-weight:800;color:#ef4444;font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
-          <div style="font-size:9px;font-weight:700;color:#7f1d1d;line-height:1">✕</div>
+      html:`<div style="display:flex;flex-direction:column;align-items:center;opacity:0.4">
+        <div style="width:${wf}px;border-radius:8px;border:1.5px solid #cbd5e1;background:#f1f5f9;padding:3px 5px;text-align:center">
+          <div style="font-size:14px;font-weight:800;color:#64748b;font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
+          <div style="font-size:9px;font-weight:700;color:#94a3b8;line-height:1">✕</div>
         </div>
-        <div style="width:2px;height:5px;background:#7f1d1d"></div>
+        <div style="width:2px;height:5px;background:#94a3b8"></div>
       </div>`,
       iconSize:[wf,38],iconAnchor:[wf/2,38]});
   } else {
     return L.divIcon({className:"",
       html:`<div style="display:flex;flex-direction:column;align-items:center">
-        <div style="width:${wf}px;border-radius:8px;border:2.5px solid ${color};background:#0d1117;padding:3px 5px;text-align:center;box-shadow:0 0 10px ${color}77">
-          <div style="font-size:14px;font-weight:800;color:${color};font-variant-numeric:tabular-nums;line-height:1.2">${num}</div>
-          <div style="font-size:9px;font-weight:700;color:${color};line-height:1;opacity:0.85">${tier}</div>
+        <div style="width:${wf}px;border-radius:8px;background:${color};padding:3px 5px;text-align:center;box-shadow:0 3px 10px ${color}55,0 1px 4px rgba(0,0,0,0.18)">
+          <div style="font-size:14px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;line-height:1.2;text-shadow:0 1px 2px rgba(0,0,0,0.15)">${num}</div>
+          <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.88);line-height:1">${tier}</div>
         </div>
         <div style="width:2px;height:5px;background:${color}"></div>
       </div>`,
