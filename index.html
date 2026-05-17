@@ -213,6 +213,39 @@ body.desktop #mobile-search-btn{display:none}
 .sb-sr-time{font-size:11px;color:var(--muted)}
 .sb-sr-drop-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
 #sb-log-btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+/* ═══ BOTTLES PANE ═══ */
+.bt-search{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:12px;font-family:inherit;box-sizing:border-box}
+.bt-search::placeholder{color:var(--muted2)}
+.bt-search:focus{outline:none;border-color:var(--accent)}
+.bt-pane-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.bt-count-badge{font-size:9px;font-weight:700;background:var(--surface2);border-radius:8px;padding:1px 6px;color:var(--muted)}
+.bt-row{padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.bt-row:last-child{border-bottom:none}
+.bt-row-top{display:flex;align-items:center;gap:6px}
+.bt-token{font-size:13px;font-weight:800;color:#f87171;font-family:monospace;flex:1}
+.bt-occurrence{font-size:10px;color:var(--muted);flex-shrink:0}
+.bt-identify-btn{font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;background:var(--surface2);border:1px solid var(--accent);color:var(--accent);cursor:pointer;font-family:inherit;flex-shrink:0}
+.bt-bottle-name{font-size:13px;font-weight:700;color:var(--text);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bt-bottle-codes{font-size:10px;color:var(--accent);font-family:monospace;margin-top:1px}
+.bt-bottle-brand{font-size:10px;color:var(--muted)}
+.bt-edit-btn{font-size:10px;padding:3px 8px;border-radius:5px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-family:inherit;flex-shrink:0}
+.bt-form{background:var(--bg);border-radius:8px;padding:10px;margin-top:8px;border:1px solid var(--border);display:none}
+.bt-form.open{display:block}
+.bt-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:3px}
+.bt-field{width:100%;background:var(--surface2);border:1.5px solid var(--border);color:var(--text);border-radius:6px;padding:7px 9px;font-size:12px;font-family:inherit;box-sizing:border-box;margin-bottom:8px}
+.bt-field:focus{outline:none;border-color:var(--accent)}
+.bt-tier-row{display:flex;gap:4px;margin-bottom:8px}
+.bt-tier-opt{flex:1;padding:5px 2px;border-radius:6px;font-size:11px;font-weight:800;cursor:pointer;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-family:inherit;text-align:center}
+.bt-tier-opt[data-active="S"]{background:#854d0e;color:#fef08a;border-color:#92400e}
+.bt-tier-opt[data-active="A"]{background:#1e3a5f;color:#93c5fd;border-color:#1d4ed8}
+.bt-tier-opt[data-active="B"]{background:#1a2e1a;color:#86efac;border-color:#166534}
+.bt-tier-opt[data-active="C"]{background:#2d1515;color:#fca5a5;border-color:#7f1d1d}
+.bt-form-btns{display:flex;gap:6px}
+.bt-save-btn{flex:2;padding:7px;border-radius:7px;background:var(--accent);border:none;color:#000;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.bt-cancel-btn{flex:1;padding:7px;border-radius:7px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.bt-tier-filter{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
+.bt-tf{padding:3px 9px;border-radius:10px;font-size:10px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-family:inherit}
+.bt-tf.active{border-color:var(--accent);color:var(--accent)}
 .sb-wave-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3;word-break:break-word}
 .sb-wave-info{font-size:11px;color:var(--muted);line-height:1.6}
 #desktop-map-wrap{flex:1;position:relative;overflow:hidden;box-shadow:inset 0 0 0 1.5px var(--border)}
@@ -618,6 +651,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
       <button class="dt-tab active" data-tab="stores" onclick="switchDesktopTab('stores')">Stores</button>
       <button class="dt-tab" data-tab="wave" onclick="switchDesktopTab('wave')">Wave</button>
       <button class="dt-tab" data-tab="districts" onclick="switchDesktopTab('districts')">Districts</button>
+      <button class="dt-tab" data-tab="bottles" onclick="switchDesktopTab('bottles')">Bottles</button>
       <div class="dt-tab-sep"></div>
       <button class="dt-tab" onclick="openEntryPanel()">＋ Log Drop</button>
       <button class="dt-tab" id="dt-tab-issues" onclick="openDesktopIssues()">⚠️ Issues <span id="issues-badge" class="dt-tab-badge" style="display:none"></span></button>
@@ -671,6 +705,27 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
         <div class="sb-section">
           <div class="sb-section-title">Districts</div>
           <div id="sb-districts"></div>
+        </div>
+      </div>
+      <!-- Pane: Bottles -->
+      <div class="sb-pane" id="sb-pane-bottles">
+        <div class="sb-section" style="padding:10px 14px">
+          <input type="text" class="bt-search" id="bt-search" placeholder="Search name or code..." oninput="filterBottlePane(this.value)">
+        </div>
+        <div class="sb-section" id="bt-unknown-section">
+          <div class="bt-pane-title">Unknown in Reports <span class="bt-count-badge" id="bt-unknown-count">0</span></div>
+          <div id="bt-unknown-list"></div>
+        </div>
+        <div class="sb-section" id="bt-known-section">
+          <div class="bt-pane-title">Master List <span class="bt-count-badge" id="bt-known-count">0</span></div>
+          <div class="bt-tier-filter">
+            <button class="bt-tf active" data-tier="all" onclick="setBtTierFilter('all',this)">All</button>
+            <button class="bt-tf" data-tier="S" onclick="setBtTierFilter('S',this)">S</button>
+            <button class="bt-tf" data-tier="A" onclick="setBtTierFilter('A',this)">A</button>
+            <button class="bt-tf" data-tier="B" onclick="setBtTierFilter('B',this)">B</button>
+            <button class="bt-tf" data-tier="C" onclick="setBtTierFilter('C',this)">C</button>
+          </div>
+          <div id="bt-known-list"></div>
         </div>
       </div>
     </div>
@@ -1288,6 +1343,7 @@ async function loadFromSheet(){
 
     invalidateDropCache();
     rebuildBottleLookup();
+    applyLocalBottles();
     setLoad("Building map...",90);
 
     // Cache with version tag
@@ -1327,6 +1383,7 @@ function loadFromCache(){
   if(ct){ lastSyncTime = parseInt(ct); updateSyncBadge(); }
   invalidateDropCache();
   rebuildBottleLookup();
+  applyLocalBottles();
   return true;
 }
 
@@ -4046,6 +4103,21 @@ function buildFillinTasks(){
     });
   });
 
+  // 2b. Has bottles text but some tokens are unrecognized — prompt to identify them
+  waveDrops.filter(d=>d.bottles&&d.result==='drop').forEach(d=>{
+    const {unmatched} = normalizeBottlesText(d.bottles);
+    if(!unmatched.length) return;
+    const store = STORES.find(s=>s.id===d.storeId);
+    tasks.push({
+      type:'unknown_bottle', priority:2,
+      drop: d, store,
+      label:'Unknown Bottle Code',
+      question:`"${unmatched.join(', ')}" — what is this at #${d.storeId} ${store?.label||''}?`,
+      context:`${d.wave||''} · Full entry: ${d.bottles} · Add to Bottles tab to resolve`,
+      field:'bottles', placeholder:d.bottles
+    });
+  });
+
   // 3. Missing discord link
   waveDrops.filter(d=>!d.discordLink&&d.result==='drop').slice(0,15).forEach(d=>{
     const store = STORES.find(s=>s.id===d.storeId);
@@ -4289,6 +4361,224 @@ function renderBehaviorSelector(district, containerId){
 }
 
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// BOTTLES PANE
+// ═══════════════════════════════════════════
+let btTierFilter = 'all';
+let btSearchQuery = '';
+
+function switchDesktopTabBottles(){
+  buildSbBottles();
+}
+
+function getUnknownBottleTokens(){
+  const counts = {};
+  allDrops().forEach(d=>{
+    if(!d.bottles) return;
+    const {unmatched} = normalizeBottlesText(d.bottles);
+    unmatched.forEach(raw=>{
+      const key = raw.toLowerCase().trim();
+      if(!counts[key]) counts[key] = {raw, count:0, drops:[]};
+      counts[key].count++;
+      const store = STORES.find(s=>s.id==d.storeId);
+      counts[key].drops.push(store?.label||('#'+d.storeId));
+    });
+  });
+  return Object.values(counts).filter(t=>t.raw.length>0).sort((a,b)=>b.count-a.count);
+}
+
+function getLocalBottles(){
+  try{ return JSON.parse(localStorage.getItem('localBottles')||'[]'); }catch(e){ return []; }
+}
+function getBottleEdits(){
+  try{ return JSON.parse(localStorage.getItem('bottleEdits')||'{}'); }catch(e){ return {}; }
+}
+function applyLocalBottles(){
+  const local = getLocalBottles();
+  const edits = getBottleEdits();
+  // Merge local additions
+  local.forEach(lb=>{
+    if(!BOTTLES.find(b=>b.id===lb.id)) BOTTLES.push(lb);
+  });
+  // Apply edits to existing
+  Object.entries(edits).forEach(([id, overrides])=>{
+    const b = BOTTLES.find(b=>String(b.id)===String(id));
+    if(b) Object.assign(b, overrides);
+  });
+  rebuildBottleLookup();
+}
+
+function buildSbBottles(){
+  buildBtUnknownList();
+  buildBtKnownList();
+}
+
+function buildBtUnknownList(){
+  const c = document.getElementById('bt-unknown-list');
+  const badge = document.getElementById('bt-unknown-count');
+  if(!c) return;
+  const unknowns = getUnknownBottleTokens();
+  const q = btSearchQuery.toLowerCase();
+  const filtered = q ? unknowns.filter(t=>t.raw.toLowerCase().includes(q)) : unknowns;
+  if(badge) badge.textContent = unknowns.length;
+  const sec = document.getElementById('bt-unknown-section');
+  if(sec) sec.style.display = filtered.length ? '' : 'none';
+  if(!filtered.length){ c.innerHTML=''; return; }
+  c.innerHTML = filtered.map((t,i)=>`
+    <div class="bt-row" id="bt-unk-${i}">
+      <div class="bt-row-top">
+        <span class="bt-token">${t.raw}</span>
+        <span class="bt-occurrence">${t.count} drop${t.count!==1?'s':''}</span>
+        <button class="bt-identify-btn" onclick="toggleBtForm('bt-unk-form-${i}')">Identify</button>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">${[...new Set(t.drops)].slice(0,4).join(', ')}${t.drops.length>4?'…':''}</div>
+      <div class="bt-form" id="bt-unk-form-${i}">
+        <div class="bt-label">Full Name</div>
+        <input class="bt-field" id="bt-unk-name-${i}" placeholder="e.g. Eagle Rare 10yr" value="${t.raw}">
+        <div class="bt-label">Codes / Acronyms (comma-separated)</div>
+        <input class="bt-field" id="bt-unk-codes-${i}" placeholder="e.g. ER, EagleRare" value="${t.raw}">
+        <div class="bt-label">Brand / Distillery</div>
+        <input class="bt-field" id="bt-unk-brand-${i}" placeholder="e.g. Buffalo Trace">
+        <div class="bt-label">Tier</div>
+        <div class="bt-tier-row" id="bt-unk-tier-row-${i}">
+          ${['S','A','B','C'].map(tier=>`<button class="bt-tier-opt" onclick="selectBtTier('bt-unk-tier-row-${i}','${tier}')">${tier}</button>`).join('')}
+        </div>
+        <div class="bt-form-btns">
+          <button class="bt-cancel-btn" onclick="toggleBtForm('bt-unk-form-${i}')">Cancel</button>
+          <button class="bt-save-btn" onclick="saveBtNewBottle(${i},'${t.raw}')">Add to List</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function buildBtKnownList(){
+  const c = document.getElementById('bt-known-list');
+  const badge = document.getElementById('bt-known-count');
+  if(!c) return;
+  const q = btSearchQuery.toLowerCase();
+  const edits = getBottleEdits();
+  let bottles = BOTTLES.slice();
+  if(btTierFilter!=='all') bottles = bottles.filter(b=>b.tier===btTierFilter);
+  if(q) bottles = bottles.filter(b=>
+    b.name.toLowerCase().includes(q) ||
+    b.brand.toLowerCase().includes(q) ||
+    b.codes.some(c=>c.toLowerCase().includes(q))
+  );
+  bottles.sort((a,b)=>{
+    const order = {S:0,A:1,B:2,C:3};
+    return (order[a.tier]??4)-(order[b.tier]??4)||a.name.localeCompare(b.name);
+  });
+  if(badge) badge.textContent = BOTTLES.length;
+  const tcfn = tier=>tier==='S'?'#f59e0b':tier==='A'?'#93c5fd':tier==='B'?'#86efac':'#fca5a5';
+  c.innerHTML = bottles.map(b=>{
+    const isLocal = String(b.id).startsWith('local_');
+    const isEdited = edits[b.id];
+    const indicator = isLocal ? '<span style="font-size:9px;color:#a855f7;font-weight:700;margin-left:4px">local</span>'
+                    : isEdited ? '<span style="font-size:9px;color:var(--accent);font-weight:700;margin-left:4px">edited</span>' : '';
+    return `<div class="bt-row" id="bt-known-${b.id}">
+      <div class="bt-row-top">
+        <span class="bt-bottle-name">${b.name}${indicator}</span>
+        <span style="font-size:10px;font-weight:800;color:${tcfn(b.tier)};flex-shrink:0">${b.tier}</span>
+        <button class="bt-edit-btn" onclick="toggleBtForm('bt-edit-form-${b.id}')">Edit</button>
+      </div>
+      <div class="bt-bottle-codes">${b.codes.join(', ')}</div>
+      ${b.brand?`<div class="bt-bottle-brand">${b.brand}</div>`:''}
+      ${b.warn?`<div style="font-size:10px;color:#f87171;margin-top:1px">⚠️ ${b.warn}</div>`:''}
+      <div class="bt-form" id="bt-edit-form-${b.id}">
+        <div class="bt-label">Full Name</div>
+        <input class="bt-field" id="bt-edit-name-${b.id}" value="${b.name.replace(/"/g,'&quot;')}">
+        <div class="bt-label">Codes / Acronyms (comma-separated)</div>
+        <input class="bt-field" id="bt-edit-codes-${b.id}" value="${b.codes.join(', ')}">
+        <div class="bt-label">Brand / Distillery</div>
+        <input class="bt-field" id="bt-edit-brand-${b.id}" value="${(b.brand||'').replace(/"/g,'&quot;')}">
+        <div class="bt-label">Collision Warning (optional)</div>
+        <input class="bt-field" id="bt-edit-warn-${b.id}" value="${(b.warn||'').replace(/"/g,'&quot;')}" placeholder="e.g. Could be OFitz 1924 or Old Forester 1924">
+        <div class="bt-label">Tier</div>
+        <div class="bt-tier-row" id="bt-edit-tier-row-${b.id}">
+          ${['S','A','B','C'].map(tier=>`<button class="bt-tier-opt${tier===b.tier?' data-active="'+tier+'"':''}" ${tier===b.tier?`data-active="${tier}"`:''}onclick="selectBtTier('bt-edit-tier-row-${b.id}','${tier}')">${tier}</button>`).join('')}
+        </div>
+        <div class="bt-form-btns">
+          <button class="bt-cancel-btn" onclick="toggleBtForm('bt-edit-form-${b.id}')">Cancel</button>
+          <button class="bt-save-btn" onclick="saveBtEdit('${b.id}')">Save</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleBtForm(id){
+  const el = document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+
+function selectBtTier(rowId, tier){
+  const row = document.getElementById(rowId);
+  if(!row) return;
+  row.querySelectorAll('.bt-tier-opt').forEach(b=>{
+    delete b.dataset.active;
+    if(b.textContent.trim()===tier) b.dataset.active = tier;
+  });
+}
+
+function getSelectedBtTier(rowId){
+  const row = document.getElementById(rowId);
+  if(!row) return 'C';
+  const active = row.querySelector('.bt-tier-opt[data-active]');
+  return active ? active.dataset.active : 'C';
+}
+
+function saveBtNewBottle(idx, rawToken){
+  const name = document.getElementById(`bt-unk-name-${idx}`)?.value?.trim();
+  const codesStr = document.getElementById(`bt-unk-codes-${idx}`)?.value?.trim();
+  const brand = document.getElementById(`bt-unk-brand-${idx}`)?.value?.trim()||'';
+  const tier = getSelectedBtTier(`bt-unk-tier-row-${idx}`);
+  if(!name){ toast('Enter a name'); return; }
+  const codes = codesStr.split(',').map(c=>c.trim()).filter(Boolean);
+  const id = 'local_'+Date.now();
+  const bottle = {id, name, brand, tier, codes, warn:undefined};
+  BOTTLES.push(bottle);
+  const local = getLocalBottles();
+  local.push(bottle);
+  localStorage.setItem('localBottles', JSON.stringify(local));
+  rebuildBottleLookup();
+  // Try to post to sheet (needs Apps Script addBottle action)
+  scriptPost('addBottle', {name, brand, tier, codes: codes.join(',')}).catch(()=>{});
+  toast('✓ '+name+' added');
+  buildSbBottles();
+}
+
+function saveBtEdit(bottleId){
+  const name = document.getElementById(`bt-edit-name-${bottleId}`)?.value?.trim();
+  const codesStr = document.getElementById(`bt-edit-codes-${bottleId}`)?.value?.trim();
+  const brand = document.getElementById(`bt-edit-brand-${bottleId}`)?.value?.trim()||'';
+  const warn = document.getElementById(`bt-edit-warn-${bottleId}`)?.value?.trim()||undefined;
+  const tier = getSelectedBtTier(`bt-edit-tier-row-${bottleId}`);
+  if(!name){ toast('Enter a name'); return; }
+  const codes = codesStr.split(',').map(c=>c.trim()).filter(Boolean);
+  const b = BOTTLES.find(b=>String(b.id)===String(bottleId));
+  if(b){ Object.assign(b, {name, brand, tier, codes, warn}); }
+  const edits = getBottleEdits();
+  edits[bottleId] = {name, brand, tier, codes, warn};
+  localStorage.setItem('bottleEdits', JSON.stringify(edits));
+  rebuildBottleLookup();
+  // Try to post to sheet (needs Apps Script updateBottle action)
+  scriptPost('updateBottle', {id: bottleId, name, brand, tier, codes: codes.join(','), warn:warn||''}).catch(()=>{});
+  toast('✓ Saved');
+  buildSbBottles();
+}
+
+function setBtTierFilter(tier, btn){
+  btTierFilter = tier;
+  document.querySelectorAll('.bt-tier-filter .bt-tf').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  buildBtKnownList();
+}
+
+function filterBottlePane(q){
+  btSearchQuery = q;
+  buildSbBottles();
+}
+
 // DT-1 — DESKTOP TOP NAV TAB SWITCHING
 // ═══════════════════════════════════════════
 function switchDesktopTab(tab){
@@ -4298,6 +4588,7 @@ function switchDesktopTab(tab){
   document.querySelectorAll('.sb-pane').forEach(p=>{
     p.classList.toggle('active', p.id==='sb-pane-'+tab);
   });
+  if(tab==='bottles') buildSbBottles();
 }
 
 // ═══════════════════════════════════════════
