@@ -204,21 +204,23 @@ body.desktop #mobile-search-btn{display:none}
 .sb-store-row{display:flex;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;gap:8px}
 .sb-store-row:last-child{border-bottom:none}
 .sb-store-row:hover .sb-sr-name{color:var(--accent)}
-.sb-sr-num{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text);min-width:28px}
+.sb-sr-num{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text);min-width:32px;flex-shrink:0}
 .sb-sr-body{flex:1;min-width:0}
-.sb-sr-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sb-sr-meta{font-size:10px;color:var(--muted);margin-top:1px}
+.sb-sr-name{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-sr-meta{font-size:11px;color:var(--muted);margin-top:2px}
 .sb-sr-right{text-align:right;flex-shrink:0}
-.sb-sr-dist{font-size:11px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
-.sb-sr-time{font-size:10px;color:var(--muted)}
-.sb-sr-drop-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:1px}
+.sb-sr-dist{font-size:12px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.sb-sr-time{font-size:11px;color:var(--muted)}
+.sb-sr-drop-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
 #sb-log-btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
 .sb-wave-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3;word-break:break-word}
 .sb-wave-info{font-size:11px;color:var(--muted);line-height:1.6}
 #desktop-map-wrap{flex:1;position:relative;overflow:hidden;box-shadow:inset 0 0 0 1.5px var(--border)}
 #desktop-map{width:100%;height:100%}
 #desktop-zoom-badge{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(13,17,23,0.85);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--muted);z-index:500;pointer-events:none;transition:opacity 0.3s;white-space:nowrap}
-#desktop-app-meta{position:absolute;bottom:10px;right:10px;background:rgba(13,17,23,0.8);border:1px solid var(--border);border-radius:8px;padding:4px 8px;z-index:500;pointer-events:none;text-align:right;line-height:1.5}
+#desktop-app-meta{position:absolute;bottom:8px;right:8px;background:rgba(13,17,23,0.7);border:1px solid var(--border);border-radius:6px;padding:2px 6px;z-index:500;pointer-events:none;text-align:right;line-height:1.4}
+#desktop-app-meta .meta-version{font-size:8px;font-weight:700;color:var(--accent);font-family:monospace}
+#desktop-app-meta .meta-sync{font-size:8px;color:var(--muted2)}
 #detail-panel{width:0;flex-shrink:0;overflow:hidden;transition:width 0.25s ease;background:var(--surface);border-left:0px solid var(--border);height:100%}
 #detail-panel.open{width:320px;border-left-width:1px}
 #detail-panel-inner{width:320px;height:100%;overflow-y:auto;padding:16px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
@@ -3213,16 +3215,24 @@ function buildSbNearestStores(){
                 status==='no_drop' ? 'background:#94a3b8' : `background:${color}`;
     const lastDrop = allDrops().filter(d=>d.storeId==s.id&&d.result==='drop')
       .sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];
-    const lastDropStr = lastDrop?.timestamp
-      ? new Date(lastDrop.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric'})
-      : 'no data';
+    const daysAgo = lastDrop?.timestamp
+      ? Math.round((Date.now()-new Date(lastDrop.timestamp))/(1000*60*60*24))
+      : null;
+    const lastDropStr = daysAgo===null ? 'no drop on record' : daysAgo===0 ? 'today' : daysAgo===1 ? 'yesterday' : daysAgo+'d ago';
     const mins = Math.round((s.mi * 1.5 / 35) * 60);
     const timeStr = mins < 60 ? mins+'m' : Math.floor(mins/60)+'h '+(mins%60)+'m';
+    const tierColor = s.tier==='S'?'#f59e0b':s.tier==='A'?'#22c55e':s.tier==='B'?'#60a5fa':'#94a3b8';
     return `<div class="sb-store-row" onclick="desktopFocusStore(${s.id})">
       <div class="sb-sr-drop-dot" style="${dot}"></div>
       <div class="sb-sr-body">
-        <div class="sb-sr-name">${s.label}</div>
-        <div class="sb-sr-meta">Last drop: ${lastDropStr}</div>
+        <div style="display:flex;align-items:baseline;gap:5px">
+          <span class="sb-sr-num" style="color:${color}">${s.id}</span>
+          <span class="sb-sr-name">${s.label}</span>
+        </div>
+        <div class="sb-sr-meta">
+          <span style="color:${tierColor};font-weight:700">${s.tier}</span>
+          <span style="color:var(--muted2)"> · qRank ${s.qRank||'?'} · </span>${lastDropStr}
+        </div>
       </div>
       <div class="sb-sr-right">
         <div class="sb-sr-dist">${s.mi.toFixed(1)} mi</div>
