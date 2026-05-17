@@ -201,8 +201,13 @@ Straight-line × 1.5 suburban factor ÷ 35mph = estimated drive time. Not GPS ro
 | getStores | GET | All rows from Stores tab |
 | getDrops | GET | All rows from Drops tab |
 | getPatterns | GET | All rows from Patterns tab |
-| addDrop | POST | Appends one row to Drops tab |
-| addWave | POST | Appends one row to Waves tab |
+| getBottles | GET | All rows from Bottles tab |
+| addDrop | GET* | Appends one row to Drops tab (*uses GET to avoid CORS preflight) |
+| addWave | GET* | Appends one row to Waves tab |
+| updateBottle | GET* | Updates a row in Bottles tab by id — ⚠️ NOT YET DEPLOYED |
+| addBottle | GET* | Appends a new row to Bottles tab — ⚠️ NOT YET DEPLOYED |
+
+> **Note on write actions:** All writes use `scriptPost()` which sends as GET with `?action=X&data=JSON&token=bourbon2026`. Add `updateBottle`/`addBottle` cases to `doGet(e)` in Apps Script and redeploy as New Version.
 
 ---
 
@@ -214,11 +219,74 @@ See `DATAMODEL.md` for full data model reference.
 
 **Current version:** v0.4
 
-### Next up (high priority)
-- **F5** — Mobile store spotlight: search result tap → zoom map to pin at zoom 15, auto-open store card
-- **F11** — BottleDrops sheet tab + Apps Script actions (picker UI is done; persistence is not)
-- **Issues badge** — add badge count to desktop sidebar for Issues queue
-- **Waves management** — list waves, set status, add notes, expected date
+---
+
+## Session Notes
+
+### Session 2 — May 17, 2026 (overnight)
+Branch: `claude/implement-dt1-4-ui-JADof`
+
+**Completed:**
+- DT-1: Desktop top nav bar — Stores/Wave tabs control sidebar sections; action buttons (Log Drop, Issues, Analytics, Bottles, Mobile) always visible at top
+- DT-2: 📱 Mobile toggle button in top-right of nav bar
+- DT-3: District label in store detail panel is now 24px/900-weight headline; panel font sizes bumped
+- DT-4: Wave context label ("Log for: [wave]") above action buttons; "No Drop ✗" added to non-drop state
+- BTL-1/BTL-2: Bottle browser + inline edit — 🥃 Bottles nav button opens 500px right panel; search/filter/drop-counts/inline edit/add new bottle all built
+
+**Pending action (manual):**
+Add these two cases to your Apps Script `doGet(e)` and redeploy as New Version:
+
+```javascript
+  if (e.parameter.action === 'updateBottle') {
+    if (e.parameter.token !== 'bourbon2026') return makeJson({ok:false, error:'unauthorized'});
+    var payload = JSON.parse(e.parameter.data);
+    var sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Bottles');
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      if (Number(data[i][0]) === Number(payload.id)) {
+        sheet.getRange(i+1, 2).setValue(payload.name);
+        sheet.getRange(i+1, 3).setValue(payload.brand);
+        sheet.getRange(i+1, 4).setValue(payload.tier);
+        sheet.getRange(i+1, 5).setValue(payload.codes);
+        sheet.getRange(i+1, 6).setValue(payload.warn || '');
+        return makeJson({ok:true});
+      }
+    }
+    return makeJson({ok:false, error:'not found'});
+  }
+
+  if (e.parameter.action === 'addBottle') {
+    if (e.parameter.token !== 'bourbon2026') return makeJson({ok:false, error:'unauthorized'});
+    var payload = JSON.parse(e.parameter.data);
+    var sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Bottles');
+    var lastRow = sheet.getLastRow();
+    var ids = sheet.getRange(2, 1, Math.max(lastRow-1,1), 1).getValues().map(function(r){return Number(r[0]);});
+    var newId = Math.max.apply(null, ids.filter(Boolean)) + 1;
+    sheet.appendRow([newId, payload.name, payload.brand, payload.tier, payload.codes, payload.warn || '']);
+    return makeJson({ok:true, id:newId});
+  }
+```
+Replace `makeJson` with whatever your existing helper is (check the `addDrop` handler for the pattern).
+
+**Desktop layout architecture (updated):**
+```
+#desktop-main (flex-column)
+  #desktop-nav (44px top bar)
+    .dt-nav-tabs  → [📍 Stores] [🌊 Wave]  (toggle sidebar sections)
+    .dt-nav-actions → [＋ Log Drop] [⚠️ Issues] [📊 Analytics] [🥃 Bottles]
+    .dt-nav-mobile  → [📱 Mobile]
+  #desktop-body (flex-row)
+    #sidebar (260px)  — sections tagged data-nav="stores"|"wave"
+    #desktop-map-wrap (flex:1)
+    #detail-panel (0→320px normal, 0→500px when .bb-wide for bottle browser)
+```
+
+### Next up
+- Deploy Apps Script `updateBottle` + `addBottle` (see above)
+- Test BTL-1/BTL-2 bottle browser end-to-end
+- Test DT-1 through DT-4 desktop UI
+- F7 — Edit existing drop entries from desktop panel
+- Waves management screen
 
 ---
 

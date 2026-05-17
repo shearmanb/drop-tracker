@@ -1,6 +1,6 @@
 # Bourbon Drop Tracker — Master TODO
 
-Last updated: May 17, 2026
+Last updated: May 17, 2026 (session 2)
 App live at: https://shearmanb.github.io/drop-tracker
 Current version: v0.4
 
@@ -47,18 +47,13 @@ Current version: v0.4
 - [ ] Push notifications — reminder to check app during active drop windows based on district patterns
 
 ### 🖥️ Desktop
-- [ ] **DT-1** — Desktop top nav bar: sidebar has too much content requiring scroll. Add a horizontal tab bar across the top of the desktop layout (Stores, Hunt, Log, Issues, Waves, etc.) so primary actions are always visible without scrolling.
-- [ ] **DT-2** — Desktop → mobile toggle: no visible button to switch back to mobile. Add a layout toggle (visible in desktop mode) that writes `forceLayout=mobile` and reloads. Mirrors existing mobile → desktop toggle for parity.
-- [ ] **DT-3** — Desktop store panel: district label prominence — make district label (`D14`, `D17`, etc.) the visual headline at the top of the right panel, large and colored per district. Bump overall panel font size up slightly.
-- [ ] **DT-4** — Desktop store panel: wave-scoped action buttons — add the 3-button row from mobile (Got one ✓ / Cleaned out / No drop ✗) to the desktop store detail panel. Clearly label which wave they apply to (e.g., "Log for: 2026.05.11 - MM BO") so there is no ambiguity.
 - [ ] **F7** — Desktop data entry polish: edit existing drop entries, bulk wave label assignment, delete records. All syncs to Google Sheet.
-- [ ] **BTL-2** — Bottle edit UI (desktop): edit master bottle list records (name, shortcode, tier, collision flag) from within the app. Add new bottles. Mark deprecated. Writes to Bottles sheet via Apps Script.
 - [ ] Add/edit stores from within app (desktop store management screen)
 - [ ] F16 — Export/backup: one-click CSV export from app
 
 ### 🔁 Both
 - [ ] **VABC-2** — VABC metadata enrichment: once VABC-1 test confirms feasibility, user enters `vacbId` for each bottle in Bottles sheet, then runs one-time Apps Script to auto-populate `vacbName`, `proof`, `price`, `size` from VABC product pages. App then links bottle chips directly to VABC product pages.
-- [ ] **BTL-1** — Bottle browser / search UI: dedicated view to browse master bottle list, search by name/shortcode/tier, see which stores reported a bottle in current or past waves. Accessible from both mobile and desktop.
+- [ ] **BTL-1/BTL-2** — ⚠️ NEEDS APPS SCRIPT DEPLOY — Bottle browser + edit UI built; requires `updateBottle` + `addBottle` actions added to Apps Script and redeployed as New Version. See session 2 notes in CLAUDE.md.
 - [ ] Waves management screen — list waves, set status (active/complete), add notes, expected date
 - [ ] Wave creation dialog — guide toward `YYYY.MM.DD-DXX-bottles` format with district selector
 - [ ] Store notes — add/edit per-store freeform notes, persisted to Stores sheet `notes` column
@@ -91,6 +86,12 @@ Current version: v0.4
 - [x] District filter chips (mobile)
 
 ### 🖥️ Desktop
+- [x] **DT-1** — Desktop top nav bar (Stores / Wave tabs + Log Drop / Issues / Analytics / Bottles / Mobile action buttons)
+- [x] **DT-2** — Desktop → Mobile toggle button in top nav bar
+- [x] **DT-3** — District label as 24px colored headline in store detail panel; bumped panel font sizes
+- [x] **DT-4** — Wave-scoped action buttons in store detail panel ("Log for: [wave]" label + No Drop ✗ button added)
+- [x] **BTL-1** — Bottle browser: search, tier filter, drop-count per bottle (🥃 Bottles nav button, 500px panel)
+- [x] **BTL-2** — Bottle edit UI: inline edit + add new bottle (pending Apps Script deploy — see CLAUDE.md)
 - [x] **DT-5** — Desktop store past drops now renders bottle chips (tier-colored badges) instead of raw freeform strings
 - [x] F12 — Desktop polish (v0.4, mobile buttons hidden, sidebar controls)
 - [x] Desktop layout — left sidebar, center map, right sliding detail panel
