@@ -24,6 +24,7 @@ Season status: OFF-SEASON — no active waves. Resume when next cycle begins.
 
 ### 🖥️ Desktop
 - [ ] **VABC-1 — Test Apps Script VABC fetch**: run `testVABCFetch()` in Apps Script editor to confirm whether `UrlFetchApp` can reach abc.virginia.gov (returns 200 vs 403). Result determines whether VABC metadata enrichment can be automated or is links-only. See FEATURES.md VABC section.
+- [ ] **BTL-SCRIPT — Add `addBottle` and `updateBottle` actions to Apps Script**: The Bottles tab editor saves changes locally (localStorage) but cannot write to the Google Sheets Bottles tab yet. Need to add `addBottle` (append new row) and `updateBottle` (find row by id, update fields) handlers to the Apps Script web app and redeploy as a new version. Until then, bottle edits/additions are local only.
 
 ### ❓ Unknown / Unsure
 - [ ] **SHEET-FIX** — Fix Blood Oath / Bomberger's collision in Bottles sheet: row 42 currently has both under "Bomberger's Declaration" with code `BO12`. Split into two rows — Bomberger's (remove BO12) and Blood Oath (BO12, tier A, brand Lux Row). Add after row 69.
