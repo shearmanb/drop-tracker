@@ -872,7 +872,7 @@ const ZOOM_DOT = 10;   // <= 10: dots only
 const ZOOM_MID = 12;   // 11-12: number + tier
 const ZOOM_FULL = 13;  // >= 13: full pin with tier + glow
 
-let STORES=[], DROPS=[], PATTERNS=[], currentWave=null;
+let STORES=[], DROPS=[], PATTERNS=[], BOTTLES=[], currentWave=null;
 let activeDistricts=new Set(["ALL"]);
 let pendingDrops=JSON.parse(localStorage.getItem("pendingDrops")||"[]");
 let currentResult="drop", markers={}, recognition=null;
@@ -1114,7 +1114,7 @@ function allDrops(){ return [...DROPS,...pendingDrops]; }
 function distColor(d){ return DC[d]||"#64748b"; }
 function distZ(d){ return DISTRICT_Z[d]||100; }
 
-const CACHE_VERSION = '4'; // bump when schema changes
+const CACHE_VERSION = '5'; // bump when schema changes
 
 function setLoad(msg,pct){
   document.getElementById("load-msg").textContent=msg;
@@ -1162,6 +1162,26 @@ function parsePattern(r){
   };
 }
 
+function parseBottle(r){
+  // Sheet columns: id, name, brand, tier, codes (comma-separated string), warn
+  const codes = String(r[4]||"").split(",").map(c=>c.trim()).filter(Boolean);
+  return {
+    id:   Number(r[0]),
+    name: String(r[1]||"").trim(),
+    brand:String(r[2]||"").trim(),
+    tier: String(r[3]||"").trim(),
+    codes,
+    warn: String(r[5]||"").trim()||undefined
+  };
+}
+
+function rebuildBottleLookup(){
+  Object.keys(BOTTLE_LOOKUP).forEach(k=>delete BOTTLE_LOOKUP[k]);
+  BOTTLES.forEach(b=>b.codes.forEach(c=>{
+    BOTTLE_LOOKUP[c.toLowerCase().replace(/\s+/g,'')] = b;
+  }));
+}
+
 function autoDetectWave(drops){
   // Pick the most recent wave label by date prefix
   const waves = [...new Set(drops.map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w)))].sort();
@@ -1171,11 +1191,12 @@ function autoDetectWave(drops){
 async function loadFromSheet(){
   try{
     setLoad("Loading data...",20);
-    // ── PARALLEL FETCH — all three at once ──
-    const [sr, dr, pr] = await Promise.all([
+    // ── PARALLEL FETCH — all four at once ──
+    const [sr, dr, pr, br] = await Promise.all([
       fetch(SCRIPT_URL+"?action=getStores"),
       fetch(SCRIPT_URL+"?action=getDrops"),
-      fetch(SCRIPT_URL+"?action=getPatterns").catch(()=>null)
+      fetch(SCRIPT_URL+"?action=getPatterns").catch(()=>null),
+      fetch(SCRIPT_URL+"?action=getBottles").catch(()=>null)
     ]);
     setLoad("Parsing...",65);
     const [srows, drows] = await Promise.all([sr.json(), dr.json()]);
@@ -1190,6 +1211,14 @@ async function loadFromSheet(){
       }catch(e){ console.warn("Patterns parse failed",e); PATTERNS=[]; }
     }
 
+    if(br){
+      try{
+        const brows = await br.json();
+        const loaded = brows.slice(1).map(parseBottle).filter(b=>b.id&&b.name);
+        if(loaded.length) BOTTLES = loaded;
+      }catch(e){ console.warn("Bottles parse failed",e); }
+    }
+
     // Auto-detect current wave if not set or stale
     const detected = autoDetectWave(DROPS);
     if(!currentWave || !DROPS.some(d=>d.wave===currentWave)){
@@ -1197,15 +1226,17 @@ async function loadFromSheet(){
     }
 
     invalidateDropCache();
+    rebuildBottleLookup();
     setLoad("Building map...",90);
 
     // Cache with version tag
-    localStorage.setItem("cachedStores", JSON.stringify(STORES));
-    localStorage.setItem("cachedDrops",  JSON.stringify(DROPS));
-    localStorage.setItem("cachedPatterns", JSON.stringify(PATTERNS));
-    localStorage.setItem("cacheTime",    Date.now());
-    localStorage.setItem("cacheWave",    currentWave||'');
-    localStorage.setItem("cacheVersion", CACHE_VERSION);
+    localStorage.setItem("cachedStores",  JSON.stringify(STORES));
+    localStorage.setItem("cachedDrops",   JSON.stringify(DROPS));
+    localStorage.setItem("cachedPatterns",JSON.stringify(PATTERNS));
+    localStorage.setItem("cachedBottles", JSON.stringify(BOTTLES));
+    localStorage.setItem("cacheTime",     Date.now());
+    localStorage.setItem("cacheWave",     currentWave||'');
+    localStorage.setItem("cacheVersion",  CACHE_VERSION);
     lastSyncTime = Date.now();
     updateSyncBadge();
     return true;
@@ -1216,7 +1247,7 @@ function loadFromCache(){
   // Bust cache if schema version changed
   if(localStorage.getItem("cacheVersion") !== CACHE_VERSION){
     console.log("Cache version mismatch — clearing");
-    ['cachedStores','cachedDrops','cachedPatterns','cacheTime','cacheWave','cacheVersion']
+    ['cachedStores','cachedDrops','cachedPatterns','cachedBottles','cacheTime','cacheWave','cacheVersion']
       .forEach(k=>localStorage.removeItem(k));
     return false;
   }
@@ -1226,12 +1257,15 @@ function loadFromCache(){
   DROPS  = JSON.parse(d);
   const cp = localStorage.getItem("cachedPatterns");
   if(cp) PATTERNS = JSON.parse(cp);
+  const cb = localStorage.getItem("cachedBottles");
+  if(cb){ const parsed=JSON.parse(cb); if(parsed.length) BOTTLES=parsed; }
   const cw = localStorage.getItem("cacheWave");
   if(cw) currentWave = cw;
   else currentWave = autoDetectWave(DROPS);
   const ct = localStorage.getItem("cacheTime");
   if(ct){ lastSyncTime = parseInt(ct); updateSyncBadge(); }
   invalidateDropCache();
+  rebuildBottleLookup();
   return true;
 }
 
@@ -1677,85 +1711,10 @@ async function _syncFromSheetCore(){
 // BOTTLE MASTER LIST + PICKER
 // ═══════════════════════════════════════════
 
-const BOTTLES = [
-  // S TIER
-  {id:1,  name:"George T. Stagg",           brand:"Buffalo Trace", tier:"S", codes:["Stagg","GTStag","GTS","stagg"]},
-  {id:2,  name:"William Larue Weller",       brand:"Buffalo Trace", tier:"S", codes:["WLW","WL","WellerSib","wlw","wlweller"]},
-  {id:3,  name:"Eagle Rare 17 Year",         brand:"Buffalo Trace", tier:"S", codes:["ER17","EagleRare17","er17"]},
-  {id:4,  name:"Thomas H. Handy Rye",        brand:"Buffalo Trace", tier:"S", codes:["THH","Handy","thh"]},
-  {id:5,  name:"Sazerac 18 Year Rye",        brand:"Buffalo Trace", tier:"S", codes:["Saz18","Sazerac18","saz18"]},
-  {id:6,  name:"Pappy Van Winkle 15yr",      brand:"Van Winkle",    tier:"S", codes:["PVW15","Pappy15","pvw15","pappy15"]},
-  {id:7,  name:"Pappy Van Winkle 20yr",      brand:"Van Winkle",    tier:"S", codes:["PVW20","Pappy20","pvw20"]},
-  {id:8,  name:"Pappy Van Winkle 23yr",      brand:"Van Winkle",    tier:"S", codes:["PVW23","Pappy23","pvw23"]},
-  {id:9,  name:"Old Rip Van Winkle 10yr",    brand:"Van Winkle",    tier:"S", codes:["ORVW","Pappy10","orvw"]},
-  {id:10, name:"Van Winkle Spc Reserve 12yr",brand:"Van Winkle",    tier:"S", codes:["VSR12","Pappy12","vsr12"]},
-  {id:11, name:"Heaven Hill 22 Year",        brand:"Heaven Hill",   tier:"S", codes:["HH22","hh22","hh 22"]},
-  {id:12, name:"Old Fitzgerald 1924",        brand:"Heaven Hill",   tier:"S", codes:["OFitz1924","OldFitz1924","ofitz1924"], warn:"⚠️ Different from OFo1924 (Old Forester)"},
-  {id:13, name:"EH Taylor Barrel Proof",     brand:"Buffalo Trace", tier:"S", codes:["EHTBP","EHT BP","EHTbp","ehtbp"]},
-  {id:14, name:"EH Taylor Warehouse C",      brand:"Buffalo Trace", tier:"S", codes:["CC","EHT CC","EHTCC","ehtcc"]},
-  {id:15, name:"EH Taylor BiB",              brand:"Buffalo Trace", tier:"S", codes:["EHTbib","EHT BiB","ehtbib"]},
-  {id:16, name:"Blanton's Straight from Barrel",brand:"Buffalo Trace",tier:"S",codes:["BSFB","BlantonsBarrel","bsfb"]},
-  {id:17, name:"Four Roses Limited Edition SB",brand:"Four Roses",  tier:"S", codes:["4RLE","FR LE","4RLESB","4rle"]},
-  {id:18, name:"Michter's 10 Year",          brand:"Michter's",     tier:"S", codes:["M10","M10r","m10"]},
-  {id:19, name:"Michter's 20 Year",          brand:"Michter's",     tier:"S", codes:["M20","Mich20","m20"]},
-  {id:20, name:"Michter's Celebration",      brand:"Michter's",     tier:"S", codes:["MMCA","MC","mmca"]},
-  {id:21, name:"Russell's Reserve 13 Year",  brand:"Wild Turkey",   tier:"S", codes:["RR13","RR 13","rr13"]},
-  {id:22, name:"Russell's Reserve 15 Year",  brand:"Wild Turkey",   tier:"S", codes:["RR15","RR 15","rr15"]},
-  {id:23, name:"Double Eagle Very Rare",     brand:"Buffalo Trace", tier:"S", codes:["DEVR","DoubleEagle","devr"]},
-  {id:24, name:"Weller Millennium",          brand:"Buffalo Trace", tier:"S", codes:["WM","WellerMill","wm","weller mill"]},
-  {id:25, name:"Old Forester President's Choice",brand:"Old Forester",tier:"S",codes:["OFPC","OFPresidents","ofpc"]},
-  // A TIER
-  {id:26, name:"Eagle Rare 10 Year",         brand:"Buffalo Trace", tier:"A", codes:["ER","ER10","er","er10","eaglerare"]},
-  {id:27, name:"EH Taylor Small Batch",      brand:"Buffalo Trace", tier:"A", codes:["EHT","EHTsm","EHTsmall","EH","eht","eh","ehtsm"]},
-  {id:28, name:"EH Taylor Rye",              brand:"Buffalo Trace", tier:"A", codes:["EHTRye","EHT Rye","ehtrye"]},
-  {id:29, name:"EH Taylor Single Barrel",    brand:"Buffalo Trace", tier:"A", codes:["EHTsi","EHT SB","ehtsi"]},
-  {id:30, name:"Weller Full Proof",          brand:"Buffalo Trace", tier:"A", codes:["WFP","Wfp","wfp","weller fp"]},
-  {id:31, name:"Weller Single Barrel",       brand:"Buffalo Trace", tier:"A", codes:["WLSB","WellerSB","WellerSingle","wlsb"]},
-  {id:32, name:"Weller CYPB",                brand:"Buffalo Trace", tier:"A", codes:["CYBP","WellerCYBP","cybp"]},
-  {id:33, name:"Blanton's Gold Edition",     brand:"Buffalo Trace", tier:"A", codes:["Bgold","BG","BlantonsGold","bgold","bg"]},
-  {id:34, name:"Heaven Hill 90th Anniversary",brand:"Heaven Hill",  tier:"A", codes:["HH90","HH 90","hh90"]},
-  {id:35, name:"Old Fitzgerald 11yr BiB",    brand:"Heaven Hill",   tier:"A", codes:["OF11","OFitz11","of11"]},
-  {id:36, name:"Elijah Craig Barrel Proof",  brand:"Heaven Hill",   tier:"A", codes:["ECBP","EC BP","ecbp"]},
-  {id:37, name:"Elijah Craig 15 Year",       brand:"Heaven Hill",   tier:"A", codes:["EC15","EC 15","ec15"]},
-  {id:38, name:"Elmer T. Lee",               brand:"Buffalo Trace", tier:"A", codes:["ETL","ElmerTLee","etl"]},
-  {id:39, name:"Old Forester Birthday Bourbon",brand:"Old Forester",tier:"A", codes:["OFBB","OF BB","ofbb"]},
-  {id:40, name:"Old Forester 1924 10yr",     brand:"Old Forester",  tier:"A", codes:["OFo1924","ofo1924","OF1924","of1924"], warn:"⚠️ Different from OFitz1924 (Old Fitzgerald/HH) — OF1924 is ambiguous!"},
-  {id:41, name:"Michter's Toasted Barrel",   brand:"Michter's",     tier:"A", codes:["MTBF","MTB","mtbf","mtb"]},
-  {id:42, name:"Bomberger's Declaration",    brand:"Michter's",     tier:"A", codes:["BO12","Bombergers","bo12"]},
-  {id:43, name:"Penelope Omega",             brand:"Penelope",      tier:"A", codes:["Pomega","PenelopeOmega","pomega"]},
-  {id:44, name:"Penelope 13 Year",           brand:"Penelope",      tier:"A", codes:["Penelope13","Pen13","penelope13"]},
-  {id:45, name:"Wild Turkey Master's Keep KC12",brand:"Wild Turkey",tier:"A", codes:["KC12","WTMK","WT KC12","kc12"]},
-  {id:46, name:"Russell's Reserve SiB",      brand:"Wild Turkey",   tier:"A", codes:["RR","RRSIB","WSIB","rr","rrsib"]},
-  {id:47, name:"Four Roses Small Batch Select",brand:"Four Roses",  tier:"A", codes:["FRSBS","4R SBS","frsbs"]},
-  {id:48, name:"Bardstown Discovery Series", brand:"Bardstown",     tier:"A", codes:["BDS","BardstownDisco","bds"]},
-  {id:49, name:"Kentucky Owl",               brand:"Stoli Group",   tier:"A", codes:["KO","KentuckyOwl","ko"]},
-  {id:50, name:"Calumet Farm 18 Year",       brand:"Calumet",       tier:"A", codes:["Cal18","Calumet18","cal18"]},
-  {id:51, name:"Weller Antique BiB",         brand:"Buffalo Trace", tier:"A", codes:["WABIB","WellerBiB","wabib"]},
-  {id:52, name:"Abraham Bowman Limited",     brand:"A. Smith Bowman",tier:"A",codes:["ASB","BowmanLE","asb"]},
-  {id:53, name:"WhistlePig Boss Hog",        brand:"WhistlePig",    tier:"A", codes:["WP","BossHog","wp","bosshog"]},
-  // B TIER
-  {id:54, name:"Old Weller Antique 107",     brand:"Buffalo Trace", tier:"B", codes:["OWA","owa"]},
-  {id:55, name:"Blanton's Original",         brand:"Buffalo Trace", tier:"B", codes:["Blantons","Blanton","BLA","blantons","bla"]},
-  {id:56, name:"Elijah Craig Toasted Barrel",brand:"Heaven Hill",   tier:"B", codes:["ECT","eC","ECTR","ect","ec"]},
-  {id:57, name:"Penelope Rio",               brand:"Penelope",      tier:"B", codes:["Rio","PenelopeRio","rio"]},
-  {id:58, name:"Penelope Toasted",           brand:"Penelope",      tier:"B", codes:["PTB","PenToast","ptb"]},
-  {id:59, name:"Wild Turkey Rare Breed",     brand:"Wild Turkey",   tier:"B", codes:["WTRB","WT RB","wtrb"]},
-  {id:60, name:"1792 BiB Full Proof",        brand:"Barton",        tier:"B", codes:["1792FP","1792 BiB FP","1792fp"]},
-  {id:61, name:"Old Elk 7 Year",             brand:"Old Elk",       tier:"B", codes:["OE7","OE 7","oe7"]},
-  {id:62, name:"Rock Hill Farms",            brand:"Buffalo Trace", tier:"B", codes:["RHF","rhf"]},
-  {id:63, name:"Old Forester 1920",          brand:"Old Forester",  tier:"B", codes:["OF1920","of1920"]},
-  {id:64, name:"Jack Daniel's TN Honey LE",  brand:"Jack Daniel's", tier:"B", codes:["JDTH","JD TH","jdth","jd12","JD12"]},
-  {id:65, name:"Phavana",                    brand:"Phavana",       tier:"B", codes:["Phavana","phavana"]},
-  {id:66, name:"Elijah Craig Evan Williams", brand:"Heaven Hill",   tier:"B", codes:["ECEW","ecew"]},
-  // C TIER
-  {id:67, name:"Wild Turkey 8 Year",         brand:"Wild Turkey",   tier:"C", codes:["WT8","WT 8","wt8"]},
-  {id:68, name:"Green River",                brand:"Green River",   tier:"C", codes:["GR","GTG","gr"]},
-  {id:69, name:"Unknown / Other",            brand:"–",             tier:"C", codes:["?","unknown"]}
-];
-
-// Build flat lookup: lowercase token → bottle
+// BOTTLES is populated at load time from Google Sheets (Bottles tab via getBottles action).
+// Edit bottles directly in the sheet — changes take effect on next app load/sync.
+// Populated at load time by rebuildBottleLookup() after BOTTLES is fetched from sheet
 const BOTTLE_LOOKUP = {};
-BOTTLES.forEach(b => b.codes.forEach(c => { BOTTLE_LOOKUP[c.toLowerCase().replace(/\s+/g,'')] = b; }));
 
 function bottleTierColors(tier){
   if(tier==='S') return {bg:'#854d0e',color:'#fef08a',border:'#92400e'};
