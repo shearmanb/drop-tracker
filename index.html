@@ -263,6 +263,21 @@ body.desktop.dt-wave .sb-section[data-nav="wave"]{display:block}
 .bp-recent-chip:hover{border-color:var(--accent);color:var(--accent)}
 .bp-warn{font-size:10px;color:#f87171;margin-top:3px;display:none}
 .bp-warn.show{display:block}
+/* ═══ BOTTLE BROWSER ═══ */
+#detail-panel.bb-wide{width:500px}
+.bb-row{padding:7px 0;border-bottom:1px solid var(--border)}
+.bb-row:last-child{border-bottom:none}
+.bb-row-main{display:flex;align-items:flex-start;gap:8px}
+.bb-tier-badge{font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;flex-shrink:0;margin-top:2px}
+.bb-info{flex:1;min-width:0}
+.bb-name{font-size:12px;font-weight:700;color:var(--text);line-height:1.3}
+.bb-meta{font-size:10px;color:var(--muted);margin-top:1px}
+.bb-codes{font-size:10px;color:var(--muted2);font-family:monospace;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bb-edit-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
+.bb-edit-btn:hover{border-color:var(--accent);color:var(--accent)}
+.bb-edit-form{display:flex;flex-direction:column;gap:6px;padding:2px 0}
+.bb-input{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit;width:100%}
+.bb-input:focus{outline:none;border-color:var(--accent)}
 /* ═══ ISSUES QUEUE ═══ */
 #issues-badge{background:#ef4444;color:#fff;border-radius:8px;font-size:9px;font-weight:800;padding:1px 4px;min-width:14px;text-align:center;display:none;line-height:1.4}
 #issues-filters{padding:6px 12px;display:flex;gap:5px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;flex-wrap:wrap}
@@ -612,6 +627,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
       <button class="dt-nav-action" onclick="openEntryPanel()">＋ Log Drop</button>
       <button class="dt-nav-action" onclick="openDesktopIssues()">⚠️ Issues <span id="issues-badge" style="display:none"></span></button>
       <button class="dt-nav-action" onclick="openAnalytics()">📊 Analytics</button>
+      <button class="dt-nav-action" onclick="openBottleBrowser()">🥃 Bottles</button>
     </div>
     <button class="dt-nav-mobile" onclick="toggleLayout()" title="Switch to Mobile View">📱 Mobile</button>
   </nav>
@@ -3052,6 +3068,185 @@ function updateSbWaveInfo(){
   const el2=document.getElementById('sb-wave-info');
   if(el1) el1.textContent=currentWave||'–';
   if(el2) el2.textContent=wd.length+' drops · '+[...new Set(wd.map(d=>d.district))].filter(Boolean).join(', ');
+}
+
+// ═══════════════════════════════════════════
+// BTL-1/BTL-2 — BOTTLE BROWSER + EDIT
+// ═══════════════════════════════════════════
+let bbFilter='all', bbSearch='';
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function getBottleDropCount(b){
+  const codeSet=new Set(b.codes.map(c=>c.toLowerCase().replace(/\s+/g,'')));
+  return allDrops().filter(d=>{
+    if(!d.bottles) return false;
+    return d.bottles.split(',').map(p=>p.trim().toLowerCase().replace(/\s+/g,'')).some(p=>codeSet.has(p));
+  }).length;
+}
+
+function _bbTierColor(t){return{S:'#f59e0b',A:'#22c55e',B:'#60a5fa',C:'#94a3b8'}[t]||'var(--muted)';}
+
+function _bbRowHTML(b){
+  const tc=_bbTierColor(b.tier);
+  const uses=getBottleDropCount(b);
+  const shortCodes=b.codes.slice(0,4).join(', ')+(b.codes.length>4?'…':'');
+  return `<div class="bb-row" id="bb-row-${b.id}"><div class="bb-row-main">
+    <span class="bb-tier-badge" style="background:${tc}22;color:${tc};border:1px solid ${tc}44">${b.tier}</span>
+    <div class="bb-info">
+      <div class="bb-name">${b.warn?'⚠️ ':''}${escHtml(b.name)}</div>
+      <div class="bb-meta">${escHtml(b.brand)}${uses>0?` · <span style="color:var(--accent)">${uses} drops</span>`:''}</div>
+      <div class="bb-codes">${escHtml(shortCodes)}</div>
+    </div>
+    <button class="bb-edit-btn" onclick="openBottleEdit(${b.id})">Edit</button>
+  </div></div>`;
+}
+
+function _bbInputStyle(){return 'background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit';}
+
+function openBottleEdit(id){
+  const b=BOTTLES.find(b=>b.id===id);
+  const el=document.getElementById('bb-row-'+id);
+  if(!b||!el) return;
+  el.innerHTML=`<div class="bb-edit-form">
+    <div style="display:flex;gap:6px">
+      <input id="be-name-${id}" value="${escHtml(b.name)}" placeholder="Name" style="flex:1;${_bbInputStyle()}">
+      <input id="be-brand-${id}" value="${escHtml(b.brand)}" placeholder="Brand" style="width:110px;${_bbInputStyle()}">
+      <select id="be-tier-${id}" style="width:52px;${_bbInputStyle()}">
+        ${['S','A','B','C'].map(t=>`<option value="${t}"${b.tier===t?' selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>
+    <input id="be-codes-${id}" value="${escHtml(b.codes.join(', '))}" placeholder="Shortcodes (comma-separated)" style="${_bbInputStyle()}">
+    <input id="be-warn-${id}" value="${escHtml(b.warn||'')}" placeholder="⚠️ Collision/warning note (optional)" style="${_bbInputStyle()}">
+    <div style="display:flex;gap:6px">
+      <button id="be-save-${id}" onclick="saveBottleEdit(${id})" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:6px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Save</button>
+      <button onclick="cancelBottleEdit(${id})" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function cancelBottleEdit(id){
+  const b=BOTTLES.find(b=>b.id===id);
+  const el=document.getElementById('bb-row-'+id);
+  if(b&&el) el.outerHTML=_bbRowHTML(b);
+}
+
+async function saveBottleEdit(id){
+  const b=BOTTLES.find(b=>b.id===id);
+  if(!b) return;
+  const btn=document.getElementById('be-save-'+id);
+  if(btn){btn.textContent='Saving…';btn.disabled=true;}
+  const name=document.getElementById('be-name-'+id).value.trim();
+  const brand=document.getElementById('be-brand-'+id).value.trim();
+  const tier=document.getElementById('be-tier-'+id).value;
+  const codes=document.getElementById('be-codes-'+id).value.split(',').map(c=>c.trim()).filter(Boolean);
+  const warn=document.getElementById('be-warn-'+id).value.trim();
+  if(!name){alert('Name is required');if(btn){btn.textContent='Save';btn.disabled=false;}return;}
+  try{
+    const res=await scriptPost('updateBottle',{id,name,brand,tier,codes:codes.join(', '),warn});
+    if(res.ok){
+      b.name=name;b.brand=brand;b.tier=tier;b.codes=codes;b.warn=warn||undefined;
+      localStorage.setItem('cachedBottles',JSON.stringify(BOTTLES));
+      rebuildBottleLookup();
+      const el=document.getElementById('bb-row-'+id);
+      if(el) el.outerHTML=_bbRowHTML(b);
+    } else {
+      alert('Save failed: '+(res.error||'unknown error'));
+      if(btn){btn.textContent='Save';btn.disabled=false;}
+    }
+  }catch(e){
+    alert('Network error — check console');
+    if(btn){btn.textContent='Save';btn.disabled=false;}
+  }
+}
+
+function startAddBottle(){
+  const form=document.getElementById('bb-add-form');
+  if(!form) return;
+  form.style.display='block';
+  form.innerHTML=`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">New Bottle</div>
+    <div class="bb-edit-form">
+      <div style="display:flex;gap:6px">
+        <input id="ba-name" placeholder="Bottle name" style="flex:1;${_bbInputStyle()}">
+        <input id="ba-brand" placeholder="Brand" style="width:110px;${_bbInputStyle()}">
+        <select id="ba-tier" style="width:52px;${_bbInputStyle()}">
+          ${['S','A','B','C'].map(t=>`<option value="${t}">${t}</option>`).join('')}
+        </select>
+      </div>
+      <input id="ba-codes" placeholder="Shortcodes (comma-separated): EHT, EHTsm" style="${_bbInputStyle()}">
+      <input id="ba-warn" placeholder="⚠️ Collision/warning note (optional)" style="${_bbInputStyle()}">
+      <div style="display:flex;gap:6px">
+        <button id="ba-save" onclick="saveNewBottle()" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:6px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Add Bottle</button>
+        <button onclick="document.getElementById('bb-add-form').style.display='none'" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Cancel</button>
+      </div>
+    </div>`;
+  setTimeout(()=>{const n=document.getElementById('ba-name');if(n)n.focus();},50);
+}
+
+async function saveNewBottle(){
+  const btn=document.getElementById('ba-save');
+  const name=document.getElementById('ba-name').value.trim();
+  const brand=document.getElementById('ba-brand').value.trim();
+  const tier=document.getElementById('ba-tier').value;
+  const codes=document.getElementById('ba-codes').value.split(',').map(c=>c.trim()).filter(Boolean);
+  const warn=document.getElementById('ba-warn').value.trim();
+  if(!name){alert('Name is required');return;}
+  if(btn){btn.textContent='Saving…';btn.disabled=true;}
+  try{
+    const res=await scriptPost('addBottle',{name,brand,tier,codes:codes.join(', '),warn});
+    if(res.ok){
+      const nb={id:res.id,name,brand,tier,codes,warn:warn||undefined};
+      BOTTLES.push(nb);
+      localStorage.setItem('cachedBottles',JSON.stringify(BOTTLES));
+      rebuildBottleLookup();
+      renderBottleBrowser();
+    } else {
+      alert('Add failed: '+(res.error||'unknown error'));
+      if(btn){btn.textContent='Add Bottle';btn.disabled=false;}
+    }
+  }catch(e){
+    alert('Network error — check console');
+    if(btn){btn.textContent='Add Bottle';btn.disabled=false;}
+  }
+}
+
+function openBottleBrowser(){
+  bbSearch='';bbFilter='all';
+  const panel=document.getElementById('detail-panel');
+  panel.classList.add('open','bb-wide');
+  renderBottleBrowser();
+  setTimeout(()=>desktopMap&&desktopMap.invalidateSize(),260);
+}
+
+function closeBottleBrowser(){
+  const panel=document.getElementById('detail-panel');
+  panel.classList.remove('open','bb-wide');
+  document.getElementById('detail-panel-content').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--muted);font-size:13px;gap:8px"><div style="font-size:32px">📍</div><div>Tap a store pin to see details</div></div>';
+  selectedStoreId=null;
+  setTimeout(()=>desktopMap&&desktopMap.invalidateSize(),260);
+}
+
+function renderBottleBrowser(){
+  const content=document.getElementById('detail-panel-content');
+  if(!content) return;
+  const filtered=BOTTLES.filter(b=>{
+    if(bbFilter!=='all'&&b.tier!==bbFilter) return false;
+    if(bbSearch){
+      const q=bbSearch.toLowerCase();
+      return b.name.toLowerCase().includes(q)||b.brand.toLowerCase().includes(q)||b.codes.some(c=>c.toLowerCase().includes(q));
+    }
+    return true;
+  });
+  const tierBtns=['all','S','A','B','C'].map(t=>`<button onclick="bbFilter='${t}';renderBottleBrowser()" style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;border:1.5px solid ${bbFilter===t?'var(--accent)':'var(--border)'};background:${bbFilter===t?'rgba(245,158,11,0.1)':'var(--surface2)'};color:${bbFilter===t?'var(--accent)':'var(--muted)'}">${t==='all'?'All':t}</button>`).join('');
+  content.innerHTML=`
+    <button id="detail-panel-close" onclick="closeBottleBrowser()">✕</button>
+    <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:12px">🥃 Bottles <span style="font-size:11px;font-weight:600;color:var(--muted)">(${BOTTLES.length})</span>
+      <button onclick="startAddBottle()" style="float:right;background:var(--accent);color:#000;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">＋ Add</button>
+    </div>
+    <div id="bb-add-form" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px"></div>
+    <input type="text" id="bb-search" placeholder="🔍 Name, brand, shortcode…" value="${escHtml(bbSearch)}" oninput="bbSearch=this.value;renderBottleBrowser()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:12px;font-family:inherit;margin-bottom:8px">
+    <div style="display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap">${tierBtns}</div>
+    <div id="bb-list">${filtered.length?filtered.map(b=>_bbRowHTML(b)).join(''):'<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0">No bottles match</div>'}</div>`;
 }
 
 function buildSidebar(){
