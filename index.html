@@ -157,7 +157,7 @@ textarea.modal-input{resize:vertical;min-height:56px}
 #dm-num-toggle.active{border-color:var(--accent);color:var(--accent)}
 body.desktop #app{display:none}
 body.desktop #desktop-main{display:flex!important}
-#desktop-main{display:none;flex:1;overflow:hidden;height:100dvh}
+#desktop-main{display:none;flex:1;overflow:hidden;height:100dvh;flex-direction:column}
 body.desktop #mobile-search-btn{display:none}
 #sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;height:100%}
 #sidebar-scroll{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
@@ -200,14 +200,14 @@ body.desktop #mobile-search-btn{display:none}
 #detail-panel-inner::-webkit-scrollbar{width:4px}
 #detail-panel-inner::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 #detail-panel-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0;float:right;line-height:1;margin-bottom:4px}
-.dp-district{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:3px}
+.dp-district{font-size:24px;font-weight:900;letter-spacing:2px;margin-bottom:6px;line-height:1}
 .dp-name{font-size:18px;font-weight:800;line-height:1.2;margin-bottom:2px}
-.dp-addr{font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.4}
+.dp-addr{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.4}
 .dp-badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
 .dp-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px}
 .dp-stat{background:var(--bg);border-radius:6px;padding:8px}
-.dp-stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px}
-.dp-stat-val{font-size:13px;font-weight:700}
+.dp-stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px}
+.dp-stat-val{font-size:14px;font-weight:700}
 .dp-status{padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:12px}
 .dp-actions{display:flex;gap:8px;margin-bottom:16px}
 .dp-btn{flex:1;padding:10px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
@@ -217,10 +217,28 @@ body.desktop #mobile-search-btn{display:none}
 .dp-hist-item:last-child{border-bottom:none}
 .dp-hist-dot{width:7px;height:7px;border-radius:50%;margin-top:3px;flex-shrink:0}
 .dp-hist-main{flex:1;min-width:0}
-.dp-hist-wave{color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dp-hist-wave{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dp-hist-bottles{color:var(--accent);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dp-hist-meta{color:var(--muted2);font-size:10px;margin-top:1px}
+.dp-hist-meta{color:var(--muted2);font-size:11px;margin-top:1px}
 .dp-hist-link{color:#60a5fa;font-size:12px;text-decoration:none;flex-shrink:0}
+.dp-wave-ctx{font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:600;padding:4px 0}
+
+/* ═══ DESKTOP NAV BAR (DT-1/DT-2) ═══ */
+#desktop-body{flex:1;display:flex;overflow:hidden}
+#desktop-nav{height:44px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 8px;gap:0;flex-shrink:0}
+.dt-nav-tabs{display:flex;gap:2px}
+.dt-nav-tab{background:none;border:none;color:var(--muted);padding:6px 12px;border-radius:6px 6px 0 0;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.15s,color 0.15s;white-space:nowrap;height:44px;border-bottom:2px solid transparent}
+.dt-nav-tab:hover{background:var(--surface2);color:var(--text)}
+.dt-nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(245,158,11,0.06)}
+.dt-nav-sep{width:1px;height:24px;background:var(--border);margin:0 8px;flex-shrink:0}
+.dt-nav-actions{display:flex;gap:4px}
+.dt-nav-action{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.15s,color 0.15s;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.dt-nav-action:hover{background:var(--surface2);color:var(--text)}
+.dt-nav-mobile{margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.15s,color 0.15s;white-space:nowrap}
+.dt-nav-mobile:hover{background:var(--surface2);color:var(--text)}
+body.desktop .sb-section[data-nav]{display:none}
+body.desktop.dt-stores .sb-section[data-nav="stores"]{display:block}
+body.desktop.dt-wave .sb-section[data-nav="wave"]{display:block}
 
 /* ═══ BOTTLE PICKER ═══ */
 .bp-wrap{position:relative}
@@ -584,51 +602,61 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
 
 <!-- DESKTOP MAIN -->
 <div id="desktop-main">
-  <div id="sidebar">
-    <div id="sidebar-scroll">
-      <div class="sb-section" style="padding:10px 14px">
-        <input type="text" id="store-search" placeholder="🔍 Find store # or name..." oninput="searchStores(this.value)" style="font-size:13px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border)">
-        <div id="search-results"></div>
-      </div>
-      <div class="sb-section">
-        <div class="sb-section-title">Current Wave</div>
-        <div class="sb-wave-name" id="sb-wave-name">–</div>
-        <div class="sb-wave-info" id="sb-wave-info">–</div>
-      </div>
-      <div class="sb-section">
-        <div class="sb-section-title">Cycle Progress</div>
-        <div class="sb-stats">
-          <div class="sb-stat"><div class="sb-stat-val" id="sb-dropped" style="color:#22c55e">–</div><div class="sb-stat-label">Dropped</div></div>
-          <div class="sb-stat"><div class="sb-stat-val" id="sb-nodrop" style="color:#ef4444">–</div><div class="sb-stat-label">No Drop</div></div>
-          <div class="sb-stat"><div class="sb-stat-val" id="sb-unknown" style="color:var(--muted)">–</div><div class="sb-stat-label">Unknown</div></div>
-          <div class="sb-stat"><div class="sb-stat-val" id="sb-pct" style="color:var(--accent)">–</div><div class="sb-stat-label">Coverage</div></div>
+  <nav id="desktop-nav">
+    <div class="dt-nav-tabs">
+      <button class="dt-nav-tab active" data-tab="stores" onclick="setDesktopNav('stores')">📍 Stores</button>
+      <button class="dt-nav-tab" data-tab="wave" onclick="setDesktopNav('wave')">🌊 Wave</button>
+    </div>
+    <div class="dt-nav-sep"></div>
+    <div class="dt-nav-actions">
+      <button class="dt-nav-action" onclick="openEntryPanel()">＋ Log Drop</button>
+      <button class="dt-nav-action" onclick="openDesktopIssues()">⚠️ Issues <span id="issues-badge" style="display:none"></span></button>
+      <button class="dt-nav-action" onclick="openAnalytics()">📊 Analytics</button>
+    </div>
+    <button class="dt-nav-mobile" onclick="toggleLayout()" title="Switch to Mobile View">📱 Mobile</button>
+  </nav>
+  <div id="desktop-body">
+    <div id="sidebar">
+      <div id="sidebar-scroll">
+        <div class="sb-section" data-nav="stores" style="padding:10px 14px">
+          <input type="text" id="store-search" placeholder="🔍 Find store # or name..." oninput="searchStores(this.value)" style="font-size:13px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border)">
+          <div id="search-results"></div>
+        </div>
+        <div class="sb-section" data-nav="wave">
+          <div class="sb-section-title">Current Wave</div>
+          <div class="sb-wave-name" id="sb-wave-name">–</div>
+          <div class="sb-wave-info" id="sb-wave-info">–</div>
+        </div>
+        <div class="sb-section" data-nav="wave">
+          <div class="sb-section-title">Cycle Progress</div>
+          <div class="sb-stats">
+            <div class="sb-stat"><div class="sb-stat-val" id="sb-dropped" style="color:#22c55e">–</div><div class="sb-stat-label">Dropped</div></div>
+            <div class="sb-stat"><div class="sb-stat-val" id="sb-nodrop" style="color:#ef4444">–</div><div class="sb-stat-label">No Drop</div></div>
+            <div class="sb-stat"><div class="sb-stat-val" id="sb-unknown" style="color:var(--muted)">–</div><div class="sb-stat-label">Unknown</div></div>
+            <div class="sb-stat"><div class="sb-stat-val" id="sb-pct" style="color:var(--accent)">–</div><div class="sb-stat-label">Coverage</div></div>
+          </div>
+        </div>
+        <div class="sb-section" data-nav="stores">
+          <div class="sb-section-title">Districts</div>
+          <div id="sb-districts"></div>
         </div>
       </div>
-      <div class="sb-section">
-        <div class="sb-section-title">Districts</div>
-        <div id="sb-districts"></div>
-      </div>
-      <div class="sb-section">
-        <button id="sb-log-btn" onclick="openEntryPanel()">＋ Log a Drop</button>
-        <button onclick="openAnalytics()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px">📊 District Analytics</button>
-        <button onclick="openDesktopIssues()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px">⚠️ Issues <span id="issues-badge" style="display:none"></span></button>
+    </div>
+    <div id="desktop-map-wrap">
+      <div id="desktop-map"></div>
+      <div id="desktop-zoom-badge">zoom in to see store numbers</div>
+      <div id="desktop-app-meta">
+        <div class="meta-version">v0.4</div>
+        <div class="meta-sync" id="desktop-meta-sync">not synced</div>
       </div>
     </div>
-  </div>
-  <div id="desktop-map-wrap">
-    <div id="desktop-map"></div>
-    <div id="desktop-zoom-badge">zoom in to see store numbers</div>
-    <div id="desktop-app-meta">
-      <div class="meta-version">v0.4</div>
-      <div class="meta-sync" id="desktop-meta-sync">not synced</div>
-    </div>
-  </div>
-  <div id="detail-panel">
-    <div id="detail-panel-inner">
-      <div id="detail-panel-content">
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--muted);font-size:13px;gap:8px">
-          <div style="font-size:32px">📍</div>
-          <div>Tap a store pin to see details</div>
+    <div id="detail-panel">
+      <div id="detail-panel-inner">
+        <div id="detail-panel-content">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--muted);font-size:13px;gap:8px">
+            <div style="font-size:32px">📍</div>
+            <div>Tap a store pin to see details</div>
+          </div>
         </div>
       </div>
     </div>
@@ -2765,6 +2793,7 @@ function activateDesktop(){
   renderDesktopMarkers();
   updateDesktopStats();
   updateDesktopSyncBadge();
+  setDesktopNav('stores');
 }
 
 function activateMobile(){
@@ -3031,6 +3060,12 @@ function buildSidebar(){
   updateSbWaveInfo();
 }
 
+function setDesktopNav(tab){
+  document.body.className=document.body.className.replace(/\bdt-\S+/g,'').trim();
+  document.body.classList.add('dt-'+tab);
+  document.querySelectorAll('.dt-nav-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+}
+
 function _buildSbDistrictsCore(){
   const c=document.getElementById('sb-districts');
   if(!c) return;
@@ -3178,9 +3213,11 @@ function openDetailPanel(storeId){
   else if(status==='no_drop'){statusHTML=`<div class="dp-status ds-nodrop">✕ No Drop Confirmed</div>`;}
   else{statusHTML=`<div class="dp-status ds-unknown">? No Data This Cycle</div>`;}
   const badges=`<div class="dp-badges"><span class="badge badge-${store.tier}">${store.tier}</span>${store.hh22?'<span class="badge badge-hh22">⭐HH22</span>':""}${store.bb30?'<span class="badge badge-bb30">🏆BB30</span>':""}</div>`;
+  const waveShort=currentWave?currentWave.replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,''):null;
+  const waveCtx=waveShort?`<div class="dp-wave-ctx">Log for: ${waveShort}</div>`:'';
   const actions=status==='drop'
-    ?`<button class="dp-btn btn-danger" onclick="quickMark(${storeId},'no_drop')">Cleaned Out</button><button class="dp-btn btn-primary" onclick="quickMark(${storeId},'scored')">Got One ✅</button>`
-    :`<button class="dp-btn btn-primary" onclick="quickDrop(${storeId});closeDetailPanel()">⚡ Quick Drop</button><button class="dp-btn btn-secondary" onclick="openModalForStore(${storeId})">📝 Log</button><button class="dp-btn btn-secondary" onclick="openDirections(${store.lat},${store.lng})">~${driveTime} ↗</button>`;
+    ?`${waveCtx}<button class="dp-btn btn-danger" onclick="quickMark(${storeId},'no_drop')">Cleaned Out</button><button class="dp-btn btn-primary" onclick="quickMark(${storeId},'scored')">Got One ✅</button>`
+    :`${waveCtx}<button class="dp-btn btn-danger" onclick="quickMark(${storeId},'no_drop')">No Drop ✗</button><button class="dp-btn btn-primary" onclick="quickDrop(${storeId});closeDetailPanel()">⚡ Quick Drop</button><button class="dp-btn btn-secondary" onclick="openModalForStore(${storeId})">📝 Log</button>`;
   let histHTML='';
   if(history.length){
     histHTML='<div class="dp-history"><div class="dp-hist-title">Drop History ('+totalDrops+' total)</div>';
