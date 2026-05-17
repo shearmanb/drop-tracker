@@ -201,6 +201,17 @@ body.desktop #mobile-search-btn{display:none}
 .sr-num{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
 .sr-name{font-size:11px;color:var(--muted)}
 .sr-right{font-size:10px;color:var(--muted)}
+.sb-store-row{display:flex;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;gap:8px}
+.sb-store-row:last-child{border-bottom:none}
+.sb-store-row:hover .sb-sr-name{color:var(--accent)}
+.sb-sr-num{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--text);min-width:28px}
+.sb-sr-body{flex:1;min-width:0}
+.sb-sr-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-sr-meta{font-size:10px;color:var(--muted);margin-top:1px}
+.sb-sr-right{text-align:right;flex-shrink:0}
+.sb-sr-dist{font-size:11px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.sb-sr-time{font-size:10px;color:var(--muted)}
+.sb-sr-drop-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:1px}
 #sb-log-btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
 .sb-wave-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3;word-break:break-word}
 .sb-wave-info{font-size:11px;color:var(--muted);line-height:1.6}
@@ -623,6 +634,16 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
         <div class="sb-section" style="padding:10px 14px">
           <input type="text" id="store-search" placeholder="🔍 Find store # or name..." oninput="searchStores(this.value)" style="font-size:13px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border)">
           <div id="search-results"></div>
+        </div>
+        <div id="sb-store-defaults">
+          <div class="sb-section">
+            <div class="sb-section-title">Nearest Stores</div>
+            <div id="sb-nearest"></div>
+          </div>
+          <div class="sb-section">
+            <div class="sb-section-title">Recent Drops</div>
+            <div id="sb-recent-drops"></div>
+          </div>
         </div>
       </div>
       <!-- Pane: Wave (wave info + cycle stats) -->
@@ -3068,12 +3089,76 @@ function updateSbWaveInfo(){
   const el2=document.getElementById('sb-wave-info');
   if(el1) el1.textContent=currentWave||'–';
   if(el2) el2.textContent=wd.length+' drops · '+[...new Set(wd.map(d=>d.district))].filter(Boolean).join(', ');
+  populateSbWaveSelect();
 }
 
 function buildSidebar(){
   buildSbDistricts();
   updateDesktopStats();
   updateSbWaveInfo();
+  buildSbNearestStores();
+  buildSbRecentDrops();
+}
+
+function buildSbNearestStores(){
+  const c = document.getElementById('sb-nearest');
+  if(!c || !STORES.length) return;
+  const sorted = STORES.slice().map(s=>{
+    const mi = Math.sqrt(Math.pow(s.lat - userLat, 2) + Math.pow(s.lng - userLng, 2)) * 69;
+    return {...s, mi};
+  }).sort((a,b)=>a.mi-b.mi).slice(0,5);
+  c.innerHTML = sorted.map(s=>{
+    const {status} = getStoreStatus(s.id);
+    const color = distColor(s.district);
+    const dot = status==='drop' ? `background:white;border:2px solid ${color}` :
+                status==='no_drop' ? 'background:#94a3b8' : `background:${color}`;
+    const lastDrop = allDrops().filter(d=>d.storeId==s.id&&d.result==='drop')
+      .sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];
+    const lastDropStr = lastDrop?.timestamp
+      ? new Date(lastDrop.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric'})
+      : 'no data';
+    const mins = Math.round((s.mi * 1.5 / 35) * 60);
+    const timeStr = mins < 60 ? mins+'m' : Math.floor(mins/60)+'h '+(mins%60)+'m';
+    return `<div class="sb-store-row" onclick="desktopFocusStore(${s.id})">
+      <div class="sb-sr-drop-dot" style="${dot}"></div>
+      <div class="sb-sr-body">
+        <div class="sb-sr-name">${s.label}</div>
+        <div class="sb-sr-meta">Last drop: ${lastDropStr}</div>
+      </div>
+      <div class="sb-sr-right">
+        <div class="sb-sr-dist">${s.mi.toFixed(1)} mi</div>
+        <div class="sb-sr-time">${timeStr}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildSbRecentDrops(){
+  const c = document.getElementById('sb-recent-drops');
+  if(!c) return;
+  const recent = allDrops()
+    .filter(d=>d.result==='drop'&&d.timestamp)
+    .sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))
+    .slice(0,5);
+  if(!recent.length){ c.innerHTML='<div style="font-size:11px;color:var(--muted);padding:6px 0">No drops recorded yet</div>'; return; }
+  c.innerHTML = recent.map(d=>{
+    const store = STORES.find(s=>s.id==d.storeId);
+    const color = distColor(d.district);
+    const dt = new Date(d.timestamp);
+    const dateStr = isNaN(dt) ? '' : dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' + dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    const bottles = d.bottles ? `<span style="color:var(--accent)">${d.bottles}</span> · ` : '';
+    return `<div class="sb-store-row" onclick="${store?`desktopFocusStore(${store.id})`:''}">
+      <div class="sb-sr-drop-dot" style="background:white;border:2px solid ${color}"></div>
+      <div class="sb-sr-body">
+        <div class="sb-sr-name">${store?.label||'Store '+d.storeId} <span style="font-size:10px;color:var(--muted);font-weight:400">#${d.storeId}</span></div>
+        <div class="sb-sr-meta">${bottles}${dateStr}</div>
+      </div>
+      <div class="sb-sr-right">
+        <div class="sb-sr-dist" style="color:${color};font-size:10px">${d.district}</div>
+        <div class="sb-sr-time">${d.wave?.split(' - ')[1]||''}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function _buildSbDistrictsCore(){
@@ -3182,7 +3267,13 @@ function updateDesktopStats(){
 
 function searchStores(query){
   const results=document.getElementById('search-results');
-  if(!query.trim()){results.innerHTML='';return;}
+  const defaults=document.getElementById('sb-store-defaults');
+  if(!query.trim()){
+    results.innerHTML='';
+    if(defaults) defaults.style.display='';
+    return;
+  }
+  if(defaults) defaults.style.display='none';
   const q=query.toLowerCase();
   const matches=STORES.filter(s=>String(s.id).includes(q)||s.label.toLowerCase().includes(q)||s.address.toLowerCase().includes(q)).slice(0,8);
   if(!matches.length){results.innerHTML='<div style="font-size:11px;color:var(--muted);padding:4px 0">No stores found</div>';return;}
@@ -3192,6 +3283,13 @@ function searchStores(query){
     const dot=status==='drop'?'#22c55e':status==='no_drop'?'#ef4444':'var(--muted)';
     return `<div class="search-result" onclick="spotlightStore(${s.id})"><div class="sr-left"><div style="width:7px;height:7px;border-radius:50%;background:${dot};flex-shrink:0"></div><div class="sr-num" style="color:${color}">#${s.id}</div><div class="sr-name">${s.label}</div></div><div class="sr-right">${s.district} · ${s.tier}</div></div>`;
   }).join('');
+}
+
+function desktopFocusStore(storeId){
+  const store=STORES.find(s=>s.id===storeId);
+  if(!store||!desktopMap) return;
+  desktopMap.setView([store.lat,store.lng],15,{animate:true});
+  openDetailPanel(storeId);
 }
 
 function spotlightStore(storeId){
@@ -3982,32 +4080,38 @@ function switchDesktopTab(tab){
 // Add desktop wave select + sync buttons to wave pane
 function buildDesktopHeader(){
   const waveSec = document.getElementById('sb-sec-wave');
-  if(!waveSec || waveSec.dataset.hasControls) return;
-  waveSec.dataset.hasControls = '1';
-
-  const ctrl = document.createElement('div');
-  ctrl.style.cssText = 'display:flex;gap:6px;margin-top:8px;flex-wrap:wrap';
-  ctrl.innerHTML = `
-    <select class="cycle-select" id="sb-wave-select" style="flex:1;min-width:0;font-size:11px"></select>
-    <button onclick="syncFromSheet()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 8px;font-size:13px;cursor:pointer" title="Sync">⟳</button>
-    <button onclick="openNewWave()" style="background:var(--surface2);border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer">+ Wave</button>
-  `;
-  waveSec.appendChild(ctrl);
-
-  // Populate wave select
-  const sbWaveSel = document.getElementById('sb-wave-select');
-  if(sbWaveSel){
-    const waves = [...new Set([currentWave,...allDrops().map(d=>d.wave)].filter(w=>w&&/^\\d{4}/.test(w)))].sort().reverse();
-    waves.forEach(w=>{
-      const o=document.createElement('option');o.value=w;o.textContent=w;
-      if(w===currentWave)o.selected=true;sbWaveSel.appendChild(o);
-    });
-    sbWaveSel.onchange=()=>{
-      currentWave=sbWaveSel.value;
-      document.getElementById('wave-select').value=currentWave;
+  if(!waveSec) return;
+  // Build DOM structure once
+  if(!waveSec.dataset.hasControls){
+    waveSec.dataset.hasControls = '1';
+    const ctrl = document.createElement('div');
+    ctrl.id = 'sb-wave-ctrl';
+    ctrl.style.cssText = 'display:flex;gap:6px;margin-top:8px;flex-wrap:wrap';
+    ctrl.innerHTML = `
+      <select class="cycle-select" id="sb-wave-select" style="flex:1;min-width:0;font-size:11px"></select>
+      <button onclick="syncFromSheet()" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 8px;font-size:13px;cursor:pointer" title="Sync">⟳</button>
+      <button onclick="openNewWave()" style="background:var(--surface2);border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer">+ Wave</button>
+    `;
+    waveSec.appendChild(ctrl);
+    document.getElementById('sb-wave-select').onchange=()=>{
+      currentWave=document.getElementById('sb-wave-select').value;
+      const mSel=document.getElementById('wave-select'); if(mSel) mSel.value=currentWave;
       renderDesktopMarkers();buildSbDistricts();updateDesktopStats();updateSbWaveInfo();
     };
   }
+  populateSbWaveSelect();
+}
+
+function populateSbWaveSelect(){
+  const sel = document.getElementById('sb-wave-select');
+  if(!sel) return;
+  const waves = [...new Set([currentWave,...allDrops().map(d=>d.wave)].filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
+  sel.innerHTML = '';
+  waves.forEach(w=>{
+    const o=document.createElement('option');o.value=w;o.textContent=w;
+    if(w===currentWave) o.selected=true;
+    sel.appendChild(o);
+  });
 }
 
 // Add review/fillin badges to wave pane's badge section
