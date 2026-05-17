@@ -11,14 +11,8 @@ Two entries use OF1924 for different bottles — Old Fitzgerald 1924 (Heaven Hil
 
 ### In Progress / Next Sprint
 
-**F5 — Mobile Store Spotlight**
-When user taps a search result in mobile search overlay, close overlay, zoom map to that pin at zoom 15, auto-open the store card popup.
-
 **F11 — BottleDrops persistence** *(picker UI complete — sheet backend pending)*
 Create Bottles + BottleDrops tabs in Google Sheet. Add `getBottles` and `addBottleDrop` Apps Script actions. Wire picker's confirmed/absent/rumored status through to sheet. Idle-time bottle filling with wave-keyword pre-suggestion.
-
-**Issues badge on desktop sidebar**
-Show count of open issues (collision flags, needs-review, missing data) as a badge in the desktop sidebar header. Currently the Issues queue is accessible but not surfaced.
 
 ---
 
@@ -135,8 +129,10 @@ Reminder to check app during active drop windows based on historical district pa
 - F4 — Needs Review Queue (⚠️ badge, filterable overlay, sheet sync)
 - F9 — Quick Drop ⚡ + Needs Logging Queue (📋 badge, detail fill queue)
 - F10 — Idle Fill-In Mode (✏️ badge, missing fields task queue)
+- F5 — Mobile store spotlight — tap search result → zoom map to pin at zoom 15 + auto-open store popup card
 - F11 — Bottle picker UI (69 bottles, search-as-you-type, tier badges, recents, collision warnings, confirmed/absent/rumored status)
 - F12 — Desktop polish (v0.4, mobile buttons hidden on desktop, sidebar controls)
 - F14 — District behavior tags (Random/Day-Locked/Bulk/Unknown)
+- Issues badge — desktop sidebar button with live red count, grouped issues detail panel (collision/review/bottles/reporter/link)
 - Token auth on Apps Script write actions
 - GitHub Pages hosting at shearmanb.github.io/drop-tracker

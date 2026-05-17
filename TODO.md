@@ -1,6 +1,6 @@
 # Bourbon Drop Tracker — Master TODO
 
-Last updated: May 14, 2026
+Last updated: May 17, 2026
 App live at: https://shearmanb.github.io/drop-tracker
 Current version: v0.4
 
@@ -12,7 +12,6 @@ Current version: v0.4
 - [ ] Test issues queue — verify collision resolver, review edit, bottles save all write to sheet
 - [ ] Test Quick Drop ⚡ flow end to end
 - [ ] Verify v0.4 loads cleanly (no console errors)
-- [ ] Add issues badge count to desktop sidebar
 - [ ] F11 — Add bottle status (confirmed/absent/rumored) dropdown to picker chips — UI added, needs BottleDrops sheet tab + Apps Script actions to actually persist
 
 ---
@@ -87,6 +86,8 @@ Current version: v0.4
 - [x] F14 — District behavior tags (Random/Day-Locked/Bulk/Unknown)
 - [x] Auto-calculate MinutesSinceMidnight + DayOfWeek on entry
 - [x] Pattern analysis — per district, last 6-10 waves, predictability rating, common time window
+- [x] F5 — Mobile store spotlight — tap search result → zoom to pin + auto-open store popup
+- [x] Issues badge — desktop sidebar button with live red count, opens issues detail panel
 - [x] Mobile search — zoom + bounce pin (no auto-popup)
 - [x] Desktop search — zoom + bounce pin (no auto-panel)
 - [x] Version badge + last sync time (bottom right of map)
