@@ -512,8 +512,15 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     <!-- ── LOG TAB ── -->
     <div id="tab-log" class="tab-panel">
       <div id="log-scroll">
-        <div style="padding:12px">
+        <div style="padding:12px 12px 8px">
           <button id="log-new-drop-btn" onclick="openModal()">＋ Log New Drop</button>
+        </div>
+        <div style="padding:0 12px 12px;display:flex;align-items:center;gap:8px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Active Wave</div>
+            <div id="log-current-wave" style="font-size:12px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">–</div>
+          </div>
+          <button onclick="openNewWave()" style="background:var(--surface2);border:1px solid var(--accent);color:var(--accent);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">＋ New Wave</button>
         </div>
         <div class="log-section" id="log-fillin-section">
           <div class="log-section-hdr">✏️ Fill-in Tasks <span class="tab-badge tab-badge-amber" id="log-fillin-count" style="display:none">0</span></div>
@@ -3023,6 +3030,8 @@ function updateSbWaveInfo(){
   const el2=document.getElementById('sb-wave-info');
   if(el1) el1.textContent=currentWave||'–';
   if(el2) el2.textContent=wd.length+' drops · '+[...new Set(wd.map(d=>d.district))].filter(Boolean).join(', ');
+  const logWaveEl=document.getElementById('log-current-wave');
+  if(logWaveEl) logWaveEl.textContent=currentWave||'–';
 }
 
 function buildSidebar(){
