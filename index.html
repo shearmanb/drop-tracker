@@ -2482,34 +2482,133 @@ function mobileSpotlight(storeId){
   }
 }
 
+let desktopIssueFilter = 'all';
+
 function openDesktopIssues(){
-  const issues=buildIssues();
-  const panel=document.getElementById('detail-panel');
-  const content=document.getElementById('detail-panel-content');
-  if(!panel||!content) return;
-  const byType=(type)=>issues.filter(i=>i.type===type);
-  const typeLabel={collision:'⚠️ Collision',review:'🔍 Needs Review',bottles:'🥃 Bottles',reporter:'👤 Reporter',link:'🔗 Link'};
-  let html=`<button id="detail-panel-close" onclick="closeDetailPanel()">✕</button>
-    <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:14px">⚠️ Issues <span style="font-size:12px;font-weight:600;color:var(--muted)">(${issues.length})</span></div>`;
-  if(!issues.length){
-    html+='<div style="color:var(--muted);font-size:13px;padding:20px 0;text-align:center">No open issues</div>';
-  } else {
-    ['collision','review','bottles','reporter','link'].forEach(type=>{
-      const group=byType(type);
-      if(!group.length) return;
-      html+=`<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin:12px 0 6px 0">${typeLabel[type]} (${group.length})</div>`;
-      group.forEach(i=>{
-        const s=i.store;
-        const color=distColor(s?.district||'');
-        html+=`<div onclick="if(${s?.id}) openDetailPanel(${s?.id})" style="padding:8px 10px;margin-bottom:5px;border-radius:7px;background:var(--bg);border:1px solid var(--border);cursor:pointer;font-size:12px">
-          <div style="font-weight:700;color:${color}">#${s?.id} ${s?.label||''}</div>
-          <div style="color:var(--muted);margin-top:2px">${i.drop?.wave||''}</div>
-        </div>`;
-      });
-    });
-  }
-  content.innerHTML=html;
+  const content = document.getElementById('detail-panel-content');
+  const panel = document.getElementById('detail-panel');
+  if(!content||!panel) return;
+  const all = buildIssues();
+  content.innerHTML = `
+    <button onclick="closeDetailPanel()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;float:right;line-height:1">✕</button>
+    <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:8px">⚠️ Issues <span style="font-size:12px;font-weight:500;color:var(--muted)">(${all.length})</span></div>
+    <div id="dp-iq-filters" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">
+      <button class="iq-filter active" onclick="setDpIssueFilter('all',this)">All</button>
+      <button class="iq-filter" onclick="setDpIssueFilter('collision',this)">⚠️ Collision</button>
+      <button class="iq-filter" onclick="setDpIssueFilter('review',this)">🔍 Review</button>
+      <button class="iq-filter" onclick="setDpIssueFilter('bottles',this)">🥃 Bottles</button>
+      <button class="iq-filter" onclick="setDpIssueFilter('reporter',this)">👤 Reporter</button>
+      <button class="iq-filter" onclick="setDpIssueFilter('link',this)">🔗 Link</button>
+    </div>
+    <div id="dp-iq-summary" style="font-size:11px;color:var(--muted);margin-bottom:8px"></div>
+    <div id="dp-iq-list"></div>
+  `;
   panel.classList.add('open');
+  desktopIssueFilter = 'all';
+  renderDpIssuesList();
+}
+
+function setDpIssueFilter(filter, btn){
+  desktopIssueFilter = filter;
+  document.querySelectorAll('#dp-iq-filters .iq-filter').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderDpIssuesList();
+}
+
+function renderDpIssuesList(){
+  const all = buildIssues();
+  const filtered = desktopIssueFilter==='all' ? all : all.filter(i=>i.type===desktopIssueFilter);
+  const list = document.getElementById('dp-iq-list');
+  const summary = document.getElementById('dp-iq-summary');
+  if(!list) return;
+
+  const counts = {};
+  all.forEach(i=>{ counts[i.type]=(counts[i.type]||0)+1; });
+  if(summary) summary.textContent = `${all.length} total · `+
+    Object.entries({collision:'Collision',review:'Review',bottles:'No Bottles',reporter:'No Reporter',link:'No Link'})
+      .filter(([k])=>counts[k]).map(([k,l])=>`${counts[k]} ${l}`).join(' · ');
+
+  if(!filtered.length){
+    list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">✓ No issues in this category</div>';
+    return;
+  }
+
+  // Render the same iq-card markup as mobile — save handlers (saveIssueEdit, saveBotEdit, etc.)
+  // look up elements by ID and will find them here since the mobile tab never renders on desktop
+  list.innerHTML = filtered.map(issue=>{
+    const color = distColor(issue.store?.district||'D14');
+    const d = issue.drop;
+    const ts = d?.timestamp ? new Date(d.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}) : '';
+    const bottlesDisplay = d?.bottles ? `<div style="margin-top:4px">${bottleChipsHTML(d.bottles,true)}</div>` : '';
+    let actionsHTML = '';
+
+    if(issue.type==='collision'){
+      actionsHTML=`<div style="margin-top:8px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.8px">Which bottle?</div>
+        <div style="display:flex;gap:6px">
+          <button class="iq-choice" onclick="resolveCollision('${issue.id}','OFitz1924',this)">OFitz1924<br><span style="font-size:9px;color:var(--muted)">Old Fitzgerald · HH · S-tier</span></button>
+          <button class="iq-choice" onclick="resolveCollision('${issue.id}','OFo1924',this)">OFo1924<br><span style="font-size:9px;color:var(--muted)">Old Forester 1924 · BF · A-tier</span></button>
+        </div></div>`;
+    } else if(issue.type==='review'){
+      actionsHTML=`<div class="iq-inline-edit" id="edit_${issue.id}">
+        <div class="iq-edit-row"><span class="iq-edit-label">Wave</span><input class="iq-edit-input" id="wave_${issue.id}" value="${d?.wave||''}" placeholder="YYYY.MM.DD - Description"></div>
+        <div class="iq-edit-row"><span class="iq-edit-label">Reporter</span><input class="iq-edit-input" id="rep_i_${issue.id}" value="${d?.reporter||''}" placeholder="Reporter name"></div>
+        <div class="iq-edit-actions">
+          <button class="iq-btn iq-btn-secondary" onclick="toggleIssueEdit('${issue.id}')">Cancel</button>
+          <button class="iq-btn iq-btn-primary" onclick="saveIssueEdit('${issue.id}')">Save</button>
+        </div></div>
+      <div class="iq-actions">
+        <button class="iq-btn iq-btn-secondary" onclick="skipIssue('${issue.id}',this)">Skip</button>
+        <button class="iq-btn iq-btn-primary" onclick="toggleIssueEdit('${issue.id}')">Edit</button>
+      </div>`;
+    } else if(issue.type==='bottles'){
+      actionsHTML=`<div class="iq-inline-edit" id="edit_${issue.id}">
+        <div class="iq-edit-row"><span class="iq-edit-label">Bottles</span><input class="iq-edit-input" id="bot_${issue.id}" value="${d?.bottles||''}" placeholder="e.g. EHT, ER, HH22"></div>
+        <div class="iq-edit-actions">
+          <button class="iq-btn iq-btn-secondary" onclick="toggleIssueEdit('${issue.id}')">Cancel</button>
+          <button class="iq-btn iq-btn-primary" onclick="saveBotEdit('${issue.id}')">Save</button>
+        </div></div>
+      <div class="iq-actions">
+        <button class="iq-btn iq-btn-secondary" onclick="skipIssue('${issue.id}',this)">Skip</button>
+        <button class="iq-btn iq-btn-primary" onclick="toggleIssueEdit('${issue.id}')">Add Bottles</button>
+      </div>`;
+    } else if(issue.type==='reporter'){
+      actionsHTML=`<div class="iq-inline-edit" id="edit_${issue.id}">
+        <div class="iq-edit-row"><span class="iq-edit-label">Reporter</span><input class="iq-edit-input" id="rpt_${issue.id}" value="${d?.reporter||''}" placeholder="Discord username"></div>
+        <div class="iq-edit-actions">
+          <button class="iq-btn iq-btn-secondary" onclick="toggleIssueEdit('${issue.id}')">Cancel</button>
+          <button class="iq-btn iq-btn-primary" onclick="saveReporterEdit('${issue.id}')">Save</button>
+        </div></div>
+      <div class="iq-actions">
+        <button class="iq-btn iq-btn-secondary" onclick="skipIssue('${issue.id}',this)">Skip</button>
+        <button class="iq-btn iq-btn-primary" onclick="toggleIssueEdit('${issue.id}')">Add Reporter</button>
+      </div>`;
+    } else if(issue.type==='link'){
+      actionsHTML=`<div class="iq-inline-edit" id="edit_${issue.id}">
+        <div class="iq-edit-row"><span class="iq-edit-label">Link</span><input class="iq-edit-input" id="lnk2_${issue.id}" type="url" placeholder="https://discord.com/channels/..."></div>
+        <div class="iq-edit-actions">
+          <button class="iq-btn iq-btn-secondary" onclick="toggleIssueEdit('${issue.id}')">Cancel</button>
+          <button class="iq-btn iq-btn-primary" onclick="saveLinkEdit('${issue.id}')">Save</button>
+        </div></div>
+      <div class="iq-actions">
+        <button class="iq-btn iq-btn-secondary" onclick="skipIssue('${issue.id}',this)">Skip</button>
+        <button class="iq-btn iq-btn-primary" onclick="toggleIssueEdit('${issue.id}')">Add Link</button>
+      </div>`;
+    }
+
+    return `<div class="iq-card" id="iqcard_${issue.id}">
+      <div class="iq-card-header">
+        <div class="iq-card-left">
+          <span class="iq-type-badge iqt-${issue.type}">${issue.label}</span>
+          <div class="iq-store" style="color:${color}">#${d?.storeId} · ${issue.store?.label||''}</div>
+          <div class="iq-wave">${issue.store?.district||''} · ${d?.wave||'no wave label'} · ${ts}</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);flex-shrink:0">${issue.store?.tier||'?'} tier</div>
+      </div>
+      <div class="iq-detail">${issue.detail}${bottlesDisplay}</div>
+      ${actionsHTML}
+    </div>`;
+  }).join('');
 }
 
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2500);}
@@ -3384,8 +3483,24 @@ function quickMark(storeId,action){
 // F11 — DISTRICT ANALYTICS
 // ═══════════════════════════════════════════
 
-function openAnalytics(){ switchTab('stats'); }
+function openAnalytics(){
+  if(isDesktop){ openDesktopAnalytics(); return; }
+  switchTab('stats');
+}
 function closeAnalytics(){ switchTab('map'); }
+
+function openDesktopAnalytics(){
+  renderAnalytics(); // populates #analytics-body even while hidden
+  const body = document.getElementById('analytics-body');
+  const content = document.getElementById('detail-panel-content');
+  if(!content) return;
+  content.innerHTML = `
+    <button onclick="closeDetailPanel()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;float:right;line-height:1;margin-bottom:4px">✕</button>
+    <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:14px">📊 District Analytics</div>
+    ${body?.innerHTML||'<div style="color:var(--muted);font-size:13px">No analytics data yet</div>'}
+  `;
+  document.getElementById('detail-panel').classList.add('open');
+}
 
 function computeDistrictAnalytics(district){
   const color = distColor(district);
@@ -3759,7 +3874,10 @@ function getReviewIssues(d){
 
 function updateReviewBadge(){ updateTabBadges(); }
 
-function openReviewOverlay(){ switchTab('log'); }
+function openReviewOverlay(){
+  if(isDesktop){ openDesktopFillin(true); return; }
+  switchTab('log');
+}
 function closeReviewOverlay(){ switchTab('map'); }
 
 function renderReviewList(){
@@ -3944,8 +4062,106 @@ function buildFillinTasks(){
 
 function updateFillinBadge(){ updateTabBadges(); }
 
-function openFillinOverlay(){ switchTab('log'); }
+function openFillinOverlay(){
+  if(isDesktop){ openDesktopFillin(); return; }
+  switchTab('log');
+}
 function closeFillinOverlay(){ switchTab('map'); }
+
+let dtFillinTasks = [], dtFillinIdx = 0;
+
+function openDesktopFillin(reviewOnly){
+  dtFillinTasks = reviewOnly ? buildReviewFillinTasks() : buildFillinTasks();
+  dtFillinIdx = 0;
+  const content = document.getElementById('detail-panel-content');
+  const panel = document.getElementById('detail-panel');
+  if(!content||!panel) return;
+  const title = reviewOnly ? '🔍 Needs Review' : '✏️ Fill-In Queue';
+  content.innerHTML = `
+    <button onclick="closeDetailPanel()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;float:right;line-height:1">✕</button>
+    <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:12px">${title}</div>
+    <div style="margin-bottom:12px">
+      <div style="background:var(--surface2);border-radius:4px;height:4px;margin-bottom:5px">
+        <div id="dt-prog-fill" style="height:100%;background:var(--accent);border-radius:4px;width:0%;transition:width 0.3s"></div>
+      </div>
+      <div id="dt-prog-label" style="font-size:11px;color:var(--muted)"></div>
+    </div>
+    <div id="dt-fillin-area"></div>
+  `;
+  panel.classList.add('open');
+  renderDesktopFillinCard();
+}
+
+function buildReviewFillinTasks(){
+  return getNeedsReviewDrops().map(d=>{
+    const store = STORES.find(s=>s.id===d.storeId);
+    return { type:'review', drop:d, store,
+      label:'Needs Review', field:'wave',
+      question:`Confirm wave label for #${d.storeId} ${store?.label||''}`,
+      context:`${d.bottles||'no bottles'} · ${d.reporter||'unknown'} · ${d.timestamp?new Date(d.timestamp).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'no date'}`,
+      placeholder:d.wave||'YYYY.MM.DD - Description'
+    };
+  });
+}
+
+function renderDesktopFillinCard(){
+  const total = dtFillinTasks.length;
+  const remaining = total - dtFillinIdx;
+  const pct = total ? Math.round(dtFillinIdx/total*100) : 100;
+  const progFill = document.getElementById('dt-prog-fill');
+  const progLabel = document.getElementById('dt-prog-label');
+  if(progFill) progFill.style.width = pct+'%';
+  if(progLabel) progLabel.textContent = remaining
+    ? `${dtFillinIdx} done · ${remaining} remaining`
+    : 'All tasks complete!';
+
+  const area = document.getElementById('dt-fillin-area');
+  if(!area) return;
+  if(dtFillinIdx >= total){
+    area.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">
+      <div style="font-size:40px;margin-bottom:12px">🎉</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text)">All caught up!</div>
+    </div>`;
+    return;
+  }
+  const task = dtFillinTasks[dtFillinIdx];
+  const color = distColor(task.store?.district||'');
+  area.innerHTML = `
+    <div style="background:var(--bg);border-radius:10px;padding:14px;border:1px solid var(--border)">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px">${task.label}</div>
+      <div style="font-size:14px;font-weight:800;color:${color};margin-bottom:4px">#${task.drop.storeId} · ${task.store?.label||''}</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px">${task.context}</div>
+      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">${task.question}</div>
+      <input id="dt-fillin-input" type="text" placeholder="${task.placeholder}"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);color:var(--text);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box"
+        onkeydown="if(event.key==='Enter') saveDesktopFillin()">
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button onclick="skipDesktopFillin()" style="flex:1;padding:10px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Skip →</button>
+        <button onclick="saveDesktopFillin()" style="flex:2;padding:10px;border-radius:8px;background:#a855f7;border:none;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Save ✓</button>
+      </div>
+    </div>
+  `;
+  setTimeout(()=>document.getElementById('dt-fillin-input')?.focus(), 50);
+}
+
+function skipDesktopFillin(){ dtFillinIdx++; renderDesktopFillinCard(); }
+
+async function saveDesktopFillin(){
+  const task = dtFillinTasks[dtFillinIdx];
+  const val = document.getElementById('dt-fillin-input')?.value?.trim();
+  if(!val){ toast('Enter a value first'); return; }
+  const drop = DROPS.find(d=>d.storeId===task.drop.storeId&&d.wave===task.drop.wave&&d.timestamp===task.drop.timestamp);
+  if(drop) drop[task.field] = val;
+  const pd = pendingDrops.find(d=>d._id===task.drop._id);
+  if(pd) pd[task.field] = val;
+  localStorage.setItem('cachedDrops', JSON.stringify(DROPS));
+  localStorage.setItem('pendingDrops', JSON.stringify(pendingDrops));
+  try { await scriptPost('updateDrop', {original: task.drop, updates: {[task.field]: val}}); } catch(e){}
+  dtFillinIdx++;
+  updateFillinBadge();
+  renderDesktopFillinCard();
+  toast('✓ Saved');
+}
 
 function renderFillinCard(){
   const total = fillinTasks.length;
