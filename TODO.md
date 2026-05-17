@@ -3,6 +3,7 @@
 Last updated: May 17, 2026
 App live at: https://shearmanb.github.io/drop-tracker
 Current version: v0.4
+Season status: OFF-SEASON — no active waves. Resume when next cycle begins.
 
 > **Layout key for all sections below:**
 > - 📱 Mobile only
@@ -100,6 +101,8 @@ Current version: v0.4
 - [x] Sidebar with pattern history
 
 ### 🔁 Both
+- [x] Map tile → CartoDB Voyager (better road/label visibility; replaces Dark Matter)
+- [x] Map wrapper inset border frame (mobile + desktop) to visually separate map from UI
 - [x] **BTL-AUDIT** — Confirmed BOTTLES master list was hardcoded in index.html; migrated to Google Sheets Bottles tab
 - [x] **BTL-MIGRATE** — BOTTLES now loaded from Google Sheets at startup via `getBottles` Apps Script action; `cachedBottles` localStorage fallback; hardcoded array removed; CACHE_VERSION bumped to 5
 - [x] F4 — Needs Review Queue (⚠️ badge, overlay, sheet sync)

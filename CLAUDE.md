@@ -212,13 +212,18 @@ See `FEATURES.md` for detailed feature specs.
 See `F11_BOTTLES_SPEC.md` for bottle system spec.  
 See `DATAMODEL.md` for full data model reference.
 
-**Current version:** v0.4
+**Current version:** v0.4  
+**Season status:** Off-season (as of May 2026) — no active waves. Resume tracking when next allocation cycle begins.
 
-### Next up (high priority)
-- **F5** — Mobile store spotlight: search result tap → zoom map to pin at zoom 15, auto-open store card
+### Next up (when season resumes)
 - **F11** — BottleDrops sheet tab + Apps Script actions (picker UI is done; persistence is not)
-- **Issues badge** — add badge count to desktop sidebar for Issues queue
 - **Waves management** — list waves, set status, add notes, expected date
+- **DT-1** — Desktop top nav bar (sidebar too crowded)
+- **Data cleanup** — normalize timestamps, rename old wave labels, resolve OF1924 collisions
+
+### Completed this session (May 17, 2026)
+- Map tile switched from CartoDB Dark Matter → Voyager (better road/street visibility, Google Maps-like clarity)
+- Inset border frame added to both map wrappers (mobile + desktop) to distinguish map from UI chrome
 
 ---
 
