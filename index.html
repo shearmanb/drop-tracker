@@ -2418,7 +2418,7 @@ async function confirmNewWave(){
   closeNewWave();
   try{await scriptPost('addWave',[label,new Date().toISOString()]);}catch(e){}
 
-  // Add to dropdown first
+  // Add to mobile dropdown
   const sel=document.getElementById("wave-select");
   if(![...sel.options].some(o=>o.value===label)){
     const opt=document.createElement("option");
@@ -2428,6 +2428,9 @@ async function confirmNewWave(){
   // Set dropdown AND currentWave — order matters
   sel.value=label;
   currentWave=label;
+
+  // Sync desktop wave selector too
+  populateSbWaveSelect();
 
   refresh();
   toast("New wave: "+label+" — all stores reset");
@@ -3537,7 +3540,7 @@ document.getElementById('wave-select').addEventListener('change',function(){
 // Hook into sync button for desktop
 async function syncFromSheet(){
   await _syncFromSheetCore();
-  if(isDesktop){buildSbDistricts();updateDesktopStats();updateSbWaveInfo();renderDesktopMarkers();updateDesktopSyncBadge();}
+  if(isDesktop){populateSbWaveSelect();buildSbDistricts();updateDesktopStats();updateSbWaveInfo();renderDesktopMarkers();updateDesktopSyncBadge();}
 }
 
 // Hook into quickMark for desktop refresh
