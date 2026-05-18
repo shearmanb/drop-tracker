@@ -376,6 +376,17 @@ body.desktop #mobile-search-btn{display:none}
 #stats-wave-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0}
 #stats-divider{height:4px;background:var(--border);margin:4px 0}
 #analytics-body{padding:12px}
+#stats-subtabs{display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0}
+.stats-stab{flex:1;padding:9px;background:none;border:none;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;transition:color 0.15s,border-color 0.15s}
+.stats-stab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.bt-section-body{overflow:hidden}
+.bt-section-body.collapsed{display:none}
+.bt-pane-title{cursor:pointer;user-select:none}
+.bt-chevron{font-size:9px;color:var(--muted2);transition:transform 0.2s;margin-left:auto}
+.bt-chevron.collapsed{transform:rotate(-90deg)}
+.an-filter-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.an-filter-sel{background:var(--bg);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 6px;font-size:10px;font-family:inherit;cursor:pointer}
+.an-filter-sel:focus{outline:none;border-color:var(--accent)}
 .an-district-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
 .an-district-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .an-district-name{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums}
@@ -609,18 +620,26 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
           <button class="tool-btn" id="new-wave-btn" onclick="openNewWave()" style="border-color:var(--accent);color:var(--accent);padding:4px 10px">+ Wave</button>
           <button class="tool-btn" id="dm-mode-btn" onclick="toggleDistrictMapMode()" style="padding:4px 8px;font-size:10px">🗺 Map Mode</button>
         </div>
-        <div id="issues-summary"></div>
-        <div id="issues-filters">
-          <button class="iq-filter active" data-filter="all" onclick="setIssueFilter('all',this)">All</button>
-          <button class="iq-filter" data-filter="collision" onclick="setIssueFilter('collision',this)">⚠️ Collisions</button>
-          <button class="iq-filter" data-filter="review" onclick="setIssueFilter('review',this)">🔍 Review</button>
-          <button class="iq-filter" data-filter="bottles" onclick="setIssueFilter('bottles',this)">🥃 Bottles</button>
-          <button class="iq-filter" data-filter="reporter" onclick="setIssueFilter('reporter',this)">👤 Reporter</button>
-          <button class="iq-filter" data-filter="link" onclick="setIssueFilter('link',this)">🔗 Link</button>
+        <div id="stats-subtabs">
+          <button class="stats-stab active" id="sstab-issues" onclick="switchStatsSubtab('issues')">⚠️ Issues</button>
+          <button class="stats-stab" id="sstab-analytics" onclick="switchStatsSubtab('analytics')">📊 Analytics</button>
         </div>
-        <div id="issues-list"></div>
-        <div id="stats-divider"></div>
-        <div id="analytics-body"></div>
+        <div id="stats-issues-section">
+          <div id="issues-summary"></div>
+          <div id="issues-filters">
+            <button class="iq-filter active" data-filter="all" onclick="setIssueFilter('all',this)">All</button>
+            <button class="iq-filter" data-filter="collision" onclick="setIssueFilter('collision',this)">⚠️ Collisions</button>
+            <button class="iq-filter" data-filter="review" onclick="setIssueFilter('review',this)">🔍 Review</button>
+            <button class="iq-filter" data-filter="bottles" onclick="setIssueFilter('bottles',this)">🥃 Bottles</button>
+            <button class="iq-filter" data-filter="reporter" onclick="setIssueFilter('reporter',this)">👤 Reporter</button>
+            <button class="iq-filter" data-filter="link" onclick="setIssueFilter('link',this)">🔗 Link</button>
+          </div>
+          <div id="issues-list"></div>
+        </div>
+        <div id="stats-divider" style="display:none"></div>
+        <div id="stats-analytics-section" style="display:none">
+          <div id="analytics-body"></div>
+        </div>
       </div>
     </div>
 
@@ -713,19 +732,29 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
           <input type="text" class="bt-search" id="bt-search" placeholder="Search name or code..." oninput="filterBottlePane(this.value)">
         </div>
         <div class="sb-section" id="bt-unknown-section">
-          <div class="bt-pane-title">Unknown in Reports <span class="bt-count-badge" id="bt-unknown-count">0</span></div>
-          <div id="bt-unknown-list"></div>
+          <div class="bt-pane-title" onclick="toggleBtSection('bt-unknown-body')">
+            <span>Unknown in Reports <span class="bt-count-badge" id="bt-unknown-count">0</span></span>
+            <span class="bt-chevron" id="bt-unknown-body-chev">▼</span>
+          </div>
+          <div class="bt-section-body" id="bt-unknown-body">
+            <div id="bt-unknown-list"></div>
+          </div>
         </div>
         <div class="sb-section" id="bt-known-section">
-          <div class="bt-pane-title">Master List <span class="bt-count-badge" id="bt-known-count">0</span></div>
-          <div class="bt-tier-filter">
-            <button class="bt-tf active" data-tier="all" onclick="setBtTierFilter('all',this)">All</button>
-            <button class="bt-tf" data-tier="S" onclick="setBtTierFilter('S',this)">S</button>
-            <button class="bt-tf" data-tier="A" onclick="setBtTierFilter('A',this)">A</button>
-            <button class="bt-tf" data-tier="B" onclick="setBtTierFilter('B',this)">B</button>
-            <button class="bt-tf" data-tier="C" onclick="setBtTierFilter('C',this)">C</button>
+          <div class="bt-pane-title" onclick="toggleBtSection('bt-known-body')">
+            <span>Master List <span class="bt-count-badge" id="bt-known-count">0</span></span>
+            <span class="bt-chevron" id="bt-known-body-chev">▼</span>
           </div>
-          <div id="bt-known-list"></div>
+          <div class="bt-section-body" id="bt-known-body">
+            <div class="bt-tier-filter">
+              <button class="bt-tf active" data-tier="all" onclick="setBtTierFilter('all',this)">All</button>
+              <button class="bt-tf" data-tier="S" onclick="setBtTierFilter('S',this)">S</button>
+              <button class="bt-tf" data-tier="A" onclick="setBtTierFilter('A',this)">A</button>
+              <button class="bt-tf" data-tier="B" onclick="setBtTierFilter('B',this)">B</button>
+              <button class="bt-tf" data-tier="C" onclick="setBtTierFilter('C',this)">C</button>
+            </div>
+            <div id="bt-known-list"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -989,6 +1018,7 @@ const ZOOM_MID = 12;   // 11-12: number + tier
 const ZOOM_FULL = 13;  // >= 13: full pin with tier + glow
 
 let STORES=[], DROPS=[], PATTERNS=[], BOTTLES=[], WAVES=[], currentWave=null;
+let analyticsFilters = {};
 let activeDistricts=new Set(["ALL"]);
 let pendingDrops=JSON.parse(localStorage.getItem("pendingDrops")||"[]");
 let currentResult="drop", markers={}, recognition=null;
@@ -1115,9 +1145,21 @@ function renderLogTab(){
 }
 
 function renderStatsTab(){
-  renderAnalytics();
   renderIssuesList();
   updateIssuesBadge();
+  // Default to issues sub-tab; only render analytics if that tab is active
+  const analyticsVisible = document.getElementById('stats-analytics-section')?.style.display !== 'none';
+  if(analyticsVisible) renderAnalytics();
+}
+
+function switchStatsSubtab(tab){
+  document.getElementById('sstab-issues')?.classList.toggle('active', tab==='issues');
+  document.getElementById('sstab-analytics')?.classList.toggle('active', tab==='analytics');
+  const issuesSec = document.getElementById('stats-issues-section');
+  const analyticsSec = document.getElementById('stats-analytics-section');
+  if(issuesSec) issuesSec.style.display = tab==='issues' ? '' : 'none';
+  if(analyticsSec) analyticsSec.style.display = tab==='analytics' ? '' : 'none';
+  if(tab==='analytics') renderAnalytics();
 }
 
 function updateTabBadges(){
@@ -3589,11 +3631,32 @@ function openDesktopAnalytics(){
   document.getElementById('detail-panel').classList.add('open');
 }
 
+function getAnalyticsFilter(district){ return analyticsFilters[district] || {timeRange:'all', dayFilter:'all'}; }
+function setAnalyticsFilter(district, key, value){
+  if(!analyticsFilters[district]) analyticsFilters[district] = {timeRange:'all', dayFilter:'all'};
+  analyticsFilters[district][key] = value;
+  renderAnalytics();
+}
+
 function computeDistrictAnalytics(district){
   const color = distColor(district);
   const stores = STORES.filter(s=>s.district===district);
   const patterns = getDistrictPatterns(district, 999);
-  const distDrops = allDrops().filter(d=>d.district===district&&d.result==='drop'&&d.wave);
+  const filters = getAnalyticsFilter(district);
+  let distDrops = allDrops().filter(d=>d.district===district&&d.result==='drop'&&d.wave);
+
+  // Time range filter
+  const msMap = {'1m':30,'3m':90,'6m':180,'1y':365};
+  if(filters.timeRange !== 'all' && msMap[filters.timeRange]){
+    const cutoff = Date.now() - msMap[filters.timeRange]*24*60*60*1000;
+    distDrops = distDrops.filter(d=>d.timestamp && new Date(d.timestamp).getTime()>=cutoff);
+  }
+  // Weekday/weekend filter
+  if(filters.dayFilter === 'weekday'){
+    distDrops = distDrops.filter(d=>{ if(!d.timestamp) return false; const dow=new Date(d.timestamp).getDay(); return dow>=1&&dow<=5; });
+  } else if(filters.dayFilter === 'weekend'){
+    distDrops = distDrops.filter(d=>{ if(!d.timestamp) return false; const dow=new Date(d.timestamp).getDay(); return dow===0||dow===6; });
+  }
 
   // ── WAVES for this district ──
   const waveSet = [...new Set([
@@ -3753,6 +3816,9 @@ function renderAnalytics(){
         <div class="an-bar-count">${count}</div>
       </div>`).join('');
 
+    const f = getAnalyticsFilter(district);
+    const timeOpts = [['all','All time'],['1m','Last month'],['3m','Last 3M'],['6m','Last 6M'],['1y','Last year']];
+    const dayOpts = [['all','All days'],['weekday','Weekdays'],['weekend','Weekends']];
     return `<div class="an-district-card">
       <div class="an-district-header">
         <div>
@@ -3767,6 +3833,16 @@ function renderAnalytics(){
       </div>
 
       ${dueHTML}
+
+      <div class="an-filter-row">
+        <select class="an-filter-sel" onchange="setAnalyticsFilter('${district}','timeRange',this.value)">
+          ${timeOpts.map(([v,l])=>`<option value="${v}"${f.timeRange===v?' selected':''}>${l}</option>`).join('')}
+        </select>
+        <select class="an-filter-sel" onchange="setAnalyticsFilter('${district}','dayFilter',this.value)">
+          ${dayOpts.map(([v,l])=>`<option value="${v}"${f.dayFilter===v?' selected':''}>${l}</option>`).join('')}
+        </select>
+        <span style="font-size:10px;color:var(--muted);align-self:center">${a.timestamps.length} drops</span>
+      </div>
 
       <div class="an-stats-grid">
         <div class="an-stat">
@@ -4453,6 +4529,12 @@ function buildBtUnknownList(){
       </div>
       <div style="font-size:10px;color:var(--muted);margin-top:2px">${[...new Set(t.drops)].slice(0,4).join(', ')}${t.drops.length>4?'…':''}</div>
       <div class="bt-form" id="bt-unk-form-${i}">
+        <div class="bt-label" style="color:var(--accent);margin-bottom:6px">Merge to existing bottle:</div>
+        <select class="bt-field" id="bt-unk-merge-${i}" style="margin-bottom:12px">
+          <option value="">– create new bottle instead –</option>
+          ${BOTTLES.slice().sort((a,b)=>{const o={S:0,A:1,B:2,C:3};return (o[a.tier]??4)-(o[b.tier]??4)||a.name.localeCompare(b.name);}).map(b=>`<option value="${b.id}">[${b.tier}] ${b.name}</option>`).join('')}
+        </select>
+        <div class="bt-label" style="color:var(--muted2);margin-bottom:6px">— or add as new bottle —</div>
         <div class="bt-label">Full Name</div>
         <input class="bt-field" id="bt-unk-name-${i}" placeholder="e.g. Eagle Rare 10yr" value="${t.raw}">
         <div class="bt-label">Codes / Acronyms (comma-separated)</div>
@@ -4465,7 +4547,7 @@ function buildBtUnknownList(){
         </div>
         <div class="bt-form-btns">
           <button class="bt-cancel-btn" onclick="toggleBtForm('bt-unk-form-${i}')">Cancel</button>
-          <button class="bt-save-btn" onclick="saveBtNewBottle(${i},'${t.raw}')">Add to List</button>
+          <button class="bt-save-btn" onclick="saveBtIdentify(${i},'${t.raw}')">Confirm</button>
         </div>
       </div>
     </div>`).join('');
@@ -4526,6 +4608,14 @@ function buildBtKnownList(){
   }).join('');
 }
 
+function toggleBtSection(bodyId){
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(bodyId+'-chev');
+  if(!body) return;
+  const collapsed = body.classList.toggle('collapsed');
+  if(chev) chev.classList.toggle('collapsed', collapsed);
+}
+
 function toggleBtForm(id){
   const el = document.getElementById(id);
   if(el) el.classList.toggle('open');
@@ -4545,6 +4635,25 @@ function getSelectedBtTier(rowId){
   if(!row) return 'C';
   const active = row.querySelector('.bt-tier-opt[data-active]');
   return active ? active.dataset.active : 'C';
+}
+
+function saveBtIdentify(idx, rawToken){
+  const mergeId = document.getElementById(`bt-unk-merge-${idx}`)?.value;
+  if(mergeId){
+    const b = BOTTLES.find(b=>String(b.id)===String(mergeId));
+    if(!b){ toast('Bottle not found'); return; }
+    const token = rawToken.trim();
+    if(!b.codes.includes(token)) b.codes.push(token);
+    const edits = getBottleEdits();
+    edits[b.id] = {name:b.name, brand:b.brand, tier:b.tier, codes:b.codes, warn:b.warn||''};
+    localStorage.setItem('bottleEdits', JSON.stringify(edits));
+    rebuildBottleLookup();
+    scriptPost('updateBottle', {id:b.id, name:b.name, brand:b.brand, tier:b.tier, codes:b.codes.join(','), warn:b.warn||''}).catch(()=>{});
+    toast(`✓ Merged "${token}" → ${b.name}`);
+    buildSbBottles();
+    return;
+  }
+  saveBtNewBottle(idx, rawToken);
 }
 
 function saveBtNewBottle(idx, rawToken){
