@@ -1261,7 +1261,7 @@ function renderWaveList(){
     const isActive = wave===currentWave;
     const borderLeft = isActive ? 'border-left:3px solid var(--accent);padding-left:9px' : 'border-left:3px solid transparent;padding-left:9px';
 
-    return `<div style="display:grid;grid-template-columns:52px 1fr auto;align-items:start;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);${borderLeft}" onclick="currentWave='${wave.replace(/'/g,"\\'")}';invalidateDropCache();refresh();switchTab('map')">
+    return `<div style="display:grid;grid-template-columns:52px 1fr auto;align-items:start;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);${borderLeft}" onclick="setCurrentWave('${wave.replace(/'/g,"\\'")}');invalidateDropCache();refresh();switchTab('map')">
       <div style="flex-shrink:0">
         <div style="font-size:13px;font-weight:700;color:${isActive?'var(--accent)':'var(--text)'};white-space:nowrap">${dateStr}</div>
         ${firstTime?`<div style="font-size:10px;color:var(--muted);margin-top:1px">⏱ ${firstTime}</div>`:'<div style="font-size:10px;color:var(--muted2);margin-top:1px">no time</div>'}
@@ -1464,6 +1464,11 @@ function autoDetectWave(drops){
   return waves.length ? waves[waves.length-1] : null;
 }
 
+function setCurrentWave(label){
+  currentWave = label;
+  if(label) localStorage.setItem('selectedWave', label);
+}
+
 async function loadFromSheet(){
   try{
     setLoad("Loading data...",20);
@@ -1503,10 +1508,13 @@ async function loadFromSheet(){
       }catch(e){ console.warn("Waves parse failed",e); }
     }
 
-    // Auto-detect current wave if not set or stale
-    const detected = autoDetectWave(DROPS);
-    if(!currentWave || !DROPS.some(d=>d.wave===currentWave)){
-      currentWave = detected;
+    // Restore user's explicit wave selection if it still exists in data
+    const savedWave = localStorage.getItem('selectedWave');
+    const allWaveLabelsNow = [...new Set([...WAVES.map(w=>w.label), ...DROPS.map(d=>d.wave)].filter(w=>w&&/^\d{4}/.test(w)))];
+    if(savedWave && allWaveLabelsNow.includes(savedWave)){
+      currentWave = savedWave;
+    } else {
+      currentWave = autoDetectWave(DROPS);
     }
 
     invalidateDropCache();
@@ -1544,8 +1552,11 @@ function loadFromCache(){
   if(cp) PATTERNS = JSON.parse(cp);
   const cb = localStorage.getItem("cachedBottles");
   if(cb){ const parsed=JSON.parse(cb); if(parsed.length) BOTTLES=parsed; }
+  const savedWave = localStorage.getItem('selectedWave');
   const cw = localStorage.getItem("cacheWave");
-  if(cw) currentWave = cw;
+  const allWavesNow = [...new Set([...WAVES.map(w=>w.label), ...DROPS.map(d=>d.wave)].filter(w=>w&&/^\d{4}/.test(w)))];
+  if(savedWave && allWavesNow.includes(savedWave)) currentWave = savedWave;
+  else if(cw) currentWave = cw;
   else currentWave = autoDetectWave(DROPS);
   const ct = localStorage.getItem("cacheTime");
   if(ct){ lastSyncTime = parseInt(ct); updateSyncBadge(); }
@@ -1971,7 +1982,7 @@ function buildWaveSelect(){
   allWaveLabels.forEach(w=>{const o=document.createElement("option");o.value=w;o.textContent=w;if(w===currentWave)o.selected=true;sel.appendChild(o);});
   if(!currentWave && allWaveLabels.length){ currentWave=allWaveLabels[0]; sel.value=allWaveLabels[0]; }
   else if(currentWave){ sel.value=currentWave; }
-  sel.onchange=()=>{currentWave=sel.value;invalidateDropCache();refresh();};
+  sel.onchange=()=>{setCurrentWave(sel.value);invalidateDropCache();refresh();};
 }
 
 function buildDistrictBar(){
@@ -2601,7 +2612,7 @@ async function confirmNewWave(){
   }
   // Set dropdown AND currentWave — order matters
   sel.value=label;
-  currentWave=label;
+  setCurrentWave(label);
 
   // Sync desktop wave selector too
   populateSbWaveSelect();
@@ -4875,7 +4886,7 @@ function buildDesktopHeader(){
     `;
     waveSec.appendChild(ctrl);
     document.getElementById('sb-wave-select').onchange=()=>{
-      currentWave=document.getElementById('sb-wave-select').value;
+      setCurrentWave(document.getElementById('sb-wave-select').value);
       const mSel=document.getElementById('wave-select'); if(mSel) mSel.value=currentWave;
       renderDesktopMarkers();buildSbDistricts();updateDesktopStats();updateSbWaveInfo();
     };
