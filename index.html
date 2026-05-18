@@ -622,6 +622,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
         </div>
         <div id="stats-subtabs">
           <button class="stats-stab active" id="sstab-issues" onclick="switchStatsSubtab('issues')">⚠️ Issues</button>
+          <button class="stats-stab" id="sstab-waves" onclick="switchStatsSubtab('waves')">🌊 Waves</button>
           <button class="stats-stab" id="sstab-analytics" onclick="switchStatsSubtab('analytics')">📊 Analytics</button>
         </div>
         <div id="stats-issues-section">
@@ -635,6 +636,9 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
             <button class="iq-filter" data-filter="link" onclick="setIssueFilter('link',this)">🔗 Link</button>
           </div>
           <div id="issues-list"></div>
+        </div>
+        <div id="stats-waves-section" style="display:none">
+          <div id="waves-list-body"></div>
         </div>
         <div id="stats-divider" style="display:none"></div>
         <div id="stats-analytics-section" style="display:none">
@@ -1195,12 +1199,84 @@ function renderStatsTab(){
 
 function switchStatsSubtab(tab){
   document.getElementById('sstab-issues')?.classList.toggle('active', tab==='issues');
+  document.getElementById('sstab-waves')?.classList.toggle('active', tab==='waves');
   document.getElementById('sstab-analytics')?.classList.toggle('active', tab==='analytics');
   const issuesSec = document.getElementById('stats-issues-section');
+  const wavesSec = document.getElementById('stats-waves-section');
   const analyticsSec = document.getElementById('stats-analytics-section');
   if(issuesSec) issuesSec.style.display = tab==='issues' ? '' : 'none';
+  if(wavesSec) wavesSec.style.display = tab==='waves' ? '' : 'none';
   if(analyticsSec) analyticsSec.style.display = tab==='analytics' ? '' : 'none';
   if(tab==='analytics') renderAnalytics();
+  if(tab==='waves') renderWaveList();
+}
+
+function renderWaveList(){
+  const el = document.getElementById('waves-list-body');
+  if(!el) return;
+
+  // Build unified wave list from sheet + drops
+  const fromDrops = allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w));
+  const fromSheet = WAVES.map(w=>w.label);
+  const allWaveLabels = [...new Set([...fromSheet, ...fromDrops]
+    .filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
+
+  if(!allWaveLabels.length){
+    el.innerHTML='<div style="padding:20px 16px;color:var(--muted);font-size:12px;text-align:center">No waves yet</div>';
+    return;
+  }
+
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const drops = allDrops();
+
+  const rows = allWaveLabels.map(wave=>{
+    const m = wave.match(/^(\d{4})\.(\d{2})\.(\d{2})/);
+    const dateStr = m ? `${months[parseInt(m[2])-1]} ${parseInt(m[3])}` : '?';
+    const desc = wave.replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,'').trim() || wave;
+
+    const wDrops = drops.filter(d=>d.wave===wave && d.result==='drop' && d.timestamp);
+    const totalDrops = drops.filter(d=>d.wave===wave && d.result==='drop').length;
+
+    // Earliest confirmed drop time
+    let firstTime = '';
+    if(wDrops.length){
+      const sorted = wDrops.slice().sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
+      const d = new Date(sorted[0].timestamp);
+      if(!isNaN(d)){
+        const h=d.getHours(), mn=d.getMinutes();
+        const hd=h===0?12:h>12?h-12:h;
+        const ampm=h>=12?'pm':'am';
+        const minStr=mn.toString().padStart(2,'0');
+        firstTime=`${hd}:${minStr}${ampm}`;
+      }
+    }
+
+    // Districts that had drops for this wave (colored)
+    const districtSet = [...new Set(drops.filter(d=>d.wave===wave&&d.result==='drop').map(d=>d.district).filter(Boolean))];
+    const distChips = districtSet.map(d=>{
+      const c=DC[d]||'#7d8590';
+      return `<span style="font-size:9px;padding:1px 4px;border-radius:3px;background:${c}22;color:${c};border:1px solid ${c}44;flex-shrink:0">${d}</span>`;
+    }).join('');
+
+    const isActive = wave===currentWave;
+    const borderLeft = isActive ? 'border-left:3px solid var(--accent);padding-left:9px' : 'border-left:3px solid transparent;padding-left:9px';
+
+    return `<div style="display:grid;grid-template-columns:52px 1fr auto;align-items:start;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border);${borderLeft}" onclick="currentWave='${wave.replace(/'/g,"\\'")}';invalidateDropCache();refresh();switchTab('map')">
+      <div style="flex-shrink:0">
+        <div style="font-size:13px;font-weight:700;color:${isActive?'var(--accent)':'var(--text)'};white-space:nowrap">${dateStr}</div>
+        ${firstTime?`<div style="font-size:10px;color:var(--muted);margin-top:1px">⏱ ${firstTime}</div>`:'<div style="font-size:10px;color:var(--muted2);margin-top:1px">no time</div>'}
+      </div>
+      <div style="min-width:0">
+        <div style="font-size:11px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${desc}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px">${distChips}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        ${totalDrops?`<div style="font-size:12px;font-weight:700;color:var(--text)">${totalDrops}</div><div style="font-size:9px;color:var(--muted)">drops</div>`:'<div style="font-size:10px;color:var(--muted2)">—</div>'}
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = rows;
 }
 
 function updateTabBadges(){
