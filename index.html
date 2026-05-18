@@ -343,7 +343,7 @@ body.desktop #mobile-search-btn{display:none}
 .tab-panel{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
 .tab-panel.active{display:flex}
 #tab-map{flex-direction:column}
-#tab-hunt,#tab-log,#tab-stats{overflow-y:auto;-webkit-overflow-scrolling:touch}
+#tab-hunt,#tab-log,#tab-stats,#tab-bottles{overflow-y:auto;-webkit-overflow-scrolling:touch}
 #tab-bar{height:56px;display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;z-index:600}
 .tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:none;background:none;color:var(--muted);font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;position:relative;padding:6px 0;transition:color 0.15s}
 .tab-btn.active{color:var(--accent)}
@@ -643,6 +643,42 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
       </div>
     </div>
 
+    <div id="tab-bottles" class="tab-panel">
+      <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <span style="font-size:12px;font-weight:700;flex:1">🥃 Bottles</span>
+      </div>
+      <div style="padding:10px 12px 4px;flex-shrink:0">
+        <input type="text" class="bt-search" id="m-bt-search" placeholder="Search name or code..." oninput="filterBottlePane(this.value)">
+      </div>
+      <div style="padding:0 12px 12px">
+        <div class="sb-section" id="m-bt-unknown-section">
+          <div class="bt-pane-title" onclick="toggleBtSection('m-bt-unknown-body')">
+            <span>Unknown in Reports <span class="bt-count-badge" id="m-bt-unknown-count">0</span></span>
+            <span class="bt-chevron" id="m-bt-unknown-body-chev">▼</span>
+          </div>
+          <div class="bt-section-body" id="m-bt-unknown-body">
+            <div id="m-bt-unknown-list"></div>
+          </div>
+        </div>
+        <div class="sb-section" id="m-bt-known-section">
+          <div class="bt-pane-title" onclick="toggleBtSection('m-bt-known-body')">
+            <span>Master List <span class="bt-count-badge" id="m-bt-known-count">0</span></span>
+            <span class="bt-chevron" id="m-bt-known-body-chev">▼</span>
+          </div>
+          <div class="bt-section-body" id="m-bt-known-body">
+            <div class="bt-tier-filter">
+              <button class="bt-tf active" data-tier="all" onclick="setBtTierFilter('all',this)">All</button>
+              <button class="bt-tf" data-tier="S" onclick="setBtTierFilter('S',this)">S</button>
+              <button class="bt-tf" data-tier="A" onclick="setBtTierFilter('A',this)">A</button>
+              <button class="bt-tf" data-tier="B" onclick="setBtTierFilter('B',this)">B</button>
+              <button class="bt-tf" data-tier="C" onclick="setBtTierFilter('C',this)">C</button>
+            </div>
+            <div id="m-bt-known-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- end #tab-content -->
 
   <div id="tab-bar">
@@ -657,6 +693,9 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     </button>
     <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">
       <span class="tab-btn-icon">📊</span><span>Stats <span class="tab-badge" id="stats-tab-badge" style="display:none">!</span></span>
+    </button>
+    <button class="tab-btn" data-tab="bottles" onclick="switchTab('bottles')">
+      <span class="tab-btn-icon">🥃</span><span>Bottles</span>
     </button>
   </div>
 </div>
@@ -1019,6 +1058,7 @@ const ZOOM_FULL = 13;  // >= 13: full pin with tier + glow
 
 let STORES=[], DROPS=[], PATTERNS=[], BOTTLES=[], WAVES=[], currentWave=null;
 let analyticsFilters = {};
+let btPrefix = '';
 let activeDistricts=new Set(["ALL"]);
 let pendingDrops=JSON.parse(localStorage.getItem("pendingDrops")||"[]");
 let currentResult="drop", markers={}, recognition=null;
@@ -1118,6 +1158,7 @@ function switchTab(tab){
   if(tab==='hunt') renderHuntTab();
   if(tab==='log') renderLogTab();
   if(tab==='stats') renderStatsTab();
+  if(tab==='bottles') buildMobileBottles();
 }
 
 function renderHuntTab(){
@@ -1321,15 +1362,16 @@ function parsePattern(r){
 }
 
 function parseBottle(r){
-  // Sheet columns: id, name, brand, tier, codes (comma-separated string), warn
+  // Sheet columns: id, name, brand, tier, codes (comma-separated string), warn, abcNo
   const codes = String(r[4]||"").split(",").map(c=>c.trim()).filter(Boolean);
   return {
-    id:   Number(r[0]),
-    name: String(r[1]||"").trim(),
-    brand:String(r[2]||"").trim(),
-    tier: String(r[3]||"").trim(),
+    id:    Number(r[0]),
+    name:  String(r[1]||"").trim(),
+    brand: String(r[2]||"").trim(),
+    tier:  String(r[3]||"").trim(),
     codes,
-    warn: String(r[5]||"").trim()||undefined
+    warn:  String(r[5]||"").trim()||undefined,
+    abcNo: String(r[6]||"").trim()||undefined
   };
 }
 
@@ -4505,57 +4547,69 @@ function applyLocalBottles(){
 }
 
 function buildSbBottles(){
+  btPrefix = '';
   buildBtUnknownList();
   buildBtKnownList();
 }
 
+function buildMobileBottles(){
+  btPrefix = 'm-';
+  buildBtUnknownList();
+  buildBtKnownList();
+  btPrefix = '';
+}
+
 function buildBtUnknownList(){
-  const c = document.getElementById('bt-unknown-list');
-  const badge = document.getElementById('bt-unknown-count');
+  const p = btPrefix;
+  const c = document.getElementById(p+'bt-unknown-list');
+  const badge = document.getElementById(p+'bt-unknown-count');
   if(!c) return;
   const unknowns = getUnknownBottleTokens();
   const q = btSearchQuery.toLowerCase();
   const filtered = q ? unknowns.filter(t=>t.raw.toLowerCase().includes(q)) : unknowns;
   if(badge) badge.textContent = unknowns.length;
-  const sec = document.getElementById('bt-unknown-section');
+  const sec = document.getElementById(p+'bt-unknown-section');
   if(sec) sec.style.display = filtered.length ? '' : 'none';
   if(!filtered.length){ c.innerHTML=''; return; }
   c.innerHTML = filtered.map((t,i)=>`
-    <div class="bt-row" id="bt-unk-${i}">
+    <div class="bt-row" id="${p}bt-unk-${i}">
       <div class="bt-row-top">
         <span class="bt-token">${t.raw}</span>
         <span class="bt-occurrence">${t.count} drop${t.count!==1?'s':''}</span>
-        <button class="bt-identify-btn" onclick="toggleBtForm('bt-unk-form-${i}')">Identify</button>
+        <button class="bt-identify-btn" onclick="toggleBtForm('${p}bt-unk-form-${i}')">Identify</button>
       </div>
       <div style="font-size:10px;color:var(--muted);margin-top:2px">${[...new Set(t.drops)].slice(0,4).join(', ')}${t.drops.length>4?'…':''}</div>
-      <div class="bt-form" id="bt-unk-form-${i}">
+      <div class="bt-form" id="${p}bt-unk-form-${i}">
         <div class="bt-label" style="color:var(--accent);margin-bottom:6px">Merge to existing bottle:</div>
-        <select class="bt-field" id="bt-unk-merge-${i}" style="margin-bottom:12px">
+        <select class="bt-field" id="${p}bt-unk-merge-${i}" style="margin-bottom:12px">
           <option value="">– create new bottle instead –</option>
           ${BOTTLES.slice().sort((a,b)=>{const o={S:0,A:1,B:2,C:3};return (o[a.tier]??4)-(o[b.tier]??4)||a.name.localeCompare(b.name);}).map(b=>`<option value="${b.id}">[${b.tier}] ${b.name}</option>`).join('')}
         </select>
         <div class="bt-label" style="color:var(--muted2);margin-bottom:6px">— or add as new bottle —</div>
         <div class="bt-label">Full Name</div>
-        <input class="bt-field" id="bt-unk-name-${i}" placeholder="e.g. Eagle Rare 10yr" value="${t.raw}">
+        <input class="bt-field" id="${p}bt-unk-name-${i}" placeholder="e.g. Eagle Rare 10yr" value="${t.raw}">
         <div class="bt-label">Codes / Acronyms (comma-separated)</div>
-        <input class="bt-field" id="bt-unk-codes-${i}" placeholder="e.g. ER, EagleRare" value="${t.raw}">
+        <input class="bt-field" id="${p}bt-unk-codes-${i}" placeholder="e.g. ER, EagleRare" value="${t.raw}">
         <div class="bt-label">Brand / Distillery</div>
-        <input class="bt-field" id="bt-unk-brand-${i}" placeholder="e.g. Buffalo Trace">
+        <input class="bt-field" id="${p}bt-unk-brand-${i}" placeholder="e.g. Buffalo Trace">
+        <div class="bt-label">VA ABC Product # (optional)</div>
+        <input class="bt-field" id="${p}bt-unk-abc-${i}" placeholder="e.g. 00123">
         <div class="bt-label">Tier</div>
-        <div class="bt-tier-row" id="bt-unk-tier-row-${i}">
-          ${['S','A','B','C'].map(tier=>`<button class="bt-tier-opt" onclick="selectBtTier('bt-unk-tier-row-${i}','${tier}')">${tier}</button>`).join('')}
+        <div class="bt-tier-row" id="${p}bt-unk-tier-row-${i}">
+          ${['S','A','B','C'].map(tier=>`<button class="bt-tier-opt" onclick="selectBtTier('${p}bt-unk-tier-row-${i}','${tier}')">${tier}</button>`).join('')}
         </div>
         <div class="bt-form-btns">
-          <button class="bt-cancel-btn" onclick="toggleBtForm('bt-unk-form-${i}')">Cancel</button>
-          <button class="bt-save-btn" onclick="saveBtIdentify(${i},'${t.raw}')">Confirm</button>
+          <button class="bt-cancel-btn" onclick="toggleBtForm('${p}bt-unk-form-${i}')">Cancel</button>
+          <button class="bt-save-btn" onclick="saveBtIdentify(${i},'${t.raw}','${p}')">Confirm</button>
         </div>
       </div>
     </div>`).join('');
 }
 
 function buildBtKnownList(){
-  const c = document.getElementById('bt-known-list');
-  const badge = document.getElementById('bt-known-count');
+  const p = btPrefix;
+  const c = document.getElementById(p+'bt-known-list');
+  const badge = document.getElementById(p+'bt-known-count');
   if(!c) return;
   const q = btSearchQuery.toLowerCase();
   const edits = getBottleEdits();
@@ -4564,7 +4618,8 @@ function buildBtKnownList(){
   if(q) bottles = bottles.filter(b=>
     b.name.toLowerCase().includes(q) ||
     b.brand.toLowerCase().includes(q) ||
-    b.codes.some(c=>c.toLowerCase().includes(q))
+    b.codes.some(c=>c.toLowerCase().includes(q)) ||
+    (b.abcNo||'').includes(q)
   );
   bottles.sort((a,b)=>{
     const order = {S:0,A:1,B:2,C:3};
@@ -4577,31 +4632,34 @@ function buildBtKnownList(){
     const isEdited = edits[b.id];
     const indicator = isLocal ? '<span style="font-size:9px;color:#a855f7;font-weight:700;margin-left:4px">local</span>'
                     : isEdited ? '<span style="font-size:9px;color:var(--accent);font-weight:700;margin-left:4px">edited</span>' : '';
-    return `<div class="bt-row" id="bt-known-${b.id}">
+    return `<div class="bt-row" id="${p}bt-known-${b.id}">
       <div class="bt-row-top">
         <span class="bt-bottle-name">${b.name}${indicator}</span>
         <span style="font-size:10px;font-weight:800;color:${tcfn(b.tier)};flex-shrink:0">${b.tier}</span>
-        <button class="bt-edit-btn" onclick="toggleBtForm('bt-edit-form-${b.id}')">Edit</button>
+        <button class="bt-edit-btn" onclick="toggleBtForm('${p}bt-edit-form-${b.id}')">Edit</button>
       </div>
       <div class="bt-bottle-codes">${b.codes.join(', ')}</div>
       ${b.brand?`<div class="bt-bottle-brand">${b.brand}</div>`:''}
+      ${b.abcNo?`<div style="font-size:10px;color:var(--muted)">VA ABC #${b.abcNo}</div>`:''}
       ${b.warn?`<div style="font-size:10px;color:#f87171;margin-top:1px">⚠️ ${b.warn}</div>`:''}
-      <div class="bt-form" id="bt-edit-form-${b.id}">
+      <div class="bt-form" id="${p}bt-edit-form-${b.id}">
         <div class="bt-label">Full Name</div>
-        <input class="bt-field" id="bt-edit-name-${b.id}" value="${b.name.replace(/"/g,'&quot;')}">
+        <input class="bt-field" id="${p}bt-edit-name-${b.id}" value="${b.name.replace(/"/g,'&quot;')}">
         <div class="bt-label">Codes / Acronyms (comma-separated)</div>
-        <input class="bt-field" id="bt-edit-codes-${b.id}" value="${b.codes.join(', ')}">
+        <input class="bt-field" id="${p}bt-edit-codes-${b.id}" value="${b.codes.join(', ')}">
         <div class="bt-label">Brand / Distillery</div>
-        <input class="bt-field" id="bt-edit-brand-${b.id}" value="${(b.brand||'').replace(/"/g,'&quot;')}">
+        <input class="bt-field" id="${p}bt-edit-brand-${b.id}" value="${(b.brand||'').replace(/"/g,'&quot;')}">
+        <div class="bt-label">VA ABC Product # (optional)</div>
+        <input class="bt-field" id="${p}bt-edit-abc-${b.id}" value="${(b.abcNo||'').replace(/"/g,'&quot;')}" placeholder="e.g. 00123">
         <div class="bt-label">Collision Warning (optional)</div>
-        <input class="bt-field" id="bt-edit-warn-${b.id}" value="${(b.warn||'').replace(/"/g,'&quot;')}" placeholder="e.g. Could be OFitz 1924 or Old Forester 1924">
+        <input class="bt-field" id="${p}bt-edit-warn-${b.id}" value="${(b.warn||'').replace(/"/g,'&quot;')}" placeholder="e.g. Could be OFitz 1924 or Old Forester 1924">
         <div class="bt-label">Tier</div>
-        <div class="bt-tier-row" id="bt-edit-tier-row-${b.id}">
-          ${['S','A','B','C'].map(tier=>`<button class="bt-tier-opt${tier===b.tier?' data-active="'+tier+'"':''}" ${tier===b.tier?`data-active="${tier}"`:''}onclick="selectBtTier('bt-edit-tier-row-${b.id}','${tier}')">${tier}</button>`).join('')}
+        <div class="bt-tier-row" id="${p}bt-edit-tier-row-${b.id}">
+          ${['S','A','B','C'].map(tier=>`<button class="bt-tier-opt${tier===b.tier?' data-active="'+tier+'"':''}" ${tier===b.tier?`data-active="${tier}"`:''}onclick="selectBtTier('${p}bt-edit-tier-row-${b.id}','${tier}')">${tier}</button>`).join('')}
         </div>
         <div class="bt-form-btns">
-          <button class="bt-cancel-btn" onclick="toggleBtForm('bt-edit-form-${b.id}')">Cancel</button>
-          <button class="bt-save-btn" onclick="saveBtEdit('${b.id}')">Save</button>
+          <button class="bt-cancel-btn" onclick="toggleBtForm('${p}bt-edit-form-${b.id}')">Cancel</button>
+          <button class="bt-save-btn" onclick="saveBtEdit('${b.id}','${p}')">Save</button>
         </div>
       </div>
     </div>`;
@@ -4637,63 +4695,63 @@ function getSelectedBtTier(rowId){
   return active ? active.dataset.active : 'C';
 }
 
-function saveBtIdentify(idx, rawToken){
-  const mergeId = document.getElementById(`bt-unk-merge-${idx}`)?.value;
+function saveBtIdentify(idx, rawToken, p=''){
+  const mergeId = document.getElementById(`${p}bt-unk-merge-${idx}`)?.value;
   if(mergeId){
     const b = BOTTLES.find(b=>String(b.id)===String(mergeId));
     if(!b){ toast('Bottle not found'); return; }
     const token = rawToken.trim();
     if(!b.codes.includes(token)) b.codes.push(token);
     const edits = getBottleEdits();
-    edits[b.id] = {name:b.name, brand:b.brand, tier:b.tier, codes:b.codes, warn:b.warn||''};
+    edits[b.id] = {name:b.name, brand:b.brand, tier:b.tier, codes:b.codes, warn:b.warn||'', abcNo:b.abcNo||''};
     localStorage.setItem('bottleEdits', JSON.stringify(edits));
     rebuildBottleLookup();
-    scriptPost('updateBottle', {id:b.id, name:b.name, brand:b.brand, tier:b.tier, codes:b.codes.join(','), warn:b.warn||''}).catch(()=>{});
+    scriptPost('updateBottle', {id:b.id, name:b.name, brand:b.brand, tier:b.tier, codes:b.codes.join(','), warn:b.warn||'', abcNo:b.abcNo||''}).catch(()=>{});
     toast(`✓ Merged "${token}" → ${b.name}`);
-    buildSbBottles();
+    buildSbBottles(); buildMobileBottles();
     return;
   }
-  saveBtNewBottle(idx, rawToken);
+  saveBtNewBottle(idx, rawToken, p);
 }
 
-function saveBtNewBottle(idx, rawToken){
-  const name = document.getElementById(`bt-unk-name-${idx}`)?.value?.trim();
-  const codesStr = document.getElementById(`bt-unk-codes-${idx}`)?.value?.trim();
-  const brand = document.getElementById(`bt-unk-brand-${idx}`)?.value?.trim()||'';
-  const tier = getSelectedBtTier(`bt-unk-tier-row-${idx}`);
+function saveBtNewBottle(idx, rawToken, p=''){
+  const name = document.getElementById(`${p}bt-unk-name-${idx}`)?.value?.trim();
+  const codesStr = document.getElementById(`${p}bt-unk-codes-${idx}`)?.value?.trim();
+  const brand = document.getElementById(`${p}bt-unk-brand-${idx}`)?.value?.trim()||'';
+  const abcNo = document.getElementById(`${p}bt-unk-abc-${idx}`)?.value?.trim()||'';
+  const tier = getSelectedBtTier(`${p}bt-unk-tier-row-${idx}`);
   if(!name){ toast('Enter a name'); return; }
   const codes = codesStr.split(',').map(c=>c.trim()).filter(Boolean);
   const id = 'local_'+Date.now();
-  const bottle = {id, name, brand, tier, codes, warn:undefined};
+  const bottle = {id, name, brand, tier, codes, abcNo:abcNo||undefined, warn:undefined};
   BOTTLES.push(bottle);
   const local = getLocalBottles();
   local.push(bottle);
   localStorage.setItem('localBottles', JSON.stringify(local));
   rebuildBottleLookup();
-  // Try to post to sheet (needs Apps Script addBottle action)
-  scriptPost('addBottle', {name, brand, tier, codes: codes.join(',')}).catch(()=>{});
+  scriptPost('addBottle', {name, brand, tier, codes: codes.join(','), abcNo}).catch(()=>{});
   toast('✓ '+name+' added');
-  buildSbBottles();
+  buildSbBottles(); buildMobileBottles();
 }
 
-function saveBtEdit(bottleId){
-  const name = document.getElementById(`bt-edit-name-${bottleId}`)?.value?.trim();
-  const codesStr = document.getElementById(`bt-edit-codes-${bottleId}`)?.value?.trim();
-  const brand = document.getElementById(`bt-edit-brand-${bottleId}`)?.value?.trim()||'';
-  const warn = document.getElementById(`bt-edit-warn-${bottleId}`)?.value?.trim()||undefined;
-  const tier = getSelectedBtTier(`bt-edit-tier-row-${bottleId}`);
+function saveBtEdit(bottleId, p=''){
+  const name = document.getElementById(`${p}bt-edit-name-${bottleId}`)?.value?.trim();
+  const codesStr = document.getElementById(`${p}bt-edit-codes-${bottleId}`)?.value?.trim();
+  const brand = document.getElementById(`${p}bt-edit-brand-${bottleId}`)?.value?.trim()||'';
+  const abcNo = document.getElementById(`${p}bt-edit-abc-${bottleId}`)?.value?.trim()||'';
+  const warn = document.getElementById(`${p}bt-edit-warn-${bottleId}`)?.value?.trim()||undefined;
+  const tier = getSelectedBtTier(`${p}bt-edit-tier-row-${bottleId}`);
   if(!name){ toast('Enter a name'); return; }
   const codes = codesStr.split(',').map(c=>c.trim()).filter(Boolean);
   const b = BOTTLES.find(b=>String(b.id)===String(bottleId));
-  if(b){ Object.assign(b, {name, brand, tier, codes, warn}); }
+  if(b){ Object.assign(b, {name, brand, tier, codes, abcNo:abcNo||undefined, warn}); }
   const edits = getBottleEdits();
-  edits[bottleId] = {name, brand, tier, codes, warn};
+  edits[bottleId] = {name, brand, tier, codes, abcNo, warn};
   localStorage.setItem('bottleEdits', JSON.stringify(edits));
   rebuildBottleLookup();
-  // Try to post to sheet (needs Apps Script updateBottle action)
-  scriptPost('updateBottle', {id: bottleId, name, brand, tier, codes: codes.join(','), warn:warn||''}).catch(()=>{});
+  scriptPost('updateBottle', {id: bottleId, name, brand, tier, codes: codes.join(','), warn:warn||'', abcNo}).catch(()=>{});
   toast('✓ Saved');
-  buildSbBottles();
+  buildSbBottles(); buildMobileBottles();
 }
 
 function setBtTierFilter(tier, btn){
@@ -4706,6 +4764,7 @@ function setBtTierFilter(tier, btn){
 function filterBottlePane(q){
   btSearchQuery = q;
   buildSbBottles();
+  buildMobileBottles();
 }
 
 // DT-1 — DESKTOP TOP NAV TAB SWITCHING
