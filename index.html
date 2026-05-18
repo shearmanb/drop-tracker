@@ -2008,7 +2008,7 @@ function buildDistrictBar(){
   });
 }
 
-function refresh(){buildDistrictBar();renderMarkers();updateStats();}
+function refresh(){buildDistrictBar();renderMarkers();updateStats();if(currentTab==='hunt')openHunt();}
 
 async function _syncFromSheetCore(){
   const btn=document.getElementById("sync-btn");btn.classList.add("syncing");
@@ -2625,6 +2625,11 @@ let huntMode = 'state'; // 'state' or 'district'
 
 function setHuntMode(mode){
   huntMode = mode;
+  // When switching to district mode with no specific district selected, default to D14
+  if(mode === 'district' && activeDistricts.has('ALL')){
+    activeDistricts = new Set(['D14']);
+    buildDistrictBar();
+  }
   const stateBtn = document.getElementById('hunt-mode-state');
   const distBtn = document.getElementById('hunt-mode-district');
   if(stateBtn && distBtn){
@@ -2650,8 +2655,7 @@ function openHunt(){
       const distMi=calcDist(s.lat, s.lng);
       const driveTime=calcTime(distMi);
       const ss=status==="unknown"?0:status==="drop"?1:2;
-      const ts=["S","A","B","C"].indexOf(s.tier);
-      return {...s,status,drop,distMi,driveTime,sortKey:ss*1000+ts*10+distMi*0.1};
+      return {...s,status,drop,distMi,driveTime,sortKey:ss*10000+distMi};
     }).sort((a,b)=>a.sortKey-b.sortKey);
   document.getElementById("hunt-list").innerHTML=stores.map(s=>{
     const color=distColor(s.district);
