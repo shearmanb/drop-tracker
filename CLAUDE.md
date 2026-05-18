@@ -33,6 +33,7 @@ A PWA for tracking Virginia ABC bourbon drops in Northern Virginia. Single HTML 
 4. **Desktop layout** = `body.desktop` CSS class. Mobile is default. Never assume desktop.
 5. **When updating Apps Script**, always redeploy as "New Version" — redeploying same version does nothing.
 6. **Test in Chrome with F12 console open** before declaring done. Check for JS errors on load.
+7. **Hunt mode and all distance-related features are mobile-only** — distance mode toggle, drive time sort, live GPS vs home distance, and the Hunt tab itself must NEVER be added to desktop. These are intentional design decisions, not gaps to fill.
 
 ---
 
