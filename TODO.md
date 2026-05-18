@@ -1,6 +1,126 @@
 # Bourbon Drop Tracker — Master TODO
 
-Last updated: May 17, 2026
+Last updated: May 18, 2026
+App live at: https://shearmanb.github.io/drop-tracker
+Current version: v0.4
+Season status: OFF-SEASON — no active waves. Resume when next cycle begins.
+
+> **Layout key for all sections below:**
+> - 📱 Mobile only
+> - 🖥️ Desktop only
+> - 🔁 Both modes
+> - ❓ Unknown / needs clarification before scoping
+
+---
+
+## 🔴 HIGH PRIORITY — Fix Next
+
+### 🔁 Both
+- [ ] **BOTTLE-RESYNC** — Any locally-added (`local_*`) or locally-edited bottles created before May 18 Apps Script fix were never synced to sheet. Re-save them by opening each `local`/`edited` bottle in the Bottles tab edit form and hitting Save.
+- [ ] Test bottle picker in both entry panel and mobile modal
+- [ ] Test issues queue — verify collision resolver, review edit, bottles save all write to sheet
+- [ ] Test Quick Drop ⚡ flow end to end
+- [ ] Verify v0.4 loads cleanly (no console errors)
+- [ ] F11 — Add bottle status (confirmed/absent/rumored) dropdown to picker chips — UI added, needs BottleDrops sheet tab + Apps Script actions to actually persist
+
+### 🖥️ Desktop
+- [ ] **VABC-1 — Test Apps Script VABC fetch**: run `testVABCFetch()` in Apps Script editor to confirm whether `UrlFetchApp` can reach abc.virginia.gov (returns 200 vs 403). Result determines whether VABC metadata enrichment can be automated or is links-only. See FEATURES.md VABC section.
+
+### ❓ Unknown / Unsure
+- [ ] **SHEET-FIX** — Fix Blood Oath / Bomberger's collision in Bottles sheet: row 42 currently has both under "Bomberger's Declaration" with code `BO12`. Split into two rows — Bomberger's (remove BO12) and Blood Oath (BO12, tier A, brand Lux Row). Add after row 69.
+
+---
+
+## 🟡 DATA CLEANUP (do when you have time)
+
+### 🔁 Both (backend / sheet data)
+- [ ] Normalize ReportedTS timestamps — inconsistent formats across 778 rows
+- [ ] Rename old wave labels to new `YYYY.MM.DD-DXX-bottles` format
+- [ ] Audit drops with no wave label (in Needs Review / Issues queue)
+- [ ] Resolve all OF1924 collisions via Issues queue
+- [ ] Audit remaining bottle codes in Bottles sheet for other collisions or wrong assignments
+
+---
+
+## 🟡 FEATURES TO BUILD
+
+### 📱 Mobile — Hunting & Idle Data Entry (priority for active season)
+- [ ] **IDLE-1 — Fill-in UX rework**: the existing fill-in queue prompts one drop at a time. Audit skip logic, add "skip for now" vs "skip forever", make bottle picker faster (recent bottles first). Goal: can fill in 10 drops in under 2 minutes while idle.
+- [ ] **IDLE-2 — Quick drop → bottle entry shortcut**: after a ⚡ Quick Drop, offer a fast inline bottle entry (just a code field, no full modal). Tapping "Add bottles" expands a small row inline on the confirmation toast or in the log queue. No navigating away.
+- [ ] **IDLE-3 — Wave switching on the fly**: visible current wave indicator on the map screen (not just the top selector). One-tap to switch wave without opening the toolbar. Critical when a new district wave drops mid-hunt.
+- [ ] **IDLE-4 — Offline resilience review**: verify pending queue survives browser refresh, airplane mode, and app backgrounding on iPhone. Add visible "X pending" badge on map screen when pendingDrops > 0.
+- [ ] Hunt mode improvements — auto-refresh hunt list when new drops come in; "heading there" button starts nav + marks in-progress
+- [ ] Push notifications — reminder to check app during active drop windows based on district patterns
+
+### 🖥️ Desktop
+- [ ] **DT-1** — Desktop top nav bar: sidebar has too much content requiring scroll. Add a horizontal tab bar across the top of the desktop layout (Stores, Hunt, Log, Issues, Waves, etc.) so primary actions are always visible without scrolling.
+- [ ] **DT-2** — Desktop → mobile toggle: no visible button to switch back to mobile. Add a layout toggle (visible in desktop mode) that writes `forceLayout=mobile` and reloads. Mirrors existing mobile → desktop toggle for parity.
+- [ ] **DT-3** — Desktop store panel: district label prominence — make district label (`D14`, `D17`, etc.) the visual headline at the top of the right panel, large and colored per district. Bump overall panel font size up slightly.
+- [ ] **DT-4** — Desktop store panel: wave-scoped action buttons — add the 3-button row from mobile (Got one ✓ / Cleaned out / No drop ✗) to the desktop store detail panel. Clearly label which wave they apply to (e.g., "Log for: 2026.05.11 - MM BO") so there is no ambiguity.
+- [ ] **F7** — Desktop data entry polish: edit existing drop entries, bulk wave label assignment, delete records. All syncs to Google Sheet.
+- [ ] Add/edit stores from within app (desktop store management screen)
+- [ ] F16 — Export/backup: one-click CSV export from app
+
+### 🔁 Both
+- [ ] **VABC-2** — VABC metadata enrichment: once VABC-1 test confirms feasibility, user enters `vacbId` for each bottle in Bottles sheet, then runs one-time Apps Script to auto-populate `vacbName`, `proof`, `price`, `size` from VABC product pages. App then links bottle chips directly to VABC product pages.
+- [ ] **BTL-1** — Bottle browser / search UI: dedicated view to browse master bottle list, search by name/shortcode/tier, see which stores reported a bottle in current or past waves. Accessible from both mobile and desktop.
+- [ ] Waves management screen — list waves, set status (active/complete), add notes, expected date
+- [ ] Wave creation dialog — guide toward `YYYY.MM.DD-DXX-bottles` format with district selector
+- [ ] Store notes — add/edit per-store freeform notes, persisted to Stores sheet `notes` column
+- [ ] Polling sync — auto-detect sheet changes every 5 mins via lastModified timestamp
+- [ ] Consolidate review queues — F4 Needs Review, F9 Quick Drop Queue, F10 Fill-In, Issues Queue should feel unified
+- [ ] F3 — Deep district pattern analysis: time-of-day heatmaps, day-of-week frequency, predictive next-wave modeling
+- [ ] F15 — Cycle coverage alerts: "D14 is 80% done — 3 stores left"
+- [ ] F17 — Two-way Google Sheets sync
+- [ ] B1 — OF1924 collision auto-flag (now handled by Issues Queue, but needs sheet write-back)
+- [ ] Store leaderboard view
+- [ ] Cycle timeline view
+- [ ] Store visit log (did I go, was it worth it)
+- [ ] "Due for a drop" alert for overdue S-tier stores
+
+### ❓ Unknown / Unsure
+- [ ] Bottle tracking feature — spec TBD, needs clarification on exact scope
+- [ ] Bulk import from Excel/CSV — unclear if mobile or desktop, or both
+
+---
+
+## ✅ COMPLETED
+
+### May 18, 2026 session
+- [x] District colors: D17 → purple, D20 → orange (were too similar to D18 green and each other)
+- [x] Wave selector (mobile + desktop): now sources from Waves sheet so newly created waves appear even with no drops yet
+- [x] Nearest stores: qRank rounded to 2 decimals, district label shown
+- [x] Store popup (mobile + desktop): shows current wave name
+- [x] Bottles tab: accordion collapse/expand for Unknown and Master List sections
+- [x] Unknown bottles: Identify form has merge-to-existing dropdown; token added as code to existing bottle, synced to sheet
+- [x] District analytics: per-district time range (last month/3M/6M/year/all) and weekday/weekend filters
+- [x] Mobile Stats tab: Issues and Analytics are now separate sub-tabs
+- [x] Mobile Bottles tab: new 🥃 tab with full functionality (unknown/identify/merge, master list, edit, tier filter)
+- [x] VA ABC Product # field on all bottle forms (desktop + mobile); persisted to sheet column G; searchable
+- [x] Apps Script fixed: addBottle and updateBottle had broken SHEET_ID + makeJson bugs; now correct and include abcNo field
+- [x] Apps Script: getWaves action confirmed working; addBottle/updateBottle added to writeActions array
+
+### May 17, 2026
+- [x] Map tile → CartoDB Voyager (better road/label visibility; replaces Dark Matter)
+- [x] Map wrapper inset border frame (mobile + desktop)
+
+### Earlier
+- [x] F5 — Mobile store spotlight
+- [x] Mobile search — zoom + bounce pin
+- [x] Log a drop — voice input, Discord paste parser, manual entry
+- [x] Hunt mode — sorted by tier + distance + estimated drive time
+- [x] Hunt mode State/District toggle
+- [x] Distance toggle — 🏠 home (#267) vs 📍 live GPS
+- [x] District filter chips (mobile)
+- [x] **DT-5** — Desktop store past drops bottle chips
+- [x] F12 — Desktop polish (v0.4)
+- [x] Desktop layout — left sidebar, center map, right sliding detail panel
+- [x] Desktop entry panel — Discord paste parser
+- [x] Desktop search
+- [x] Issues badge — desktop sidebar
+- [x] Sidebar with pattern history
+- [x] **BTL-AUDIT/MIGRATE** — Bottles migrated from hardcoded array to Google Sheets
+- [x] F4 — Needs Review Queue
 App live at: https://shearmanb.github.io/drop-tracker
 Current version: v0.4
 Season status: OFF-SEASON — no active waves. Resume when next cycle begins.
