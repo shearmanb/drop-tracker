@@ -971,11 +971,11 @@ setInterval(updateSyncBadge, 30000);
 
 // District colors — updated per request
 const DC = {
-  D14:"#f59e0b",  // amber — home district, highest priority
-  D17:"#2563eb",  // cobalt blue
-  D18:"#10b981",  // emerald green
+  D14:"#f59e0b",  // amber   — home district
+  D17:"#a855f7",  // purple
+  D18:"#22c55e",  // bright green
   D07:"#ef4444",  // red
-  D20:"#06b6d4",  // burnt sienna/brown
+  D20:"#f97316",  // orange
   D16:"#64748b",  // slate
   D12:"#475569"   // dark slate
 };
@@ -988,7 +988,7 @@ const ZOOM_DOT = 10;   // <= 10: dots only
 const ZOOM_MID = 12;   // 11-12: number + tier
 const ZOOM_FULL = 13;  // >= 13: full pin with tier + glow
 
-let STORES=[], DROPS=[], PATTERNS=[], BOTTLES=[], currentWave=null;
+let STORES=[], DROPS=[], PATTERNS=[], BOTTLES=[], WAVES=[], currentWave=null;
 let activeDistricts=new Set(["ALL"]);
 let pendingDrops=JSON.parse(localStorage.getItem("pendingDrops")||"[]");
 let currentResult="drop", markers={}, recognition=null;
@@ -1308,11 +1308,12 @@ async function loadFromSheet(){
   try{
     setLoad("Loading data...",20);
     // ── PARALLEL FETCH — all four at once ──
-    const [sr, dr, pr, br] = await Promise.all([
+    const [sr, dr, pr, br, wr] = await Promise.all([
       fetch(SCRIPT_URL+"?action=getStores"),
       fetch(SCRIPT_URL+"?action=getDrops"),
       fetch(SCRIPT_URL+"?action=getPatterns").catch(()=>null),
-      fetch(SCRIPT_URL+"?action=getBottles").catch(()=>null)
+      fetch(SCRIPT_URL+"?action=getBottles").catch(()=>null),
+      fetch(SCRIPT_URL+"?action=getWaves").catch(()=>null)
     ]);
     setLoad("Parsing...",65);
     const [srows, drows] = await Promise.all([sr.json(), dr.json()]);
@@ -1333,6 +1334,13 @@ async function loadFromSheet(){
         const loaded = brows.slice(1).map(parseBottle).filter(b=>b.id&&b.name);
         if(loaded.length) BOTTLES = loaded;
       }catch(e){ console.warn("Bottles parse failed",e); }
+    }
+
+    if(wr){
+      try{
+        const wrows = await wr.json();
+        WAVES = wrows.slice(1).map(r=>({label:String(r[0]||'').trim(),created:String(r[1]||'')})).filter(w=>w.label&&/^\d{4}/.test(w.label));
+      }catch(e){ console.warn("Waves parse failed",e); }
     }
 
     // Auto-detect current wave if not set or stale
@@ -1737,6 +1745,7 @@ function _buildPopupCore(store){
     <div class="scard-name">#${store.id} · ${store.label} <span style="font-size:10px;font-weight:600;color:${color};letter-spacing:0.5px">${store.district}</span></div>
     <div class="scard-addr">${store.address}</div>
     ${badges}
+    <div style="font-size:10px;color:var(--muted);margin:5px 0 2px">Wave: <span style="color:var(--accent);font-weight:700">${currentWave||'–'}</span></div>
     <div class="scard-tabs">
       <div class="scard-tab active" id="stab-a-${uid}" onclick="switchSTab(${uid},'a')">Summary</div>
       <div class="scard-tab" id="stab-b-${uid}" onclick="switchSTab(${uid},'b')">Order</div>
@@ -1789,13 +1798,18 @@ function updateStats(){
 }
 
 function buildWaveSelect(){
-  const waves=[...new Set(allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
+  // Merge waves from sheet + waves seen in drops + currentWave (if newly created)
+  const fromDrops = allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w));
+  const fromSheet = WAVES.map(w=>w.label);
+  const allWaveLabels = [...new Set([
+    ...(currentWave ? [currentWave] : []),
+    ...fromSheet,
+    ...fromDrops
+  ].filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
   const sel=document.getElementById("wave-select");
   sel.innerHTML="";
-  // Include currentWave even if not in drops yet (newly created)
-  const allWaves = currentWave && !waves.includes(currentWave) ? [currentWave,...waves] : waves;
-  allWaves.forEach(w=>{const o=document.createElement("option");o.value=w;o.textContent=w;if(w===currentWave)o.selected=true;sel.appendChild(o);});
-  if(!currentWave && waves.length){ currentWave=waves[0]; sel.value=waves[0]; }
+  allWaveLabels.forEach(w=>{const o=document.createElement("option");o.value=w;o.textContent=w;if(w===currentWave)o.selected=true;sel.appendChild(o);});
+  if(!currentWave && allWaveLabels.length){ currentWave=allWaveLabels[0]; sel.value=allWaveLabels[0]; }
   else if(currentWave){ sel.value=currentWave; }
   sel.onchange=()=>{currentWave=sel.value;invalidateDropCache();refresh();};
 }
@@ -3290,8 +3304,10 @@ function buildSbNearestStores(){
           <span class="sb-sr-name">${s.label}</span>
         </div>
         <div class="sb-sr-meta">
+          <span style="color:${color};font-weight:700">${s.district}</span>
+          <span style="color:var(--muted2)"> · </span>
           <span style="color:${tierColor};font-weight:700">${s.tier}</span>
-          <span style="color:var(--muted2)"> · qRank ${s.qRank||'?'} · </span>${lastDropStr}
+          <span style="color:var(--muted2)"> · qRank ${s.qRank ? Number(s.qRank).toFixed(2) : '?'} · </span>${lastDropStr}
         </div>
       </div>
       <div class="sb-sr-right">
@@ -3513,6 +3529,7 @@ function openDetailPanel(storeId){
     <div class="dp-name">#${store.id} · ${store.label}</div>
     <div class="dp-addr">${store.address}</div>
     ${badges}
+    <div style="font-size:10px;color:var(--muted);margin:5px 0 2px">Wave: <span style="color:var(--accent);font-weight:700">${currentWave||'–'}</span></div>
     <div class="dp-stats">
       <div class="dp-stat"><div class="dp-stat-label">qRank</div><div class="dp-stat-val" style="color:${color}">${qRank10}/10</div></div>
       <div class="dp-stat"><div class="dp-stat-label">Sales Rank</div><div class="dp-stat-val">${store.sRankLabel}</div></div>
@@ -4625,7 +4642,13 @@ function buildDesktopHeader(){
 function populateSbWaveSelect(){
   const sel = document.getElementById('sb-wave-select');
   if(!sel) return;
-  const waves = [...new Set([currentWave,...allDrops().map(d=>d.wave)].filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
+  const fromDrops = allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w));
+  const fromSheet = WAVES.map(w=>w.label);
+  const waves = [...new Set([
+    ...(currentWave ? [currentWave] : []),
+    ...fromSheet,
+    ...fromDrops
+  ].filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
   sel.innerHTML = '';
   waves.forEach(w=>{
     const o=document.createElement('option');o.value=w;o.textContent=w;
