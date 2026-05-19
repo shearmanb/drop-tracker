@@ -3436,32 +3436,45 @@ function _openDistrictPanelCore(district){
 
   let histHTML='';
   if(patterns.length){
+    const allPats = getDistrictPatterns(district, 50);
+    const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const tableRows = allPats.map((p,i)=>{
+      const m = p.wave?p.wave.match(/^(\d{4})\.(\d{2})\.(\d{2})/):null;
+      const dateStr = m ? months[parseInt(m[2])-1]+' '+parseInt(m[3])+', \''+m[1].slice(2) : (p.start?new Date(p.start).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'');
+      const waveLabel = p.wave?p.wave.replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,'').substring(0,20):'';
+      const details = p.details?(p.details.length>40?p.details.substring(0,40)+'…':p.details):'';
+      const bg = i%2===0?'transparent':'rgba(255,255,255,0.02)';
+      return `<tr style="background:${bg}">
+        <td style="padding:5px 6px;vertical-align:top">
+          <div style="font-weight:600;white-space:nowrap">${dateStr}</div>
+          ${waveLabel?`<div style="font-size:9px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;max-width:80px;white-space:nowrap" title="${p.wave||''}">${waveLabel}</div>`:''}
+        </td>
+        <td style="padding:5px 6px;vertical-align:top">
+          <span style="color:${color};font-weight:700">${formatModeShort(p.mode)}</span>
+        </td>
+        <td style="padding:5px 6px;vertical-align:top;color:var(--muted2)" ${p.details&&p.details.length>40?`title="${p.details.replace(/"/g,'&quot;')}"`:''}>
+          ${details||''}
+        </td>
+        <td style="padding:5px 6px;vertical-align:top">
+          ${p.special?`<span style="color:var(--accent);white-space:nowrap">⚑ ${p.special}</span>`:''}
+        </td>
+        <td style="padding:5px 6px;vertical-align:top;font-style:italic;color:var(--muted)">
+          ${p.notes||''}
+        </td>
+      </tr>`;
+    }).join('');
+
     histHTML=`<div style="border-top:1px solid var(--border);padding-top:12px">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px">Pattern History</div>`;
-    patterns.forEach(p=>{
-      const dateStr=p.start?new Date(p.start).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'';
-      const waveShort=p.wave?p.wave.replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,'').substring(0,20):'–';
-      histHTML+=`<div style="padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="toggleWaveDropList(this,'${district}','${(p.wave||'').replace(/'/g,"\\'")}')">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-          <div style="flex:1;min-width:0">
-            <div style="font-size:12px;font-weight:700;color:${color}">${formatModeShort(p.mode)}</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${waveShort} <span style="color:${color};font-size:9px">▾ stores</span></div>
-            ${p.details?`<div style="font-size:10px;color:var(--muted2);margin-top:2px;line-height:1.4">${p.details}</div>`:''}
-          </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div style="font-size:11px;font-weight:600">${dateStr}</div>
-            ${p.special?`<div style="font-size:9px;color:var(--accent);margin-top:2px">⚑ ${p.special}</div>`:''}
-          </div>
-        </div>
-        ${p.clusterA||p.clusterB?`<div style="display:flex;gap:12px;margin-top:5px">
-          ${p.clusterA?`<div style="font-size:10px;color:var(--muted)">A: <span style="color:var(--text)">${new Date(p.clusterA).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span></div>`:''}
-          <div style="font-size:10px;color:var(--muted)">B: <span style="color:var(--text)">${p.clusterB&&p.clusterB!=='-'&&!isNaN(new Date(p.clusterB))?new Date(p.clusterB).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'None'}</span></div>
-        </div>`:''}
-        ${p.notes?`<div style="font-size:10px;color:var(--muted2);margin-top:3px;font-style:italic">${p.notes}</div>`:''}
-        <div class="wave-drop-list" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"></div>
-      </div>`;
-    });
-    histHTML+=`</div>`;
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px">Pattern History</div>
+      <div class="dp-pattern-scroll">
+        <table class="dp-pattern-table">
+          <thead><tr>
+            <th>Wave</th><th>Mode</th><th>Details</th><th>Special</th><th>Notes</th>
+          </tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+    </div>`;
   } else {
     histHTML=`<div style="font-size:12px;color:var(--muted);padding:16px 0;text-align:center">No pattern data yet for ${district}</div>`;
   }
@@ -3665,28 +3678,14 @@ function _buildSbDistrictsCore(){
       ${patternRows}
     `;
 
-    // Click left side = filter map, click pattern area = open detail panel
+    // Any click: toggle district filter AND open district panel
     div.onclick=(e)=>{
-      // If clicking the pattern rows, open detail panel
-      if(e.target.closest('[data-pattern]')||patterns.length&&e.offsetY>30){
-        openDistrictPanel(d);
-        return;
-      }
       activeDistricts.delete('ALL');
       activeDistricts.has(d)?activeDistricts.delete(d):activeDistricts.add(d);
       if(!activeDistricts.size) activeDistricts.add('ALL');
       buildSbDistricts(); renderDesktopMarkers(); updateDesktopStats();
+      openDistrictPanel(d);
     };
-
-    // Double-click always opens pattern panel
-    div.ondblclick=(e)=>{ e.preventDefault(); openDistrictPanel(d); };
-
-    // Add a small "patterns ↗" link
-    const patLink=document.createElement('div');
-    patLink.style.cssText=`font-size:9px;color:${color};opacity:0.6;text-align:right;margin-top:3px;cursor:pointer;padding-top:2px`;
-    patLink.textContent='patterns ↗';
-    patLink.onclick=(e)=>{ e.stopPropagation(); openDistrictPanel(d); };
-    div.appendChild(patLink);
 
     c.appendChild(div);
   });
@@ -4965,6 +4964,246 @@ function filterBottlePane(q){
   btSearchQuery = q;
   buildSbBottles();
   buildMobileBottles();
+}
+
+// ═══════════════════════════════════════════
+// DESKTOP BOTTLE PANEL
+// ═══════════════════════════════════════════
+function openBottlePanel(bottleId){
+  if(!isDesktop) return;
+  const b = BOTTLES.find(x=>String(x.id)===String(bottleId));
+  if(!b) return;
+  const tc = bottleTierColors(b.tier);
+  const drops = allDrops().filter(d=>{
+    if(!d.bottles) return false;
+    const keys = b.codes.map(c=>c.toLowerCase().replace(/\s+/g,''));
+    const text = d.bottles.toLowerCase().replace(/\s+/g,'');
+    return keys.some(k=>text.includes(k));
+  }).sort((a,z)=>(z.timestamp||'').localeCompare(a.timestamp||''));
+
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function fmtDate(ts){
+    if(!ts) return '';
+    const d=new Date(ts);
+    if(isNaN(d)) return '';
+    return months[d.getMonth()]+' '+d.getDate()+', '+String(d.getFullYear()).slice(2);
+  }
+  function waveShort(wave){
+    if(!wave) return '';
+    return wave.replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,'').substring(0,24)||wave.substring(0,24);
+  }
+
+  let dropsHTML = '';
+  if(!drops.length){
+    dropsHTML = '<div style="padding:16px 0;text-align:center;color:var(--muted);font-size:12px">No drops found mentioning this bottle</div>';
+  } else {
+    dropsHTML = drops.map(d=>{
+      const store = STORES.find(s=>s.id==d.storeId);
+      const dc = distColor(d.district||store?.district||'');
+      const dateStr = fmtDate(d.timestamp);
+      return `<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <div style="width:8px;height:8px;border-radius:50%;background:${dc};flex-shrink:0;margin-top:3px"></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap">
+            <span style="font-weight:800;color:${dc}">#${d.storeId}</span>
+            <span style="color:var(--muted)">${store?.label||''}</span>
+            <span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:${dc}22;color:${dc}">${d.district||store?.district||''}</span>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${waveShort(d.wave)}</div>
+          ${dateStr?`<div style="font-size:10px;color:var(--muted2)">${dateStr}${d.reporter?' · '+d.reporter:''}</div>`:''}
+        </div>
+        ${d.discordLink?`<a href="${d.discordLink}" target="_blank" style="font-size:11px;color:#60a5fa;text-decoration:none;flex-shrink:0">↗</a>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('detail-panel-content').innerHTML = `
+    <button id="detail-panel-close" onclick="closeDetailPanel()">✕</button>
+    <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <span style="font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;background:${tc.bg};color:${tc.color};border:1px solid ${tc.border}">${b.tier}</span>
+      <span style="font-size:16px;font-weight:800">${b.name}</span>
+    </div>
+    ${b.warn?`<div style="font-size:11px;color:#f87171;margin-bottom:8px">⚠️ ${b.warn}</div>`:''}
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${b.brand||''}</div>
+    <div style="font-size:11px;color:var(--accent);font-family:monospace;margin-bottom:12px">${b.codes.join(', ')}</div>
+    <div style="border-top:1px solid var(--border);padding-top:12px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px">Appearances in Drops <span style="font-weight:400;color:var(--muted2)">(${drops.length})</span></div>
+      ${dropsHTML}
+    </div>
+  `;
+  document.getElementById('detail-panel').classList.add('open');
+  setTimeout(()=>desktopMap&&desktopMap.invalidateSize(),260);
+}
+
+// ═══════════════════════════════════════════
+// DESKTOP WAVE HISTORY
+// ═══════════════════════════════════════════
+function buildSbWaveHistory(){
+  const el = document.getElementById('sb-wave-history');
+  if(!el) return;
+
+  const fromDrops = allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w));
+  const fromSheet = WAVES.map(w=>w.label);
+  const allWaveLabels = [...new Set([...fromSheet,...fromDrops].filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
+
+  if(!allWaveLabels.length){
+    el.innerHTML='<div style="padding:12px 0;color:var(--muted);font-size:11px;text-align:center">No waves yet</div>';
+    return;
+  }
+
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const drops = allDrops();
+
+  el.innerHTML = allWaveLabels.map(wave=>{
+    const m = wave.match(/^(\d{4})\.(\d{2})\.(\d{2})/);
+    const dateStr = m ? months[parseInt(m[2])-1]+' '+parseInt(m[3])+', \''+m[1].slice(2) : '?';
+    const desc = wave.replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,'').trim()||wave.substring(0,20);
+    const wDrops = drops.filter(d=>d.wave===wave&&d.result==='drop');
+    const wTotal = drops.filter(d=>d.wave===wave).length;
+    const isActive = wave===currentWave;
+
+    // Bottle chips from drops in this wave
+    const allBottleTokens = [];
+    wDrops.forEach(d=>{ if(d.bottles) d.bottles.split(/,|\s+/).map(t=>t.trim()).filter(Boolean).forEach(t=>allBottleTokens.push(t)); });
+    const uniqueCodes = [...new Set(allBottleTokens)];
+    const capN = 8;
+    let bottleChips = uniqueCodes.slice(0,capN).map(code=>{
+      const key = code.toLowerCase().replace(/\s+/g,'');
+      const bottle = BOTTLE_LOOKUP[key];
+      if(bottle){ const tc=bottleTierColors(bottle.tier); return `<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;background:${tc.bg};color:${tc.color};border:1px solid ${tc.border};white-space:nowrap">${bottle.codes[0]||code}</span>`; }
+      return `<span style="font-size:9px;padding:1px 5px;border-radius:4px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);white-space:nowrap">${code}</span>`;
+    }).join('');
+    if(uniqueCodes.length>capN) bottleChips+=`<span style="font-size:9px;color:var(--muted2)">+${uniqueCodes.length-capN} more</span>`;
+
+    // Districts involved
+    const dists = [...new Set(wDrops.map(d=>d.district).filter(Boolean))];
+    const distText = dists.map(d=>`<span style="color:${distColor(d)};font-weight:700">${d}</span>`).join(' ');
+
+    return `<div class="swh-row${isActive?' active-wave':''}" onclick="setCurrentWave('${wave.replace(/'/g,"\\'")}');populateSbWaveSelect();updateSbWaveInfo();updateDesktopStats();renderDesktopMarkers();buildSbDistricts();buildSbWaveHistory()">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;font-weight:700;color:${isActive?'var(--accent)':'var(--text)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${desc}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:1px">${dateStr}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+          ${isActive?'<span style="font-size:9px;font-weight:800;padding:1px 5px;border-radius:4px;background:rgba(245,158,11,0.15);color:var(--accent);border:1px solid rgba(245,158,11,0.3)">ACTIVE</span>':''}
+          <span style="font-size:10px;color:#4ade80;font-weight:700">${wDrops.length} drops</span>
+          ${wTotal>wDrops.length?`<span style="font-size:9px;color:var(--muted)">${wTotal-wDrops.length} no-drop</span>`:''}
+        </div>
+      </div>
+      ${bottleChips?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px">${bottleChips}</div>`:''}
+      ${distText?`<div style="font-size:10px;color:var(--muted);margin-top:3px">${distText}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// MOBILE WAVES TAB
+// ═══════════════════════════════════════════
+function buildMobileWaves(){
+  // Populate district filter
+  const distSel = document.getElementById('waves-dist-filter');
+  if(distSel && distSel.options.length <= 1){
+    getActiveDistricts().forEach(d=>{
+      const o=document.createElement('option');o.value=d;o.textContent=d;
+      distSel.appendChild(o);
+    });
+  }
+  // Populate month filter — past 12 months
+  const monthSel = document.getElementById('waves-month-filter');
+  if(monthSel && monthSel.options.length <= 1){
+    const now = new Date();
+    for(let i=0;i<12;i++){
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      const val = d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0');
+      const label = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+d.getFullYear();
+      const o=document.createElement('option');o.value=val;o.textContent=label;
+      monthSel.appendChild(o);
+    }
+  }
+  renderMobileWaves();
+}
+
+function renderMobileWaves(){
+  const el = document.getElementById('waves-list');
+  if(!el) return;
+  const distFilter = document.getElementById('waves-dist-filter')?.value||'';
+  const monthFilter = document.getElementById('waves-month-filter')?.value||'';
+
+  const fromDrops = allDrops().map(d=>d.wave).filter(w=>w&&/^\d{4}/.test(w));
+  const fromSheet = WAVES.map(w=>w.label);
+  let allWaveLabels = [...new Set([...fromSheet,...fromDrops].filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
+
+  if(monthFilter){
+    allWaveLabels = allWaveLabels.filter(w=>w.startsWith(monthFilter.replace('.','.').substring(0,7)));
+  }
+
+  if(!allWaveLabels.length){
+    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--muted);font-size:13px">No waves found</div>';
+    return;
+  }
+
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const drops = allDrops();
+
+  el.innerHTML = allWaveLabels.map(wave=>{
+    // Filter by district
+    const wDrops = drops.filter(d=>d.wave===wave&&d.result==='drop'&&(!distFilter||d.district===distFilter));
+    const wNoDrop = drops.filter(d=>d.wave===wave&&d.result==='no_drop'&&(!distFilter||d.district===distFilter));
+    const wUnknown = drops.filter(d=>d.wave===wave&&d.result!=='drop'&&d.result!=='no_drop'&&(!distFilter||d.district===distFilter));
+    if(distFilter && wDrops.length===0 && wNoDrop.length===0) return '';
+
+    const m = wave.match(/^(\d{4})\.(\d{2})\.(\d{2})/);
+    const dateStr = m ? months[parseInt(m[2])-1]+' '+parseInt(m[3]) : '';
+    const desc = wave.replace(/^\d{4}\.\d{2}\.\d{2}\s*[-–]\s*/,'').trim()||'Wave';
+    const isActive = wave===currentWave;
+
+    // Bottle chips (cap 6)
+    const allTokens = [];
+    wDrops.forEach(d=>{ if(d.bottles) d.bottles.split(/,|\s+/).map(t=>t.trim()).filter(Boolean).forEach(t=>allTokens.push(t)); });
+    const uniqueCodes = [...new Set(allTokens)];
+    let chips = uniqueCodes.slice(0,6).map(code=>{
+      const key=code.toLowerCase().replace(/\s+/g,'');
+      const bottle=BOTTLE_LOOKUP[key];
+      if(bottle){ const tc=bottleTierColors(bottle.tier); return `<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;background:${tc.bg};color:${tc.color};border:1px solid ${tc.border};white-space:nowrap">${bottle.codes[0]||code}</span>`; }
+      return `<span style="font-size:9px;padding:1px 5px;border-radius:4px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);white-space:nowrap">${code}</span>`;
+    }).join('');
+    if(uniqueCodes.length>6) chips+=`<span style="font-size:9px;color:var(--muted2)">+${uniqueCodes.length-6}</span>`;
+
+    // Patterns for this wave
+    const wavePats = PATTERNS.filter(p=>p.wave===wave&&(!distFilter||p.district===distFilter));
+    let patsHTML = '';
+    if(wavePats.length){
+      patsHTML = wavePats.map(p=>{
+        const dc=distColor(p.district);
+        return `<div style="display:flex;align-items:center;gap:6px;font-size:10px;margin-top:3px">
+          <span style="color:${dc};font-weight:700">${p.district}</span>
+          <span style="color:${dc}">${formatModeShort(p.mode)}</span>
+          ${p.special?`<span style="color:var(--accent);font-size:9px">⚑ ${p.special}</span>`:''}
+        </div>`;
+      }).join('');
+    }
+
+    return `<div class="wave-mob-card${isActive?' is-current':''}" onclick="setCurrentWave('${wave.replace(/'/g,"\\'")}');invalidateDropCache();refresh();buildMobileWaves()">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:${isActive?'var(--accent)':'var(--text)'}">${desc}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:1px">${dateStr}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          ${wDrops.length?`<div style="font-size:11px;font-weight:700;color:#4ade80">✓ ${wDrops.length}</div>`:''}
+          ${wNoDrop.length?`<div style="font-size:10px;color:#f87171">✕ ${wNoDrop.length}</div>`:''}
+          ${wUnknown.length?`<div style="font-size:10px;color:var(--muted)">? ${wUnknown.length}</div>`:''}
+        </div>
+      </div>
+      ${chips?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:5px">${chips}</div>`:''}
+      ${patsHTML}
+    </div>`;
+  }).filter(Boolean).join('');
+
+  if(!el.innerHTML.trim()){
+    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--muted);font-size:13px">No waves match this filter</div>';
+  }
 }
 
 // DT-1 — DESKTOP TOP NAV TAB SWITCHING
