@@ -718,7 +718,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     </div>
 
     <!-- ── WAVES TAB (mobile) ── -->
-    <div id="tab-waves" class="tab-panel" style="flex-direction:column">
+    <div id="tab-waves" class="tab-panel">
       <div id="waves-controls">
         <span style="font-size:12px;font-weight:700;flex:0 0 auto">🌊 Waves</span>
         <select id="waves-dist-filter" onchange="renderMobileWaves()">
@@ -1449,7 +1449,6 @@ function toggleDistMode(){
   if(currentTab==='hunt') openHunt();
 }
 
-function allDrops(){ return [...DROPS,...pendingDrops]; }
 function distColor(d){ return DC[d]||"#64748b"; }
 function distZ(d){ return DISTRICT_Z[d]||100; }
 
@@ -5135,7 +5134,7 @@ function renderMobileWaves(){
   let allWaveLabels = [...new Set([...fromSheet,...fromDrops].filter(w=>w&&/^\d{4}/.test(w)))].sort().reverse();
 
   if(monthFilter){
-    allWaveLabels = allWaveLabels.filter(w=>w.startsWith(monthFilter.replace('.','.').substring(0,7)));
+    allWaveLabels = allWaveLabels.filter(w=>w.startsWith(monthFilter));
   }
 
   if(!allWaveLabels.length){
