@@ -219,7 +219,8 @@ body.desktop #mobile-search-btn{display:none}
 .bt-search:focus{outline:none;border-color:var(--accent)}
 .bt-pane-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
 .bt-count-badge{font-size:9px;font-weight:700;background:var(--surface2);border-radius:8px;padding:1px 6px;color:var(--muted)}
-.bt-row{padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.bt-row{padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s}
+.bt-row:hover{background:rgba(255,255,255,0.025);border-radius:4px}
 .bt-row:last-child{border-bottom:none}
 .bt-row-top{display:flex;align-items:center;gap:6px}
 .bt-token{font-size:13px;font-weight:800;color:#f87171;font-family:monospace;flex:1}
@@ -260,8 +261,8 @@ body.desktop #mobile-search-btn{display:none}
 #desktop-app-meta .meta-version{font-size:8px;font-weight:700;color:var(--accent);font-family:monospace}
 #desktop-app-meta .meta-sync{font-size:8px;color:var(--muted2)}
 #detail-panel{width:0;flex-shrink:0;overflow:hidden;transition:width 0.25s ease;background:var(--surface);border-left:0px solid var(--border);height:100%}
-#detail-panel.open{width:320px;border-left-width:1px}
-#detail-panel-inner{width:320px;height:100%;overflow-y:auto;padding:16px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#detail-panel.open{width:400px;border-left-width:1px}
+#detail-panel-inner{width:400px;height:100%;overflow-y:auto;padding:16px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
 #detail-panel-inner::-webkit-scrollbar{width:4px}
 #detail-panel-inner::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 #detail-panel-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0;float:right;line-height:1;margin-bottom:4px}
@@ -348,7 +349,7 @@ body.desktop #mobile-search-btn{display:none}
 .tab-panel{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
 .tab-panel.active{display:flex}
 #tab-map{flex-direction:column}
-#tab-hunt,#tab-log,#tab-stats,#tab-bottles{overflow-y:auto;-webkit-overflow-scrolling:touch}
+#tab-hunt,#tab-log,#tab-stats,#tab-bottles,#tab-waves{overflow-y:auto;-webkit-overflow-scrolling:touch}
 #tab-bar{height:56px;display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;z-index:600}
 .tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:none;background:none;color:var(--muted);font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;position:relative;padding:6px 0;transition:color 0.15s}
 .tab-btn.active{color:var(--accent)}
@@ -521,6 +522,27 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
 .msr-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .msr-meta{font-size:11px;color:var(--muted);margin-top:2px}
 .msr-status{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+/* ═══ WAVE HISTORY (desktop sidebar) ═══ */
+#sb-wave-history{max-height:340px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#sb-wave-history::-webkit-scrollbar{width:3px}
+#sb-wave-history::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.swh-row{padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.12s}
+.swh-row:hover{background:var(--surface2)}
+.swh-row.active-wave{border-left:3px solid var(--accent);padding-left:7px}
+/* ═══ DISTRICT PATTERN TABLE ═══ */
+.dp-pattern-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px}
+.dp-pattern-table th{font-size:9px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);padding:4px 6px;text-align:left;border-bottom:1px solid var(--border);font-weight:700}
+.dp-pattern-table td{padding:5px 6px;border-bottom:1px solid var(--border);vertical-align:top}
+.dp-pattern-table tr:nth-child(even) td{background:rgba(255,255,255,0.02)}
+.dp-pattern-scroll{max-height:300px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;border:1px solid var(--border);border-radius:6px;margin-top:6px}
+.dp-pattern-scroll::-webkit-scrollbar{width:3px}
+.dp-pattern-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+/* ═══ MOBILE WAVES TAB ═══ */
+#waves-controls{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+#waves-dist-filter,#waves-month-filter{background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:6px;padding:4px 6px;font-size:10px;font-weight:700;font-family:inherit;cursor:pointer}
+#waves-list{flex:1;overflow-y:auto;padding:10px;-webkit-overflow-scrolling:touch}
+.wave-mob-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;cursor:pointer}
+.wave-mob-card.is-current{border-color:var(--accent);background:rgba(245,158,11,0.05)}
 </style>
 </head>
 <body>
@@ -695,6 +717,20 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
       </div>
     </div>
 
+    <!-- ── WAVES TAB (mobile) ── -->
+    <div id="tab-waves" class="tab-panel" style="flex-direction:column">
+      <div id="waves-controls">
+        <span style="font-size:12px;font-weight:700;flex:0 0 auto">🌊 Waves</span>
+        <select id="waves-dist-filter" onchange="renderMobileWaves()">
+          <option value="">All Districts</option>
+        </select>
+        <select id="waves-month-filter" onchange="renderMobileWaves()">
+          <option value="">All Months</option>
+        </select>
+      </div>
+      <div id="waves-list"></div>
+    </div>
+
   </div><!-- end #tab-content -->
 
   <div id="tab-bar">
@@ -706,6 +742,9 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     </button>
     <button class="tab-btn" data-tab="log" onclick="switchTab('log')">
       <span class="tab-btn-icon">✏️</span><span>Log <span class="tab-badge tab-badge-amber" id="log-tab-badge" style="display:none">0</span></span>
+    </button>
+    <button class="tab-btn" data-tab="waves" onclick="switchTab('waves')">
+      <span class="tab-btn-icon">🌊</span><span>Waves</span>
     </button>
     <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">
       <span class="tab-btn-icon">📊</span><span>Stats <span class="tab-badge" id="stats-tab-badge" style="display:none">!</span></span>
@@ -773,6 +812,10 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
           </div>
         </div>
         <div class="sb-section" id="sb-sec-badges"></div>
+        <div class="sb-section">
+          <div class="sb-section-title">Wave History</div>
+          <div id="sb-wave-history"></div>
+        </div>
       </div>
       <!-- Pane: Districts -->
       <div class="sb-pane" id="sb-pane-districts">
@@ -1175,6 +1218,7 @@ function switchTab(tab){
   if(tab==='log') renderLogTab();
   if(tab==='stats') renderStatsTab();
   if(tab==='bottles') buildMobileBottles();
+  if(tab==='waves') buildMobileWaves();
 }
 
 function renderHuntTab(){
@@ -4787,7 +4831,8 @@ function buildBtKnownList(){
     const isEdited = edits[b.id];
     const indicator = isLocal ? '<span style="font-size:9px;color:#a855f7;font-weight:700;margin-left:4px">local</span>'
                     : isEdited ? '<span style="font-size:9px;color:var(--accent);font-weight:700;margin-left:4px">edited</span>' : '';
-    return `<div class="bt-row" id="${p}bt-known-${b.id}">
+    const panelOnclick = p==='' ? `onclick="if(!event.target.closest('.bt-edit-btn'))openBottlePanel(${b.id})"` : '';
+    return `<div class="bt-row" id="${p}bt-known-${b.id}" ${panelOnclick}>
       <div class="bt-row-top">
         <span class="bt-bottle-name">${b.name}${indicator}</span>
         <span style="font-size:10px;font-weight:800;color:${tcfn(b.tier)};flex-shrink:0">${b.tier}</span>
@@ -4932,6 +4977,7 @@ function switchDesktopTab(tab){
     p.classList.toggle('active', p.id==='sb-pane-'+tab);
   });
   if(tab==='bottles') buildSbBottles();
+  if(tab==='wave') buildSbWaveHistory();
 }
 
 // ═══════════════════════════════════════════
@@ -4960,6 +5006,7 @@ function buildDesktopHeader(){
     };
   }
   populateSbWaveSelect();
+  buildSbWaveHistory();
 }
 
 function populateSbWaveSelect(){
