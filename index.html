@@ -13,7 +13,7 @@
   --bg:#0d1117;--surface:#161b22;--surface2:#21262d;
   --border:#30363d;--text:#e6edf3;--muted:#7d8590;--muted2:#484f58;
   --d07:#ef4444;--d14:#f59e0b;--d17:#2563eb;
-  --d18:#10b981;--d20:#06b6d4;--d16:#64748b;--d12:#475569;
+  --d18:#10b981;--d20:#a78bfa;--d16:#64748b;--d12:#475569;
   --accent:#f59e0b;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -234,6 +234,11 @@ body.desktop #mobile-search-btn{display:none}
 .bt-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:3px}
 .bt-field{width:100%;background:var(--surface2);border:1.5px solid var(--border);color:var(--text);border-radius:6px;padding:7px 9px;font-size:12px;font-family:inherit;box-sizing:border-box;margin-bottom:8px}
 .bt-field:focus{outline:none;border-color:var(--accent)}
+.bt-merge-results{border:1px solid var(--border);border-radius:6px;background:var(--bg);margin-bottom:8px;max-height:150px;overflow-y:auto}
+.bt-merge-opt{padding:7px 10px;cursor:pointer;font-size:11px;border-bottom:1px solid var(--border)}
+.bt-merge-opt:last-child{border-bottom:none}
+.bt-merge-opt:active{background:var(--surface)}
+.bt-merge-chosen{padding:6px 8px;border-radius:6px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);font-size:11px;color:var(--accent);margin-bottom:8px}
 .bt-tier-row{display:flex;gap:4px;margin-bottom:8px}
 .bt-tier-opt{flex:1;padding:5px 2px;border-radius:6px;font-size:11px;font-weight:800;cursor:pointer;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-family:inherit;text-align:center}
 .bt-tier-opt[data-active="S"]{background:#854d0e;color:#fef08a;border-color:#92400e}
@@ -1054,7 +1059,7 @@ const DC = {
   D17:"#a855f7",  // purple
   D18:"#22c55e",  // bright green
   D07:"#ef4444",  // red
-  D20:"#f97316",  // orange
+  D20:"#a78bfa",  // violet — distinct from D14 amber
   D16:"#64748b",  // slate
   D12:"#475569"   // dark slate
 };
@@ -2381,7 +2386,11 @@ function renderIssuesList(){
           <div class="iq-store" style="color:${color}">#${d?.storeId} · ${issue.store?.label||''}</div>
           <div class="iq-wave">${issue.store?.district||''} · ${d?.wave||'no wave label'} · ${ts}</div>
         </div>
-        <div style="font-size:11px;color:var(--muted);flex-shrink:0">${issue.store?.tier||'?'} tier</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+          <span style="font-size:11px;color:var(--muted)">${issue.store?.tier||'?'} tier</span>
+          ${d?.discordLink?`<a href="${d.discordLink}" target="_blank" style="font-size:10px;color:#5865f2;text-decoration:none;font-weight:700">↗ Discord</a>`:''}
+          <a href="https://docs.google.com/spreadsheets/d/1BPPZsFvoeNWiH5rC8x3PSsKUOEq7GhPhD5qgEC5DWy4/edit" target="_blank" style="font-size:10px;color:var(--muted);text-decoration:none">📊 Sheet</a>
+        </div>
       </div>
       <div class="iq-detail">${issue.detail}${bottlesDisplay}</div>
       ${actionsHTML}
@@ -2873,7 +2882,11 @@ function renderDpIssuesList(){
           <div class="iq-store" style="color:${color}">#${d?.storeId} · ${issue.store?.label||''}</div>
           <div class="iq-wave">${issue.store?.district||''} · ${d?.wave||'no wave label'} · ${ts}</div>
         </div>
-        <div style="font-size:11px;color:var(--muted);flex-shrink:0">${issue.store?.tier||'?'} tier</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+          <span style="font-size:11px;color:var(--muted)">${issue.store?.tier||'?'} tier</span>
+          ${d?.discordLink?`<a href="${d.discordLink}" target="_blank" style="font-size:10px;color:#5865f2;text-decoration:none;font-weight:700">↗ Discord</a>`:''}
+          <a href="https://docs.google.com/spreadsheets/d/1BPPZsFvoeNWiH5rC8x3PSsKUOEq7GhPhD5qgEC5DWy4/edit" target="_blank" style="font-size:10px;color:var(--muted);text-decoration:none">📊 Sheet</a>
+        </div>
       </div>
       <div class="iq-detail">${issue.detail}${bottlesDisplay}</div>
       ${actionsHTML}
@@ -4690,11 +4703,11 @@ function buildBtUnknownList(){
       </div>
       <div style="font-size:10px;color:var(--muted);margin-top:2px">${[...new Set(t.drops)].slice(0,4).join(', ')}${t.drops.length>4?'…':''}</div>
       <div class="bt-form" id="${p}bt-unk-form-${i}">
-        <div class="bt-label" style="color:var(--accent);margin-bottom:6px">Merge to existing bottle:</div>
-        <select class="bt-field" id="${p}bt-unk-merge-${i}" style="margin-bottom:12px">
-          <option value="">– create new bottle instead –</option>
-          ${BOTTLES.slice().sort((a,b)=>{const o={S:0,A:1,B:2,C:3};return (o[a.tier]??4)-(o[b.tier]??4)||a.name.localeCompare(b.name);}).map(b=>`<option value="${b.id}">[${b.tier}] ${b.name}</option>`).join('')}
-        </select>
+        <div class="bt-label" style="color:var(--accent);margin-bottom:4px">Merge to existing bottle:</div>
+        <input class="bt-field" id="${p}bt-unk-merge-search-${i}" placeholder="Search name or code… (blank = create new)" autocomplete="off" oninput="btMergeSearch(this,'${p}',${i})" style="margin-bottom:4px">
+        <div id="${p}bt-unk-merge-results-${i}" class="bt-merge-results" style="display:none"></div>
+        <div id="${p}bt-unk-merge-chosen-${i}" class="bt-merge-chosen" style="display:none"></div>
+        <input type="hidden" id="${p}bt-unk-merge-${i}">
         <div class="bt-label" style="color:var(--muted2);margin-bottom:6px">— or add as new bottle —</div>
         <div class="bt-label">Full Name</div>
         <input class="bt-field" id="${p}bt-unk-name-${i}" placeholder="e.g. Eagle Rare 10yr" value="${t.raw}">
@@ -4714,6 +4727,38 @@ function buildBtUnknownList(){
         </div>
       </div>
     </div>`).join('');
+}
+
+function btMergeSearch(input, p, i){
+  const q = input.value.toLowerCase().trim();
+  const results = document.getElementById(p+'bt-unk-merge-results-'+i);
+  const hidden  = document.getElementById(p+'bt-unk-merge-'+i);
+  const chosen  = document.getElementById(p+'bt-unk-merge-chosen-'+i);
+  hidden.value = '';
+  chosen.style.display = 'none';
+  if(!q){ results.style.display='none'; results.innerHTML=''; return; }
+  const matches = BOTTLES.filter(b=>
+    b.name.toLowerCase().includes(q) ||
+    b.codes.some(c=>c.toLowerCase().includes(q)) ||
+    b.brand.toLowerCase().includes(q)
+  ).slice(0,10);
+  if(!matches.length){
+    results.innerHTML='<div style="padding:7px 10px;color:var(--muted);font-size:11px">No matches</div>';
+  } else {
+    results.innerHTML=matches.map(b=>
+      `<div class="bt-merge-opt" onclick="btMergeSelect('${p}',${i},'${b.id}','[${b.tier}] ${b.name.replace(/'/g,"&#39;")} (${b.codes.join(',')})')">[${b.tier}] ${b.name} <span style="color:var(--muted)">${b.codes.join(', ')}</span></div>`
+    ).join('');
+  }
+  results.style.display='';
+}
+
+function btMergeSelect(p, i, id, label){
+  document.getElementById(p+'bt-unk-merge-'+i).value = id;
+  document.getElementById(p+'bt-unk-merge-results-'+i).style.display='none';
+  document.getElementById(p+'bt-unk-merge-search-'+i).value='';
+  const chosen = document.getElementById(p+'bt-unk-merge-chosen-'+i);
+  chosen.textContent = '✓ Merge → '+label;
+  chosen.style.display='';
 }
 
 function buildBtKnownList(){
