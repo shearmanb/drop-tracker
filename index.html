@@ -543,6 +543,21 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
 #waves-list{flex:1;overflow-y:auto;padding:10px;-webkit-overflow-scrolling:touch}
 .wave-mob-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;cursor:pointer}
 .wave-mob-card.is-current{border-color:var(--accent);background:rgba(245,158,11,0.05)}
+
+/* ═══ STORE PHOTOS ═══ */
+.photo-grid{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start}
+.photo-thumb{width:64px;height:64px;border-radius:6px;overflow:hidden;border:1px solid var(--border);cursor:pointer;background:var(--bg);flex-shrink:0;position:relative}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-add-btn{display:inline-flex;align-items:center;justify-content:center;font-size:10px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--accent);cursor:pointer;font-weight:700;font-family:inherit}
+.photo-add-btn:hover{border-color:var(--accent)}
+.photo-add-tile{width:64px;height:64px;border-radius:6px;border:1px dashed var(--border);background:var(--surface2);color:var(--accent);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700}
+.photo-add-tile:hover{border-color:var(--accent);background:var(--surface)}
+.photo-empty{font-size:11px;color:var(--muted2);padding:4px 0;font-style:italic}
+.photo-lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px}
+.photo-lightbox img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+.photo-lightbox .pl-close{position:absolute;top:14px;right:14px;background:rgba(0,0,0,0.6);color:#fff;border:none;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;font-family:inherit}
+.photo-lightbox .pl-delete{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:#ef4444;color:#fff;border:none;font-size:13px;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:700;font-family:inherit}
+.photo-lightbox .pl-meta{position:absolute;top:18px;left:18px;color:#fff;font-size:11px;background:rgba(0,0,0,0.6);padding:6px 10px;border-radius:4px}
 </style>
 </head>
 <body>
@@ -1974,7 +1989,11 @@ function _buildPopupCore(store){
     }).join('');
   }
 
+  // ── TAB D: PHOTOS ──
+  const tabD=`<div class="photo-grid" data-photos-for="${store.id}" style="padding:6px 0"></div>`;
+
   const uid=store.id; // for tab switching
+  setTimeout(()=>renderStorePhotos(store.id),0);
   return `<div class="scard">
     <div class="scard-name">#${store.id} · ${store.label} <span style="font-size:10px;font-weight:600;color:${color};letter-spacing:0.5px">${store.district}</span></div>
     <div class="scard-addr">${store.address}</div>
@@ -1984,10 +2003,12 @@ function _buildPopupCore(store){
       <div class="scard-tab active" id="stab-a-${uid}" onclick="switchSTab(${uid},'a')">Summary</div>
       <div class="scard-tab" id="stab-b-${uid}" onclick="switchSTab(${uid},'b')">Order</div>
       <div class="scard-tab" id="stab-c-${uid}" onclick="switchSTab(${uid},'c')">Bottles</div>
+      <div class="scard-tab" id="stab-d-${uid}" onclick="switchSTab(${uid},'d')">📷</div>
     </div>
     <div class="scard-tab-panel active" id="spanel-a-${uid}">${tabA}</div>
     <div class="scard-tab-panel" id="spanel-b-${uid}">${tabB}</div>
     <div class="scard-tab-panel" id="spanel-c-${uid}">${tabC}</div>
+    <div class="scard-tab-panel" id="spanel-d-${uid}">${tabD}</div>
   </div>`;
 }
 function renderMarkers(){
@@ -2012,7 +2033,7 @@ function renderMarkers(){
 }
 
 function switchSTab(uid, tab){
-  ['a','b','c'].forEach(t=>{
+  ['a','b','c','d'].forEach(t=>{
     document.getElementById('stab-'+t+'-'+uid)?.classList.toggle('active', t===tab);
     document.getElementById('spanel-'+t+'-'+uid)?.classList.toggle('active', t===tab);
   });
@@ -3786,9 +3807,14 @@ function openDetailPanel(storeId){
     </div>
     ${statusHTML}
     <div class="dp-actions">${actions}</div>
+    <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:12px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:8px">📷 Photos</div>
+      <div class="photo-grid" data-photos-for="${storeId}"></div>
+    </div>
     ${histHTML}`;
   const panel=document.getElementById('detail-panel');
   panel.classList.add('open');
+  renderStorePhotos(storeId);
   setTimeout(()=>desktopMap&&desktopMap.invalidateSize(),260);
 }
 
@@ -5323,6 +5349,142 @@ function buildSbDistricts(){
       }
     });
   });
+}
+
+// ═══════════════════════════════════════════
+// STORE PHOTOS — IndexedDB local storage
+// ═══════════════════════════════════════════
+const PHOTOS_DB_NAME='dropTrackerPhotos';
+const PHOTOS_STORE='photos';
+let _photosDB=null;
+function openPhotosDB(){
+  if(_photosDB) return Promise.resolve(_photosDB);
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(PHOTOS_DB_NAME,1);
+    req.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains(PHOTOS_STORE)){
+        const os=db.createObjectStore(PHOTOS_STORE,{keyPath:'id',autoIncrement:true});
+        os.createIndex('storeId','storeId',{unique:false});
+      }
+    };
+    req.onsuccess=e=>{_photosDB=e.target.result;resolve(_photosDB);};
+    req.onerror=e=>reject(e.target.error);
+  });
+}
+async function savePhoto(storeId,blob,thumbnail){
+  const db=await openPhotosDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(PHOTOS_STORE,'readwrite');
+    const req=tx.objectStore(PHOTOS_STORE).add({storeId:Number(storeId),blob,thumbnail,takenAt:new Date().toISOString()});
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function getPhotosForStore(storeId){
+  const db=await openPhotosDB();
+  return new Promise((resolve,reject)=>{
+    const idx=db.transaction(PHOTOS_STORE,'readonly').objectStore(PHOTOS_STORE).index('storeId');
+    const req=idx.getAll(Number(storeId));
+    req.onsuccess=()=>resolve((req.result||[]).sort((a,b)=>(b.takenAt||'').localeCompare(a.takenAt||'')));
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function getPhotoById(id){
+  const db=await openPhotosDB();
+  return new Promise((resolve,reject)=>{
+    const req=db.transaction(PHOTOS_STORE,'readonly').objectStore(PHOTOS_STORE).get(id);
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function deletePhotoById(id){
+  const db=await openPhotosDB();
+  return new Promise((resolve,reject)=>{
+    const req=db.transaction(PHOTOS_STORE,'readwrite').objectStore(PHOTOS_STORE).delete(id);
+    req.onsuccess=()=>resolve();
+    req.onerror=()=>reject(req.error);
+  });
+}
+function compressImage(file,maxDim=1400,quality=0.85){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      let w=img.naturalWidth,h=img.naturalHeight;
+      const scale=Math.min(1,maxDim/Math.max(w,h));
+      w=Math.round(w*scale);h=Math.round(h*scale);
+      const c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      const tDim=220;
+      const ts=Math.min(1,tDim/Math.max(w,h));
+      const tw=Math.round(w*ts),th=Math.round(h*ts);
+      const tc=document.createElement('canvas');tc.width=tw;tc.height=th;
+      tc.getContext('2d').drawImage(img,0,0,tw,th);
+      c.toBlob(fullBlob=>{
+        tc.toBlob(thumbBlob=>{
+          URL.revokeObjectURL(url);
+          if(!fullBlob||!thumbBlob){reject(new Error('blob failed'));return;}
+          resolve({blob:fullBlob,thumbnail:thumbBlob});
+        },'image/jpeg',0.7);
+      },'image/jpeg',quality);
+    };
+    img.onerror=e=>{URL.revokeObjectURL(url);reject(e);};
+    img.src=url;
+  });
+}
+const _photoBlobUrls=[];
+function _trackBlobUrl(u){_photoBlobUrls.push(u);if(_photoBlobUrls.length>200){URL.revokeObjectURL(_photoBlobUrls.shift());}return u;}
+async function renderStorePhotos(storeId){
+  const containers=document.querySelectorAll(`[data-photos-for="${storeId}"]`);
+  if(!containers.length) return;
+  let photos=[];
+  try{photos=await getPhotosForStore(storeId);}catch(e){console.error('getPhotosForStore',e);}
+  const addTile=`<label class="photo-add-tile" title="Add photo">+<input type="file" accept="image/*" multiple style="display:none" onchange="handlePhotoUpload(${storeId},this.files);this.value=''"></label>`;
+  const thumbsHTML=photos.map(p=>{
+    const u=_trackBlobUrl(URL.createObjectURL(p.thumbnail));
+    return `<div class="photo-thumb" onclick="openPhotoLightbox(${p.id})"><img src="${u}" alt="store photo"></div>`;
+  }).join('');
+  const html=addTile+thumbsHTML+(photos.length?'':'<div class="photo-empty">No photos yet — tap + to add</div>');
+  containers.forEach(c=>c.innerHTML=html);
+}
+async function handlePhotoUpload(storeId,files){
+  if(!files||!files.length) return;
+  let ok=0;
+  for(const file of files){
+    if(!file.type.startsWith('image/')) continue;
+    try{
+      const {blob,thumbnail}=await compressImage(file);
+      await savePhoto(storeId,blob,thumbnail);
+      ok++;
+    }catch(e){console.error('photo upload failed',e);}
+  }
+  await renderStorePhotos(storeId);
+  if(ok) toast(`📷 ${ok} photo${ok>1?'s':''} added`);
+}
+async function openPhotoLightbox(photoId){
+  const photo=await getPhotoById(photoId);
+  if(!photo) return;
+  const url=URL.createObjectURL(photo.blob);
+  const store=STORES.find(s=>s.id===photo.storeId);
+  const date=photo.takenAt?new Date(photo.takenAt).toLocaleString('en-US',{month:'short',day:'numeric',year:'2-digit',hour:'numeric',minute:'2-digit'}):'';
+  const overlay=document.createElement('div');
+  overlay.className='photo-lightbox';
+  overlay.innerHTML=`
+    <div class="pl-meta">${store?`#${store.id} · ${store.label}`:''}${date?' · '+date:''}</div>
+    <img src="${url}" alt="store photo">
+    <button class="pl-close" aria-label="close">✕</button>
+    <button class="pl-delete">🗑 Delete</button>`;
+  const cleanup=()=>{URL.revokeObjectURL(url);overlay.remove();};
+  overlay.querySelector('.pl-close').onclick=cleanup;
+  overlay.querySelector('.pl-delete').onclick=async()=>{
+    if(!confirm('Delete this photo? This cannot be undone.')) return;
+    await deletePhotoById(photoId);
+    cleanup();
+    renderStorePhotos(photo.storeId);
+  };
+  overlay.onclick=e=>{if(e.target===overlay) cleanup();};
+  document.body.appendChild(overlay);
 }
 
 async function initAndDetect(){
