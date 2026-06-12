@@ -64,7 +64,7 @@ Both must be kept in sync whenever markers, status, or wave changes.
 - `recentBottles` — array of recently used bottle IDs (up to 8)
 - `issueCorrections` — pending issue queue corrections not yet synced
 - `districtBehaviors` — per-district behavior tag overrides (Random/Day-Locked/Bulk/Unknown)
-- `map.tiers` — "on" | "off" — TIERS map toggle (tier colors on markers); default "on"
+- `map.colorMode` — "district" (default) | "tier" | "off" — map pin color mode, cycled by the floating map pill (`map.tiers` is a legacy key, no longer read)
 - `theme` — "barrel-char" (default) | "amber-glass" | "copper-still" | "wheated" | "custom"
 - `theme.customHue` — number 0–360 — accent hue when `theme` = "custom"
 

@@ -362,9 +362,6 @@ textarea.modal-input{resize:vertical;min-height:56px}
 .d-chip.on .pill-progress-fill{background:#0A0808}
 
 #layout-toggle-btn{background:none;border:none;color:var(--chrome);border-radius:6px;padding:5px;cursor:pointer;flex-shrink:0;display:flex;align-items:center}
-#dm-num-toggle{position:absolute;top:10px;right:10px;background:rgba(10,8,8,0.85);border:1px solid var(--border);color:var(--muted);border-radius:16px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;z-index:500;font-family:inherit;display:none}
-#dm-num-toggle.show{display:block}
-#dm-num-toggle.active{border-color:var(--accent);color:var(--accent)}
 body.desktop #app{display:none}
 body.desktop #desktop-main{display:flex!important}
 #desktop-main{display:none;flex:1;flex-direction:column;overflow:hidden;height:100dvh}
@@ -822,8 +819,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
       <div id="map-wrap" class="map-container" style="flex:1;position:relative">
         <div id="map" style="width:100%;height:100%"></div>
         <div id="zoom-badge">zoom in to see store numbers</div>
-        <button id="tiers-toggle" class="tiers-toggle" onclick="toggleTiers()" aria-label="Show or hide tiers on map"></button>
-        <button id="dm-num-toggle" onclick="toggleDmNums()"># Show Nums</button>
+        <button id="tiers-toggle" class="tiers-toggle" onclick="cycleColorMode()" aria-label="Cycle map color mode: districts, tiers, plain"></button>
         <div id="app-meta">
           <div class="meta-version">v0.4</div>
           <div class="meta-sync" id="meta-sync">not synced</div>
@@ -887,7 +883,6 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
         <div id="stats-wave-bar">
           <span style="font-family:var(--font-display);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;flex:1">Analytics &amp; Data</span>
           <button class="tool-btn" id="new-wave-btn" onclick="openNewWave()" style="border-color:var(--accent);color:var(--accent);padding:4px 10px">+ Wave</button>
-          <button class="tool-btn" id="dm-mode-btn" onclick="toggleDistrictMapMode()" style="padding:4px 8px;font-size:10px">Map Mode</button>
         </div>
         <div id="stats-subtabs">
           <button class="stats-stab active" id="sstab-issues" onclick="switchStatsSubtab('issues')">Issues</button>
@@ -1095,7 +1090,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
   </div>
   <div id="desktop-map-wrap" class="map-container">
     <div id="desktop-map"></div>
-    <button id="desktop-tiers-toggle" class="tiers-toggle" onclick="toggleTiers()" aria-label="Show or hide tiers on map"></button>
+    <button id="desktop-tiers-toggle" class="tiers-toggle" onclick="cycleColorMode()" aria-label="Cycle map color mode: districts, tiers, plain"></button>
     <div id="desktop-zoom-badge">zoom in to see store numbers</div>
     <div id="desktop-app-meta">
       <div class="meta-version">v0.4</div>
@@ -1619,47 +1614,6 @@ function updateStatsStrip(d, n, u, pct){
   if(su) su.textContent=u; if(sp) sp.textContent=pct+'%';
 }
 
-// ═══ District Map Mode — shows simple color dots ═══
-let districtMapMode = false;
-let dmShowNums = false;
-
-function makeDotPin(store){
-  const color = distColor(store.district);
-  const num = String(store.id);
-  if(dmShowNums){
-    return L.divIcon({className:"",
-      html:`<div style="background:#160F0C;border:1.5px solid ${color};border-radius:4px;padding:1px 4px;font-family:'Oswald',system-ui,sans-serif;font-size:9px;font-weight:700;color:#EBDDD5;white-space:nowrap;line-height:1.3;box-shadow:0 2px 6px rgba(0,0,0,0.6)">${num}</div>`,
-      iconSize:[28,14],iconAnchor:[14,7]});
-  } else {
-    return L.divIcon({className:"",
-      html:`<div style="width:10px;height:10px;border-radius:50%;background:${color};border:1.5px solid #160F0C;box-shadow:0 2px 6px rgba(0,0,0,0.6)"></div>`,
-      iconSize:[10,10],iconAnchor:[5,5]});
-  }
-}
-
-function toggleDistrictMapMode(){
-  districtMapMode = !districtMapMode;
-  const btn = document.getElementById('dm-mode-btn');
-  const numBtn = document.getElementById('dm-num-toggle');
-  if(districtMapMode){
-    btn.classList.add('active');
-    if(numBtn) numBtn.classList.add('show');
-  } else {
-    btn.classList.remove('active');
-    if(numBtn){ numBtn.classList.remove('show'); numBtn.classList.remove('active'); }
-    dmShowNums = false;
-  }
-  renderMarkers();
-  if(desktopMap) renderDesktopMarkers();
-}
-
-function toggleDmNums(){
-  dmShowNums = !dmShowNums;
-  const btn = document.getElementById('dm-num-toggle');
-  if(btn){ btn.textContent = dmShowNums ? '# Hide Nums' : '# Show Nums'; btn.classList.toggle('active', dmShowNums); }
-  renderMarkers();
-  if(desktopMap) renderDesktopMarkers();
-}
 const HOME_LAT = 38.9278, HOME_LNG = -77.1823; // Store 267, McLean
 
 function getRefCoords(){
@@ -1695,7 +1649,18 @@ function toggleDistMode(){
   if(currentTab==='hunt') openHunt();
 }
 
-function distColor(d){ return "#9A9AA8"; } // neutral chrome — districts never get a hue
+// District colors — restored per user request: districts are color-coded again
+// (map District view, popups, sidebar, lists). Tier colors stay separate.
+const DC = {
+  D14:"#f59e0b",  // amber   — home district
+  D17:"#2563eb",  // cobalt blue
+  D18:"#10b981",  // emerald green
+  D07:"#ef4444",  // red
+  D20:"#06b6d4",  // teal
+  D16:"#64748b",  // slate
+  D12:"#475569"   // dark slate
+};
+function distColor(d){ return DC[d]||"#9A9AA8"; }
 function distZ(d){ return DISTRICT_Z[d]||100; }
 
 const CACHE_VERSION = '5'; // bump when schema changes
@@ -1907,7 +1872,7 @@ function buildMap(){
     if(st!==currentPinStage){ currentPinStage=st; renderMarkers(); }
     updateDistrictChipVisibility(map);
   });
-  initTiersToggle();
+  applyColorModeClass();
 }
 
 // Letter-plate pins show full detail at every zoom — badge no longer needed
@@ -1917,9 +1882,11 @@ function updateZoomBadge(z){
 }
 
 // ── PIN FACTORY ──
-// Letter-plate markers: solid tier-color fill (map-bright tokens), white ring,
-// tier letter tab (colorblind-safe redundancy), tail points at exact lat/lng.
-// Same plate at every zoom level. TIERS toggle neutralizes via CSS class only.
+// Three-stage markers (dot / number / full pill), colored by the active map
+// color mode: 'tier' = body in tier color; 'district' = body in district color
+// with the full pill's letter glyph kept tier-colored (tier stays on the pill);
+// 'off' = neutral dark via the .tiers-off class flip (renders district colors
+// underneath, CSS overrides them).
 const TIER_MAP_VARS = {S:'--tier-s-map',A:'--tier-a-map',B:'--tier-b-map',C:'--tier-c-map'};
 
 function lastDropLabel(storeId){
@@ -1934,14 +1901,20 @@ function lastDropLabel(storeId){
 function makePin(store,status){
   const num=String(store.id);
   const tier=String(store.tier||'').trim();
-  const pcVar=TIER_MAP_VARS[tier]||'--tier-sp-map';
+  const tierVar=TIER_MAP_VARS[tier]||'--tier-sp-map';
   const letter=TIER_MAP_VARS[tier]?tier:(tier||'S'); // special tier keeps its data value
   const stage=pinStage(currentZoom);
+  const tierMode=colorMode==='tier';
+  // Pin body color: tier token in Tier view, district color otherwise
+  const body=tierMode?`var(${tierVar})`:distColor(store.district);
+  // Full-pill letter tab: default translucent tab in Tier view; in District view
+  // a solid dark tab with the letter in tier color — tier stays on the pill.
+  const plateStyle=tierMode?'':` style="background:#160F0C;color:var(${tierVar})"`;
 
   // ── FAR (≤11): color dot only — anchor at center of the dot ──
   if(stage==='dot'){
     return L.divIcon({className:"",
-      html:`<div class="pin-dot" style="--pc:var(${pcVar})"></div>`,
+      html:`<div class="pin-dot" style="--pc:${body}"></div>`,
       iconSize:[14,14],iconAnchor:[7,7]});
   }
 
@@ -1949,13 +1922,13 @@ function makePin(store,status){
   if(stage==='full'){
     const last=lastDropLabel(store.id);
     return L.divIcon({className:"",
-      html:`<div class="pin-wrap pin-wrap-full"><div class="pin pin-full" style="--pc:var(${pcVar})"><span class="plate">${letter}</span><div class="pin-col"><span class="num">${num}</span><span class="lastdrop">${last}</span></div><span class="tail"></span></div></div>`,
+      html:`<div class="pin-wrap pin-wrap-full"><div class="pin pin-full" style="--pc:${body}"><span class="plate"${plateStyle}>${letter}</span><div class="pin-col"><span class="num">${num}</span><span class="lastdrop">${last}</span></div><span class="tail"></span></div></div>`,
       iconSize:[110,46],iconAnchor:[55,46]});
   }
 
   // ── MIDDLE (12–13): color + store number (no letter tab) ──
   return L.divIcon({className:"",
-    html:`<div class="pin-wrap"><div class="pin pin-mid" style="--pc:var(${pcVar})"><span class="num">${num}</span><span class="tail"></span></div></div>`,
+    html:`<div class="pin-wrap"><div class="pin pin-mid" style="--pc:${body}"><span class="num">${num}</span><span class="tail"></span></div></div>`,
     iconSize:[60,30],iconAnchor:[30,30]});
 }
 
@@ -2186,13 +2159,13 @@ function renderMarkers(){
     if(!store.lat) return;
     const visible=activeDistricts.has("ALL")||activeDistricts.has(store.district);
     const {status}=getStoreStatus(store.id);
-    const icon=districtMapMode?makeDotPin(store):makePin(store,status);
+    const icon=makePin(store,status);
     const m=L.marker([store.lat,store.lng],{
       icon,
-      opacity:districtMapMode?(visible?0.9:0.15):(visible?1:0.3),
+      opacity:visible?1:0.3,
       zIndexOffset:distZ(store.district)
     });
-    if(!districtMapMode) m.bindPopup(()=>buildPopup(store),{maxWidth:320,className:""});
+    m.bindPopup(()=>buildPopup(store),{maxWidth:320,className:""});
     m.addTo(map);
     markers[store.id]=m;
   });
@@ -3487,7 +3460,7 @@ function buildDesktopMap(){
     if(b) b.style.opacity='0';
     updateDistrictChipVisibility(desktopMap);
   });
-  initTiersToggle();
+  applyColorModeClass();
 }
 
 function renderDesktopMarkers(){
@@ -3499,9 +3472,9 @@ function renderDesktopMarkers(){
     if(!store.lat) return;
     const visible=activeDistricts.has('ALL')||activeDistricts.has(store.district);
     const {status}=getStoreStatus(store.id);
-    const icon=districtMapMode?makeDotPin(store):makePin(store,status);
-    const m=L.marker([store.lat,store.lng],{icon,opacity:districtMapMode?(visible?0.9:0.15):(visible?1:0.3),zIndexOffset:distZ(store.district)});
-    m.on('click',()=>{ if(!districtMapMode) openDetailPanel(store.id); });
+    const icon=makePin(store,status);
+    const m=L.marker([store.lat,store.lng],{icon,opacity:visible?1:0.3,zIndexOffset:distZ(store.district)});
+    m.on('click',()=>{ openDetailPanel(store.id); });
     m.addTo(desktopMap);
     desktopMarkers[store.id]=m;
   });
@@ -5665,25 +5638,41 @@ async function openPhotoLightbox(photoId){
 }
 
 // ═══════════════════════════════════════════
-// TIERS TOGGLE — show/hide tier colors on map markers (class flip only)
+// MAP COLOR MODE — district / tier / off, cycled by the floating pill.
+// district: pin body = district color (tier letter stays tier-colored on full pill)
+// tier:     pin body = tier color (letter tab default)
+// off:      neutral dark pins via the existing .tiers-off class flip
 // ═══════════════════════════════════════════
-let tiersOn=(function(){ try{ return localStorage.getItem('map.tiers')!=='off'; }catch(e){ return true; } })();
+const COLOR_MODES=['district','tier','off'];
+let colorMode=(function(){
+  try{
+    const v=localStorage.getItem('map.colorMode');
+    if(COLOR_MODES.includes(v)) return v;
+  }catch(e){}
+  return 'district';
+})();
 
-const EYE_ON_SVG='<svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const MODE_DISTRICT_SVG='<svg viewBox="0 0 24 24"><path d="M9 3 3 5v16l6-2 6 2 6-2V3l-6 2-6-2z"/><path d="M9 3v16M15 5v16"/></svg>';
+const MODE_TIER_SVG='<svg viewBox="0 0 24 24"><path d="m12 2 2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2l-6.1 3.4 1.4-6.8L2.2 9.1l6.9-.8L12 2z"/></svg>';
 const EYE_OFF_SVG='<svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="21" x2="21" y2="3"/></svg>';
+const MODE_PILL={district:{svg:MODE_DISTRICT_SVG,label:'Districts'},tier:{svg:MODE_TIER_SVG,label:'Tiers'},off:{svg:EYE_OFF_SVG,label:'Plain'}};
 
-function initTiersToggle(){
-  document.querySelectorAll('.map-container').forEach(c=>c.classList.toggle('tiers-off',!tiersOn));
+function applyColorModeClass(){
+  document.querySelectorAll('.map-container').forEach(c=>c.classList.toggle('tiers-off',colorMode==='off'));
   document.querySelectorAll('.tiers-toggle').forEach(b=>{
-    b.classList.toggle('off',!tiersOn);
-    b.innerHTML=(tiersOn?EYE_ON_SVG:EYE_OFF_SVG)+'<span>Tiers</span>';
+    b.classList.toggle('off',colorMode==='off');
+    const p=MODE_PILL[colorMode];
+    b.innerHTML=p.svg+'<span>'+p.label+'</span>';
   });
 }
 
-function toggleTiers(){
-  tiersOn=!tiersOn;
-  try{ localStorage.setItem('map.tiers',tiersOn?'on':'off'); }catch(e){}
-  initTiersToggle(); // markers are NOT re-created — CSS transitions handle the crossfade
+function cycleColorMode(){
+  colorMode=COLOR_MODES[(COLOR_MODES.indexOf(colorMode)+1)%COLOR_MODES.length];
+  try{ localStorage.setItem('map.colorMode',colorMode); }catch(e){}
+  applyColorModeClass();
+  // district vs tier changes per-pin colors — re-render both maps
+  if(map) renderMarkers();
+  if(desktopMap) renderDesktopMarkers();
 }
 
 // ═══════════════════════════════════════════
@@ -5704,7 +5693,9 @@ function renderDistrictChips(targetMap){
     let lat=stores.reduce((a,s)=>a+s.lat,0)/stores.length;
     const lng=stores.reduce((a,s)=>a+s.lng,0)/stores.length;
     if(stores.length===1) lat-=0.012; // nudge south so the chip doesn't sit under the lone pin
-    const icon=L.divIcon({className:'',html:`<div class="district-chip">${d}</div>`,iconSize:[0,0],iconAnchor:[0,0]});
+    // District view: chip ink matches the district color; otherwise neutral
+    const chipStyle=colorMode==='district'?` style="border-color:${distColor(d)};color:${distColor(d)}"`:'';
+    const icon=L.divIcon({className:'',html:`<div class="district-chip"${chipStyle}>${d}</div>`,iconSize:[0,0],iconAnchor:[0,0]});
     const m=L.marker([lat,lng],{icon,interactive:false,keyboard:false,zIndexOffset:-1000});
     districtChips[key].push(m);
   });
@@ -5731,7 +5722,7 @@ function applyDistrictDimming(){
     if(!set) return;
     Object.keys(set).forEach(id=>{
       const visible=all||activeDistricts.has(distOf[id]);
-      set[id].setOpacity(districtMapMode?(visible?0.9:0.15):(visible?1:0.3));
+      set[id].setOpacity(visible?1:0.3);
     });
   });
 }
