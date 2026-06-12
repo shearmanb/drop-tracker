@@ -5676,32 +5676,18 @@ function cycleColorMode(){
 }
 
 // ═══════════════════════════════════════════
-// DISTRICT CHIPS + SHADING — labels at store-cluster centroids; in District
-// view each district also gets a translucent colored region (convex hull of
-// its store locations — approximate territory, drawn under all markers).
+// DISTRICT CHIPS — labels at store-cluster centroids, under store markers.
+// No shading/polygons: real district territories are interleaved and twisty,
+// so store-derived hulls misrepresent them (tried and removed).
 // ═══════════════════════════════════════════
-const CHIP_HIDE_ZOOM=PIN_FULL_MIN; // chips/shading hide once full pills appear
+const CHIP_HIDE_ZOOM=PIN_FULL_MIN; // chips hide once full pills appear
 const districtChips={mobile:[],desktop:[]};
-const districtShades={mobile:[],desktop:[]};
-
-// Andrew's monotone chain convex hull on [lat,lng] points
-function convexHull(pts){
-  if(pts.length<3) return null;
-  const p=[...pts].sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
-  const cross=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
-  const lower=[],upper=[];
-  for(const pt of p){ while(lower.length>=2&&cross(lower[lower.length-2],lower[lower.length-1],pt)<=0)lower.pop(); lower.push(pt); }
-  for(const pt of p.reverse()){ while(upper.length>=2&&cross(upper[upper.length-2],upper[upper.length-1],pt)<=0)upper.pop(); upper.push(pt); }
-  return lower.slice(0,-1).concat(upper.slice(0,-1));
-}
 
 function renderDistrictChips(targetMap){
   if(!targetMap) return;
   const key=targetMap===map?'mobile':'desktop';
   districtChips[key].forEach(m=>targetMap.removeLayer(m));
   districtChips[key]=[];
-  districtShades[key].forEach(m=>targetMap.removeLayer(m));
-  districtShades[key]=[];
   const byDist={};
   STORES.forEach(s=>{ if(!s.lat||!s.district) return; (byDist[s.district]=byDist[s.district]||[]).push(s); });
   Object.keys(byDist).forEach(d=>{
@@ -5714,22 +5700,6 @@ function renderDistrictChips(targetMap){
     const icon=L.divIcon({className:'',html:`<div class="district-chip"${chipStyle}>${d}</div>`,iconSize:[0,0],iconAnchor:[0,0]});
     const m=L.marker([lat,lng],{icon,interactive:false,keyboard:false,zIndexOffset:-1000});
     districtChips[key].push(m);
-    // Shading (District view only): hull of store points, padded ~18% from
-    // the centroid so edge stores sit inside the region, not on its border.
-    if(colorMode==='district'){
-      const c=distColor(d);
-      const shadeOpts={color:c,weight:1.5,opacity:0.35,fillColor:c,fillOpacity:0.10,interactive:false};
-      const hull=convexHull(stores.map(s=>[s.lat,s.lng]));
-      let shade=null;
-      if(hull&&hull.length>=3){
-        const padded=hull.map(([la,ln])=>[lat+(la-lat)*1.18,lng+(ln-lng)*1.18]);
-        shade=L.polygon(padded,shadeOpts);
-      } else {
-        // 1–2 stores: a soft circle stands in for the territory
-        shade=L.circle([stores.reduce((a,s)=>a+s.lat,0)/stores.length,lng],{radius:2200,...shadeOpts});
-      }
-      districtShades[key].push(shade);
-    }
   });
   updateDistrictChipVisibility(targetMap);
 }
@@ -5738,7 +5708,7 @@ function updateDistrictChipVisibility(targetMap){
   if(!targetMap) return;
   const key=targetMap===map?'mobile':'desktop';
   const show=targetMap.getZoom()<CHIP_HIDE_ZOOM;
-  districtChips[key].concat(districtShades[key]).forEach(m=>{
+  districtChips[key].forEach(m=>{
     if(show){ if(!targetMap.hasLayer(m)) m.addTo(targetMap); }
     else if(targetMap.hasLayer(m)) targetMap.removeLayer(m);
   });
