@@ -307,10 +307,18 @@ textarea.modal-input{resize:vertical;min-height:56px}
   border-top: 5px solid var(--pc);
   transition: border-top-color 0.15s;
 }
-/* TIERS toggle OFF — neutral plates, letter tab collapses (class flip only) */
+/* Stage variants */
+.pin-wrap-full{height:46px}
+.pin-mid .num{border-radius:5px;padding:5px 8px 4px}
+.pin-col{display:flex;flex-direction:column;justify-content:center}
+.pin-full .num{padding:4px 7px 1px}
+.pin-full .lastdrop{color:#fff;font-weight:600;font-size:9px;letter-spacing:0.02em;padding:0 7px 4px;white-space:nowrap;opacity:0.9}
+.pin-dot{width:11px;height:11px;border-radius:50%;background:var(--pc);border:1.5px solid rgba(255,255,255,0.95);box-shadow:0 2px 6px rgba(0,0,0,0.35);margin:1.5px;transition:background 0.15s}
+/* TIERS toggle OFF — neutral plates/dots, letter tab collapses (class flip only) */
 .map-container.tiers-off .pin { background: #1A1715; }
 .map-container.tiers-off .pin .tail { border-top-color: #1A1715; }
 .map-container.tiers-off .pin .plate { opacity: 0; max-width: 0; padding-left: 0; padding-right: 0; }
+.map-container.tiers-off .pin-dot { background: #1A1715; }
 /* District dimming crossfade — Leaflet setOpacity writes inline opacity on the icon */
 .leaflet-marker-pane .leaflet-marker-icon{transition:opacity 0.15s}
 
@@ -1346,8 +1354,12 @@ function tierColor(t){ return TIER_COLORS[t]||TIER_COLORS.Sp; }
 // District z-index order — D14 on top, D17 second, rest by order
 const DISTRICT_Z = {D14:700,D17:600,D18:500,D07:400,D20:300,D16:200,D12:100};
 
-// Letter-plate pins render identically at every zoom; only district chips
-// are zoom-gated (see CHIP_HIDE_ZOOM).
+// Three-stage zoom-responsive markers: far = color dot, middle = color + store
+// number, near = full pill (tier letter + number + last drop). Markers re-render
+// only when crossing a stage boundary (see the zoomend handlers).
+const PIN_DOT_MAX = 11;   // <=11: color dot only
+const PIN_FULL_MIN = 14;  // >=14: full pill (letter + number + last drop)
+function pinStage(z){ return z<=PIN_DOT_MAX?'dot':(z>=PIN_FULL_MIN?'full':'mid'); }
 
 let STORES=[], DROPS=[], PATTERNS=[], BOTTLES=[], WAVES=[], currentWave=null;
 let analyticsFilters = {};
@@ -1357,6 +1369,7 @@ let pendingDrops=JSON.parse(localStorage.getItem("pendingDrops")||"[]");
 let currentResult="drop", markers={}, recognition=null;
 let userLat=38.9278, userLng=-77.1823;
 let currentZoom=11;
+let currentPinStage=pinStage(currentZoom);
 
 // ── CACHE: allDrops() ──
 // Invalidated whenever DROPS or pendingDrops changes
@@ -1890,6 +1903,8 @@ function buildMap(){
   youMarker=L.marker([userLat,userLng],{icon:yi,zIndexOffset:1000}).addTo(map).bindTooltip("You");
   map.on("zoomend",()=>{
     currentZoom=map.getZoom();
+    const st=pinStage(currentZoom);
+    if(st!==currentPinStage){ currentPinStage=st; renderMarkers(); }
     updateDistrictChipVisibility(map);
   });
   initTiersToggle();
@@ -1907,16 +1922,41 @@ function updateZoomBadge(z){
 // Same plate at every zoom level. TIERS toggle neutralizes via CSS class only.
 const TIER_MAP_VARS = {S:'--tier-s-map',A:'--tier-a-map',B:'--tier-b-map',C:'--tier-c-map'};
 
+function lastDropLabel(storeId){
+  // Most recent confirmed drop across all waves — same source as the popup.
+  const lastDrop=getStoreHistory(storeId).find(h=>h.result==='drop');
+  if(!lastDrop||!lastDrop.timestamp) return '—';
+  const d=new Date(lastDrop.timestamp);
+  if(isNaN(d)) return '—';
+  return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).replace(',','');
+}
+
 function makePin(store,status){
   const num=String(store.id);
   const tier=String(store.tier||'').trim();
   const pcVar=TIER_MAP_VARS[tier]||'--tier-sp-map';
   const letter=TIER_MAP_VARS[tier]?tier:(tier||'S'); // special tier keeps its data value
-  // Fixed transparent container, plate centered — anchor = bottom-center of tail.
-  // .pin-wrap is 80x30; tail extends 5px below the 25px-tall plate.
+  const stage=pinStage(currentZoom);
+
+  // ── FAR (≤11): color dot only — anchor at center of the dot ──
+  if(stage==='dot'){
+    return L.divIcon({className:"",
+      html:`<div class="pin-dot" style="--pc:var(${pcVar})"></div>`,
+      iconSize:[14,14],iconAnchor:[7,7]});
+  }
+
+  // ── NEAR (≥14): full pill — tier letter + store number + last drop ──
+  if(stage==='full'){
+    const last=lastDropLabel(store.id);
+    return L.divIcon({className:"",
+      html:`<div class="pin-wrap pin-wrap-full"><div class="pin pin-full" style="--pc:var(${pcVar})"><span class="plate">${letter}</span><div class="pin-col"><span class="num">${num}</span><span class="lastdrop">${last}</span></div><span class="tail"></span></div></div>`,
+      iconSize:[110,46],iconAnchor:[55,46]});
+  }
+
+  // ── MIDDLE (12–13): color + store number (no letter tab) ──
   return L.divIcon({className:"",
-    html:`<div class="pin-wrap"><div class="pin" style="--pc:var(${pcVar})"><span class="plate">${letter}</span><span class="num">${num}</span><span class="tail"></span></div></div>`,
-    iconSize:[80,30],iconAnchor:[40,30]});
+    html:`<div class="pin-wrap"><div class="pin pin-mid" style="--pc:var(${pcVar})"><span class="num">${num}</span><span class="tail"></span></div></div>`,
+    iconSize:[60,30],iconAnchor:[30,30]});
 }
 
 function timeSince(ts){
@@ -3441,6 +3481,8 @@ function buildDesktopMap(){
   desktopYouMarker=L.marker([userLat,userLng],{icon:yi,zIndexOffset:1000}).addTo(desktopMap).bindTooltip('You');
   desktopMap.on('zoomend',()=>{
     currentZoom=desktopMap.getZoom();
+    const st=pinStage(currentZoom);
+    if(st!==currentPinStage){ currentPinStage=st; renderDesktopMarkers(); }
     const b=document.getElementById('desktop-zoom-badge');
     if(b) b.style.opacity='0';
     updateDistrictChipVisibility(desktopMap);
@@ -5647,7 +5689,7 @@ function toggleTiers(){
 // ═══════════════════════════════════════════
 // DISTRICT CENTROID CHIPS — neutral map labels, under store markers
 // ═══════════════════════════════════════════
-const CHIP_HIDE_ZOOM=13; // chips hide once a single district roughly fills the screen
+const CHIP_HIDE_ZOOM=14; // chips ride along through the dot + number stages, hide once full pills appear (street level)
 const districtChips={mobile:[],desktop:[]};
 
 function renderDistrictChips(targetMap){
