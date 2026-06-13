@@ -57,9 +57,9 @@
   /* ── FIXED tokens — never themed ── */
   --chrome:#9A9AA8;--chrome-bright:#C4C4D0;
   --blue:#18213A;--blue-border:#2C3B5E;--blue-bright:#5E8FD8;
-  --tier-s:#C9411A;--tier-a:#2A7A3B;--tier-b:#1A5C9E;--tier-c:#8A7020;--tier-special:#0E7272;
+  --tier-s:#BC2B38;--tier-a:#1B8044;--tier-b:#2558CE;--tier-c:#C44E1A;--tier-special:#8535BA;
   /* Map-only tier fills — brighter so solid plates read on the light basemap */
-  --tier-s-map:#D6431A;--tier-a-map:#2E8C42;--tier-b-map:#2268B8;--tier-c-map:#A07A14;--tier-sp-map:#0E8484;
+  --tier-s-map:#CC303F;--tier-a-map:#1E9050;--tier-b-map:#2B65E0;--tier-c-map:#D45820;--tier-sp-map:#9540CC;
   --font-display:'Oswald',system-ui,sans-serif;
   --font-body:'Barlow',system-ui,sans-serif;
   /* ── THEMEABLE tokens — defaults = barrel-char; overridden per [data-theme] below ── */
@@ -654,10 +654,10 @@ body.desktop #mobile-search-btn{display:none}
 /* ═══ F10: IDLE FILL-IN MODE ═══ */
 #fillin-progress{margin-bottom:12px}
 #fillin-prog-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:6px}
-#fillin-prog-fill{height:100%;background:#0E7272;border-radius:2px;transition:width 0.3s}
+#fillin-prog-fill{height:100%;background:#8535BA;border-radius:2px;transition:width 0.3s}
 #fillin-prog-label{font-size:11px;color:var(--muted);text-align:center}
 .fillin-card{background:var(--bg-2);border:1px solid var(--border-0);border-radius:10px;padding:18px;width:100%;max-width:420px;margin-bottom:12px}
-.fillin-task-type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#0E7272;margin-bottom:4px}
+.fillin-task-type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8535BA;margin-bottom:4px}
 .fillin-store{font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:0.01em;color:var(--ember);margin-bottom:2px}
 .fillin-context{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5}
 .fillin-field{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;margin-bottom:10px}
@@ -712,7 +712,7 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
 .ef-q.sel{border-color:var(--accent);background:rgba(192,74,32,0.12);color:var(--accent)}
 .ef-topbottle{display:flex;gap:6px;margin-top:4px}
 .ef-tb{flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;text-align:center;font-family:inherit}
-.ef-tb.sel{border-color:#0E7272;background:rgba(14,114,114,0.12);color:#5FC2C2}
+.ef-tb.sel{border-color:#8535BA;background:rgba(133,53,186,0.12);color:#C07EE8}
 .ef-divider{height:1px;background:var(--border);margin:8px 0}
 .ef-store-confirm{font-size:11px;margin-top:4px;padding:4px 8px;border-radius:6px;display:none}
 .ef-store-confirm.found{display:block;background:rgba(62,155,85,0.1);color:#6FC287;border:1px solid rgba(62,155,85,0.2)}
@@ -1343,7 +1343,7 @@ setInterval(updateSyncBadge, 30000);
 // tier, app-wide. distColor() returns a single neutral ink for every district.
 
 // Tier colors — rarity/priority coding, must stay distinct
-const TIER_COLORS = {S:"#C9411A",A:"#2A7A3B",B:"#1A5C9E",C:"#8A7020",Sp:"#0E7272"};
+const TIER_COLORS = {S:"#BC2B38",A:"#1B8044",B:"#2558CE",C:"#C44E1A",Sp:"#8535BA"};
 function tierColor(t){ return TIER_COLORS[t]||TIER_COLORS.Sp; }
 
 // District z-index order — D14 on top, D17 second, rest by order
@@ -2255,10 +2255,10 @@ async function _syncFromSheetCore(){
 const BOTTLE_LOOKUP = {};
 
 function bottleTierColors(tier){
-  if(tier==='S') return {bg:'#C9411A',color:'#F7E9E3',border:'#C9411A'};
-  if(tier==='A') return {bg:'#2A7A3B',color:'#E8F2EA',border:'#2A7A3B'};
-  if(tier==='B') return {bg:'#1A5C9E',color:'#E4ECF5',border:'#1A5C9E'};
-  return {bg:'#8A7020',color:'#F4EFDE',border:'#8A7020'};
+  if(tier==='S') return {bg:'#BC2B38',color:'#F7E9E3',border:'#BC2B38'};
+  if(tier==='A') return {bg:'#1B8044',color:'#E8F2EA',border:'#1B8044'};
+  if(tier==='B') return {bg:'#2558CE',color:'#E4ECF5',border:'#2558CE'};
+  return {bg:'#C44E1A',color:'#F4EFDE',border:'#C44E1A'};
 }
 
 function normalizeBottlesText(text){
@@ -4698,7 +4698,7 @@ function renderDesktopFillinCard(){
         onkeydown="if(event.key==='Enter') saveDesktopFillin()">
       <div style="display:flex;gap:8px;margin-top:10px">
         <button onclick="skipDesktopFillin()" style="flex:1;padding:10px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Skip →</button>
-        <button onclick="saveDesktopFillin()" style="flex:2;padding:10px;border-radius:8px;background:#0E7272;border:none;color:#F2EAE5;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Save ✓</button>
+        <button onclick="saveDesktopFillin()" style="flex:2;padding:10px;border-radius:8px;background:#8535BA;border:none;color:#F2EAE5;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Save ✓</button>
       </div>
     </div>
   `;
@@ -4752,7 +4752,7 @@ function renderFillinCard(){
     <input class="fillin-field" id="fillin-input" type="text" placeholder="${task.placeholder}" autocomplete="off">
     <div class="fillin-actions">
       <button class="fillin-btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border)" onclick="skipFillin()">Skip →</button>
-      <button class="fillin-btn" style="background:#0E7272;color:#F2EAE5" onclick="saveFillin()">Save ✓</button>
+      <button class="fillin-btn" style="background:#8535BA;color:#F2EAE5" onclick="saveFillin()">Save ✓</button>
     </div>
   </div>`;
   setTimeout(()=>document.getElementById('fillin-input')?.focus(), 100);
@@ -5003,7 +5003,7 @@ function buildBtKnownList(){
   c.innerHTML = bottles.map(b=>{
     const isLocal = String(b.id).startsWith('local_');
     const isEdited = edits[b.id];
-    const indicator = isLocal ? '<span style="font-size:9px;color:#0E7272;font-weight:700;margin-left:4px">local</span>'
+    const indicator = isLocal ? '<span style="font-size:9px;color:#8535BA;font-weight:700;margin-left:4px">local</span>'
                     : isEdited ? '<span style="font-size:9px;color:var(--accent);font-weight:700;margin-left:4px">edited</span>' : '';
     const panelOnclick = p==='' ? `onclick="if(!event.target.closest('.bt-edit-btn'))openBottlePanel(${b.id})"` : '';
     return `<div class="bt-row" id="${p}bt-known-${b.id}" ${panelOnclick}>
