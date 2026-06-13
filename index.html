@@ -170,7 +170,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg-0);color:var(--text-pr
 .badge-A{background:var(--tier-a);color:#E8F2EA}
 .badge-B{background:var(--tier-b);color:#E4ECF5}
 .badge-C{background:var(--tier-c);color:#F4EFDE}
-
+.badge-hh22{background:var(--ember-dim);color:#F0C4AC}
+.badge-bb30{background:var(--tier-special);color:#D8F0F0}
 .scard-stats{display:flex;gap:6px;margin-bottom:10px}
 .sstat{flex:1;background:var(--bg-2);border:1px solid var(--border-0);border-radius:6px;padding:6px 8px}
 .sstat-label{font-family:var(--font-display);font-size:9px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px}
@@ -2045,6 +2046,8 @@ function _buildPopupCore(store){
   // Badges
   const badges=`<div class="scard-badges">
     <span class="badge badge-${store.tier}">${store.tier}</span>
+    ${store.hh22?'<span class="badge badge-hh22">HH22</span>':""}
+    ${store.bb30?'<span class="badge badge-bb30">BB30</span>':""}
   </div>`;
 
   // ── TAB A: SUMMARY ──
@@ -3922,7 +3925,7 @@ function openDetailPanel(storeId){
   if(status==='drop'){const ts=drop&&drop.timestamp?timeSince(drop.timestamp):'time unknown';statusHTML=`<div class="dp-status ds-drop">✓ Dropped · ${ts}</div>`;}
   else if(status==='no_drop'){statusHTML=`<div class="dp-status ds-nodrop">✕ No Drop Confirmed</div>`;}
   else{statusHTML=`<div class="dp-status ds-unknown">? No Data This Cycle</div>`;}
-  const badges=`<div class="dp-badges"><span class="badge badge-${store.tier}">${store.tier}</span></div>`;
+  const badges=`<div class="dp-badges"><span class="badge badge-${store.tier}">${store.tier}</span>${store.hh22?'<span class="badge badge-hh22">HH22</span>':""}${store.bb30?'<span class="badge badge-bb30">BB30</span>':""}</div>`;
   const actions=status==='drop'
     ?`<button class="dp-btn btn-danger" onclick="quickMark(${storeId},'no_drop')">Cleaned Out</button><button class="dp-btn btn-primary" onclick="quickMark(${storeId},'scored')">Got One</button>`
     :`<button class="dp-btn btn-primary" onclick="quickDrop(${storeId});closeDetailPanel()">Quick Drop</button><button class="dp-btn btn-secondary" onclick="openModalForStore(${storeId})">Log</button><button class="dp-btn btn-secondary" onclick="openDirections(${store.lat},${store.lng})">~${driveTime} ↗</button>`;
