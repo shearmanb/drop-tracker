@@ -344,17 +344,6 @@ textarea.modal-input{resize:vertical;min-height:56px}
 #map-wrap .tiers-toggle{bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 #desktop-map-wrap .tiers-toggle{bottom:48px}
 
-/* ═══ DISTRICT CENTROID CHIPS (map labels — neutral, never tier-colored) ═══ */
-.district-chip {
-  background: rgba(255,255,255,0.85);
-  border: 1px solid #5C6B7B; color: #5C6B7B;
-  font-family: var(--font-display);
-  font-weight: 700; font-size: 11px; letter-spacing: 0.08em;
-  padding: 2px 7px; border-radius: 4px;
-  pointer-events: none;
-  display:inline-block;white-space:nowrap;transform:translate(-50%,-50%)
-}
-
 /* ═══ DISTRICT PILL COVERAGE BARS ═══ */
 .pill-progress { height: 2px; border-radius: 1px; background: rgba(255,255,255,0.10); width:100%; margin-top:3px }
 .pill-progress-fill { height: 2px; border-radius: 1px; background: var(--ember); min-width: 4%; }
@@ -1870,7 +1859,6 @@ function buildMap(){
     currentZoom=map.getZoom();
     const st=pinStage(currentZoom);
     if(st!==currentPinStage){ currentPinStage=st; renderMarkers(); }
-    updateDistrictChipVisibility(map);
   });
   applyColorModeClass();
 }
@@ -2169,7 +2157,6 @@ function renderMarkers(){
     m.addTo(map);
     markers[store.id]=m;
   });
-  renderDistrictChips(map);
 }
 
 function switchSTab(uid, tab){
@@ -3458,7 +3445,6 @@ function buildDesktopMap(){
     if(st!==currentPinStage){ currentPinStage=st; renderDesktopMarkers(); }
     const b=document.getElementById('desktop-zoom-badge');
     if(b) b.style.opacity='0';
-    updateDistrictChipVisibility(desktopMap);
   });
   applyColorModeClass();
 }
@@ -3478,7 +3464,6 @@ function renderDesktopMarkers(){
     m.addTo(desktopMap);
     desktopMarkers[store.id]=m;
   });
-  renderDistrictChips(desktopMap);
 }
 
 // ═══ PATTERN ANALYSIS ═══
@@ -5673,45 +5658,6 @@ function cycleColorMode(){
   // district vs tier changes per-pin colors — re-render both maps
   if(map) renderMarkers();
   if(desktopMap) renderDesktopMarkers();
-}
-
-// ═══════════════════════════════════════════
-// DISTRICT CHIPS — labels at store-cluster centroids, under store markers.
-// No shading/polygons: real district territories are interleaved and twisty,
-// so store-derived hulls misrepresent them (tried and removed).
-// ═══════════════════════════════════════════
-const CHIP_HIDE_ZOOM=PIN_FULL_MIN; // chips hide once full pills appear
-const districtChips={mobile:[],desktop:[]};
-
-function renderDistrictChips(targetMap){
-  if(!targetMap) return;
-  const key=targetMap===map?'mobile':'desktop';
-  districtChips[key].forEach(m=>targetMap.removeLayer(m));
-  districtChips[key]=[];
-  const byDist={};
-  STORES.forEach(s=>{ if(!s.lat||!s.district) return; (byDist[s.district]=byDist[s.district]||[]).push(s); });
-  Object.keys(byDist).forEach(d=>{
-    const stores=byDist[d];
-    let lat=stores.reduce((a,s)=>a+s.lat,0)/stores.length;
-    const lng=stores.reduce((a,s)=>a+s.lng,0)/stores.length;
-    if(stores.length===1) lat-=0.012; // nudge south so the chip doesn't sit under the lone pin
-    // District view: chip ink matches the district color; otherwise neutral
-    const chipStyle=colorMode==='district'?` style="border-color:${distColor(d)};color:${distColor(d)}"`:'';
-    const icon=L.divIcon({className:'',html:`<div class="district-chip"${chipStyle}>${d}</div>`,iconSize:[0,0],iconAnchor:[0,0]});
-    const m=L.marker([lat,lng],{icon,interactive:false,keyboard:false,zIndexOffset:-1000});
-    districtChips[key].push(m);
-  });
-  updateDistrictChipVisibility(targetMap);
-}
-
-function updateDistrictChipVisibility(targetMap){
-  if(!targetMap) return;
-  const key=targetMap===map?'mobile':'desktop';
-  const show=targetMap.getZoom()<CHIP_HIDE_ZOOM;
-  districtChips[key].forEach(m=>{
-    if(show){ if(!targetMap.hasLayer(m)) m.addTo(targetMap); }
-    else if(targetMap.hasLayer(m)) targetMap.removeLayer(m);
-  });
 }
 
 // ═══════════════════════════════════════════
