@@ -252,6 +252,15 @@ textarea.modal-input{resize:vertical;min-height:56px}
 #custom-hue::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:var(--ember);border:2px solid #fff;cursor:pointer}
 #custom-hue::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--ember);border:2px solid #fff;cursor:pointer}
 .settings-preview-label{font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-muted);margin:14px 0 8px;padding-top:12px;border-top:1px solid var(--border-0)}
+.rh-apps-title{font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-muted);margin:14px 0 8px;padding-top:12px;border-top:1px solid var(--border-0)}
+.rh-list{display:flex;flex-direction:column;gap:6px}
+.rh-app{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:8px;background:var(--bg-2);border:1px solid var(--border-0);text-decoration:none;transition:border-color 0.15s}
+.rh-app:hover{border-color:var(--ember)}
+.rh-app .rh-name{font-family:var(--font-display);font-weight:600;font-size:13px;letter-spacing:0.04em;color:var(--text-primary)}
+.rh-app .rh-tag{font-family:var(--font-body);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-secondary)}
+.rh-app.current{border-style:dashed;opacity:0.7}
+.rh-app.current:hover{border-color:var(--border-0)}
+.rh-app.current .rh-tag::after{content:' · here';color:var(--ember-bright)}
 #hunt-list{padding:10px 12px}
 .hunt-card{position:relative;background:var(--bg-2);border:1px solid var(--border-0);border-radius:10px;padding:10px 12px 10px 16px;margin-bottom:10px;overflow:hidden}
 .hunt-accent{position:absolute;left:0;top:0;bottom:0;width:4px}
@@ -1307,6 +1316,13 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     <div id="theme-rows"></div>
     <div class="settings-preview-label">Preview</div>
     <div id="theme-preview"></div>
+    <div class="rh-apps-title">RickHouse Apps</div>
+    <div class="rh-list">
+      <div class="rh-app current"><span class="rh-name">Unicorn Slayer</span><span class="rh-tag">Hunting</span></div>
+      <a class="rh-app" href="https://shearmanb.github.io/beacon/"><span class="rh-name">Beacon</span><span class="rh-tag">Tracking</span></a>
+      <a class="rh-app" href="https://cellar-production-1ba7.up.railway.app/bottles"><span class="rh-name">Cellar</span><span class="rh-tag">Bottle DB</span></a>
+      <a class="rh-app" href="https://finish-production-0ad6.up.railway.app/"><span class="rh-name">Finish</span><span class="rh-tag">Tasting</span></a>
+    </div>
   </div>
 </div>
 
