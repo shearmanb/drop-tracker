@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drop Pipeline — Bookmarklet Installer</title>
+<style>
+  :root{
+    --bg:#0d1117; --surface:#161b22; --surface2:#21262d; --border:#30363d;
+    --text:#e6edf3; --muted:#7d8590; --accent:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:760px;margin:0 auto;padding:28px 18px 80px}
+  h1{font-size:22px;margin:0 0 4px} h2{font-size:16px;margin:28px 0 10px;color:var(--accent)}
+  p{color:var(--muted);margin:8px 0}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin:16px 0}
+  label{display:block;font-weight:600;font-size:13px;margin:12px 0 4px}
+  input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+    color:var(--text);padding:10px 12px;font:14px monospace}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+  .bm{display:inline-block;background:var(--accent);color:#1a1205;font-weight:700;text-decoration:none;
+    padding:11px 18px;border-radius:9px;cursor:grab}
+  .bm:active{cursor:grabbing}
+  button{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+    border-radius:8px;padding:10px 14px;font-weight:600;cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  code{background:var(--surface2);padding:2px 6px;border-radius:5px;font-size:13px}
+  .ok{color:#3fb950} .bad{color:#f85149}
+  ol{color:var(--muted)} ol li{margin:6px 0}
+  .pill{font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:3px 9px}
+  a.alt{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🥃 Drop Pipeline — Bookmarklet Installer</h1>
+  <p>Two one-click capture tools. Paste your settings once, then drag each button to your bookmarks bar.</p>
+
+  <div class="card">
+    <h2 style="margin-top:0">1 · Your settings</h2>
+    <label>Apps Script Web App URL (the <code>/exec</code> link, or <code>/dev</code> while testing)</label>
+    <input id="scriptUrl" placeholder="https://script.google.com/macros/s/AKfy.../exec">
+    <label>Token <span class="pill">optional — leave blank if you didn't set one</span></label>
+    <input id="token" placeholder="(matches PIPELINE_TOKEN in the Apps Script)">
+    <div class="row">
+      <button id="save">Save settings</button>
+      <span id="status" class="pill">not saved</span>
+    </div>
+    <p style="margin-top:10px">These are stored only in this browser and shared with the Worklist app.</p>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">2 · Drag these to your bookmarks bar</h2>
+    <p id="buildmsg">Building bookmarklets…</p>
+    <div class="row">
+      <a class="bm" id="bmFirehose" href="#" draggable="true">🔥 Capture Channel</a>
+      <button data-copy="bmFirehose">Copy</button>
+      <span class="pill">use on a geographic channel → raw_channel (incl. nadas)</span>
+    </div>
+    <div class="row">
+      <a class="bm" id="bmThread" href="#" draggable="true">🧵 Capture Thread</a>
+      <button data-copy="bmThread">Copy</button>
+      <span class="pill">use inside one drop thread → raw_threads</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">3 · How to use</h2>
+    <ol>
+      <li>Show your bookmarks bar (Ctrl/Cmd&nbsp;+&nbsp;Shift&nbsp;+&nbsp;B).</li>
+      <li>Drag both buttons above onto it. (If dragging won't stick, click <b>Copy</b>, then make a new bookmark and paste the copied text as the URL.)</li>
+      <li>Open Discord <b>in your browser</b> (not the desktop app — bookmarklets need a browser tab).</li>
+      <li>On a geographic <b>channel</b>, click <b>🔥 Capture Channel</b>. Inside a drop <b>thread</b>, click <b>🧵 Capture Thread</b>.</li>
+      <li>Scroll up to load older messages, then click again — re-clicks never create duplicates.</li>
+    </ol>
+    <p>A green banner confirms how many messages were sent. (The send is fire-and-forget, so a green banner means "sent", not "stored" — verify rows in the Sheet the first few times.)</p>
+  </div>
+</div>
+
+<script>
+  var $ = function(id){ return document.getElementById(id); };
+  var LS = { url:'dp.scriptUrl', token:'dp.token' };
+
+  // Readable source lives in bookmarklets/*.js (single source of truth). Fetch + inject config.
+  var SRC = {
+    firehose: 'bookmarklets/firehose.js',
+    thread:   'bookmarklets/thread.js'
+  };
+  var cache = {};
+
+  function loadSettings(){
+    $('scriptUrl').value = localStorage.getItem(LS.url) || '';
+    $('token').value = localStorage.getItem(LS.token) || '';
+  }
+  function saveSettings(){
+    localStorage.setItem(LS.url, $('scriptUrl').value.trim());
+    localStorage.setItem(LS.token, $('token').value.trim());
+    $('status').textContent = 'saved ✓'; $('status').className = 'pill ok';
+    build();
+  }
+
+  function makeBookmarklet(src){
+    var url = ($('scriptUrl').value || '').trim();
+    var tok = ($('token').value || '').trim();
+    var code = src.replace('__SCRIPT_URL__', url).replace('__TOKEN__', tok);
+    return 'javascript:' + encodeURIComponent(code);
+  }
+
+  function build(){
+    var url = ($('scriptUrl').value || '').trim();
+    if(!url){ $('buildmsg').innerHTML = '<span class="bad">Enter your Apps Script URL above, then Save.</span>'; return; }
+    Promise.all([fetchSrc('firehose'), fetchSrc('thread')]).then(function(){
+      $('bmFirehose').href = makeBookmarklet(cache.firehose);
+      $('bmThread').href   = makeBookmarklet(cache.thread);
+      $('buildmsg').innerHTML = '<span class="ok">Ready — drag the buttons below to your bookmarks bar.</span>';
+    }).catch(function(){
+      $('buildmsg').innerHTML = '<span class="bad">Couldn\'t load the bookmarklet source. '
+        + 'Open this page from your GitHub Pages URL (…github.io/drop-tracker/pipeline/install.html), not a local file.</span>';
+    });
+  }
+
+  function fetchSrc(key){
+    if(cache[key]) return Promise.resolve(cache[key]);
+    return fetch(SRC[key]).then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); })
+      .then(function(t){ cache[key] = t; return t; });
+  }
+
+  document.querySelectorAll('button[data-copy]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var a = $(b.getAttribute('data-copy'));
+      navigator.clipboard.writeText(a.href).then(function(){ b.textContent = 'Copied ✓'; setTimeout(function(){ b.textContent='Copy'; },1500); });
+    });
+  });
+
+  $('save').addEventListener('click', saveSettings);
+  loadSettings(); build();
+</script>
+</body>
+</html>

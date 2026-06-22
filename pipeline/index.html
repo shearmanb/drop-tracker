@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drop Pipeline — Worklist & Review</title>
+<style>
+  :root{
+    --bg:#0d1117; --surface:#161b22; --surface2:#21262d; --border:#30363d;
+    --text:#e6edf3; --muted:#7d8590; --accent:#f59e0b; --good:#3fb950; --bad:#f85149; --blue:#2563eb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  header{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  header h1{font-size:16px;margin:0;color:var(--accent)}
+  nav{display:flex;gap:4px;flex-wrap:wrap}
+  nav button{background:transparent;border:1px solid transparent;color:var(--muted);border-radius:8px;padding:7px 12px;font-weight:600;cursor:pointer}
+  nav button.active{background:var(--surface2);color:var(--text);border-color:var(--border)}
+  nav button:hover{color:var(--text)}
+  #conn{margin-left:auto;font-size:12px;color:var(--muted)}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:5px;vertical-align:middle}
+  .dot.ok{background:var(--good)} .dot.bad{background:var(--bad)}
+  main{max-width:1080px;margin:0 auto;padding:18px 16px 90px}
+  section{display:none} section.active{display:block}
+  h2{font-size:15px;color:var(--accent);margin:22px 0 10px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin:12px 0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .stat{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px}
+  .stat b{display:block;font-size:22px} .stat span{color:var(--muted);font-size:12px}
+  button.act{background:var(--accent);color:#1a1205;border:none;border-radius:9px;padding:10px 16px;font-weight:700;cursor:pointer}
+  button.act.sec{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+  button.act:disabled{opacity:.5;cursor:not-allowed}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  label{font-weight:600;font-size:13px}
+  input,select,textarea{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 11px;font:13px system-ui}
+  textarea{width:100%;min-height:150px;font-family:ui-monospace,monospace}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--surface)}
+  .tag{font-size:11px;border:1px solid var(--border);border-radius:999px;padding:2px 8px;color:var(--muted)}
+  .tag.drop{color:var(--good);border-color:var(--good)} .tag.nada{color:var(--bad);border-color:var(--bad)}
+  .tag.leftover{color:var(--accent);border-color:var(--accent)}
+  .muted{color:var(--muted)} .small{font-size:12px}
+  .log{font-family:ui-monospace,monospace;font-size:12px;white-space:pre-wrap;color:var(--muted);max-height:200px;overflow:auto}
+  .pill{font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:3px 9px}
+  .scroll{max-height:460px;overflow:auto;border:1px solid var(--border);border-radius:10px}
+  .ev{font-size:12px;color:var(--muted);margin:4px 0}
+  hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>🥃 Drop Pipeline</h1>
+  <nav id="nav">
+    <button data-tab="dashboard" class="active">Dashboard</button>
+    <button data-tab="threads">Threads</button>
+    <button data-tab="waves">Waves</button>
+    <button data-tab="lexicon">Lexicon</button>
+    <button data-tab="review">Review</button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+  <div id="conn"><span class="dot" id="connDot"></span><span id="connTxt">not connected</span></div>
+</header>
+
+<main>
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="active">
+    <div class="row">
+      <button class="act" id="btnLoad">↻ Load data</button>
+      <button class="act sec" id="btnParse">⚙ Parse channel → checks + Drops</button>
+      <button class="act sec" id="btnDerive">∑ Recompute derived fields</button>
+    </div>
+    <div class="grid" id="stats" style="margin-top:14px"></div>
+
+    <h2>Worklist — drops that still need their thread captured</h2>
+    <div class="card">
+      <div class="muted small" id="worklistNote">Run “Parse channel” first to build the drop index.</div>
+      <div class="scroll" id="worklist" style="margin-top:10px"></div>
+    </div>
+
+    <h2>Activity</h2>
+    <div class="card"><div class="log" id="log">Ready.</div></div>
+  </section>
+
+  <!-- THREADS -->
+  <section id="threads">
+    <h2>Thread intake — paste the parser artifact's JSON</h2>
+    <div class="card">
+      <p class="muted small">Paste one JSON object (or an array of them) from the thread-parser artifact
+        (see <code>artifact-prompt.md</code>). Preview maps it to a Drops row + bottle tokens; Resolve looks
+        the tokens up in Cellar; Save writes everything.</p>
+      <textarea id="threadJson" placeholder='{ "store":267, "reportedTS":"2026-04-27T09:30", ... }'></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="act sec" id="btnPreview">Preview</button>
+        <button class="act sec" id="btnResolve">Resolve bottles</button>
+        <button class="act" id="btnSaveThread" disabled>Save drop</button>
+      </div>
+    </div>
+    <div id="threadPreview"></div>
+  </section>
+
+  <!-- WAVES -->
+  <section id="waves">
+    <div class="row">
+      <button class="act" id="btnSuggest">✨ Suggest waves for unassigned drops</button>
+      <span class="pill" id="waveWindow">window ±9 days · signature overlap ≥ 35%</span>
+    </div>
+    <h2>Suggested waves (confirm to lock)</h2>
+    <div id="waveSuggestions"></div>
+    <h2>Confirmed waves (locked)</h2>
+    <div class="card scroll" id="confirmedWaves"></div>
+  </section>
+
+  <!-- LEXICON -->
+  <section id="lexicon">
+    <h2>Lexicon review — classify unknown non-bottle terms</h2>
+    <div class="card">
+      <p class="muted small">Terms collected by the parsers that need a type. Bottle names do NOT belong here
+        (they live in Cellar) — classify these as sentiment / negative-cue / status-cue / joke / noise.</p>
+      <div class="scroll" id="lexiconList"></div>
+    </div>
+    <h2>All confirmed terms</h2>
+    <div class="card scroll" id="lexiconAll"></div>
+  </section>
+
+  <!-- REVIEW -->
+  <section id="review">
+    <h2>Drops flagged “Needs Review”</h2>
+    <div class="card scroll" id="reviewDrops"></div>
+    <h2>Unresolved bottle tokens</h2>
+    <div class="card scroll" id="reviewBottles"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="settings">
+    <h2>Connection</h2>
+    <div class="card">
+      <label>Apps Script Web App URL (<code>/exec</code>, or <code>/dev</code> while testing)</label>
+      <input id="setUrl" style="width:100%;margin:6px 0 12px" placeholder="https://script.google.com/macros/s/AKfy.../exec">
+      <label>Token <span class="pill">optional</span></label>
+      <input id="setToken" style="width:100%;margin:6px 0 12px" placeholder="(matches PIPELINE_TOKEN)">
+      <div class="row">
+        <button class="act" id="btnSaveSettings">Save</button>
+        <button class="act sec" id="btnPing">Test connection</button>
+        <span id="pingMsg" class="pill"></span>
+      </div>
+      <p class="muted small" style="margin-top:10px">Bottle lookups (Cellar) are proxied through the Apps Script,
+        so the Cellar URL lives in <code>Code.gs</code>, not here.</p>
+    </div>
+    <h2>Bottle cache</h2>
+    <div class="card row">
+      <button class="act sec" id="btnLoadBottles">Refresh Cellar bottle list</button>
+      <span class="pill" id="bottleCount">no bottles loaded</span>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ============================ config & state ============================ */
+var LS = { url:'dp.scriptUrl', token:'dp.token', bottles:'dp.bottles' };
+var CFG = { url: localStorage.getItem(LS.url)||'', token: localStorage.getItem(LS.token)||'' };
+var PARSER_VERSION = 'v1';
+var TABS = ['Drops','checks','raw_channel','raw_threads','Waves','lexicon','drop_bottles','Stores'];
+var DATA = {}; TABS.forEach(function(t){ DATA[t]=[]; });
+var BOTTLES = JSON.parse(localStorage.getItem(LS.bottles)||'[]'); // [{id,name,shortcodes,tier,...}]
+var threadState = { parsed:null, resolved:null };
+
+var TIER_SCORE = { S:4, A:3, B:2, C:1 };
+function tierScore(t){ return TIER_SCORE[String(t||'').trim().toUpperCase()] || 0; }
+
+/* ============================ tiny helpers ============================ */
+var $ = function(s,el){ return (el||document).querySelector(s); };
+var $$ = function(s,el){ return Array.prototype.slice.call((el||document).querySelectorAll(s)); };
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function log(msg){ var el=$('#log'); el.textContent = '['+new Date().toLocaleTimeString()+'] '+msg+'\n'+el.textContent; }
+function setConn(ok,txt){ $('#connDot').className='dot '+(ok?'ok':'bad'); $('#connTxt').textContent=txt; }
+
+/* ============================ Apps Script API ============================ */
+function api(action, params){
+  if(!CFG.url) return Promise.reject(new Error('Set the Apps Script URL in Settings'));
+  var qs = '?action='+encodeURIComponent(action)+'&token='+encodeURIComponent(CFG.token||'');
+  Object.keys(params||{}).forEach(function(k){ qs += '&'+k+'='+encodeURIComponent(params[k]); });
+  return fetch(CFG.url+qs).then(function(r){ return r.json(); });
+}
+function getTab(tab){ return api('getTab',{tab:tab}).then(function(d){ return d.rows||[]; }); }
+function resolveTokens(tokens){ return api('resolve',{q:tokens.join(',')}); }
+
+// write rows, chunked so the GET URL never gets too long
+function writeRows(tab, rows, key){
+  if(!rows.length) return Promise.resolve({updated:0,appended:0});
+  var chunks=[], cur=[], len=0;
+  rows.forEach(function(r){
+    var s=JSON.stringify(r);
+    // keep each batch small so the URL-encoded GET stays well under Apps Script limits
+    if(len+s.length>1800 && cur.length){ chunks.push(cur); cur=[]; len=0; }
+    cur.push(r); len+=s.length;
+  });
+  if(cur.length) chunks.push(cur);
+  var totals={updated:0,appended:0};
+  return chunks.reduce(function(p,chunk){
+    return p.then(function(){
+      var params={tab:tab, data:JSON.stringify(chunk)}; if(key) params.key=key;
+      return api('write',params).then(function(d){ totals.updated+=d.updated||0; totals.appended+=d.appended||0; });
+    });
+  }, Promise.resolve()).then(function(){ return totals; });
+}
+
+/* ============================ store / bottle lookups ============================ */
+function storeDistrict(id){ var s=DATA.Stores.find(function(x){return String(x.id)===String(id);}); return s?s.district:''; }
+function storeLabel(id){ var s=DATA.Stores.find(function(x){return String(x.id)===String(id);}); return s?s.label:''; }
+function knownStore(id){ return DATA.Stores.some(function(x){return String(x.id)===String(id);}); }
+function bottleById(id){ return BOTTLES.find(function(b){return String(b.id)===String(id);}); }
+
+/* ============================ EST date parts ============================ */
+// Canonical "YYYY-MM-DDTHH:MM" in Eastern time. BOTH the channel parser and the thread
+// intake build dropId from this, so the same real drop joins (the channel !drop message
+// and the thread root are the same Discord message → same Eastern minute).
+function canonTS(ts){
+  if(!ts) return '';
+  var d=new Date(ts); if(isNaN(d)) return String(ts).slice(0,16);
+  try{
+    var f=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',hour12:false,
+      year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).formatToParts(d);
+    var g=function(t){ return (f.find(function(x){return x.type===t;})||{}).value; };
+    var hh=g('hour'); if(hh==='24') hh='00';
+    return g('year')+'-'+g('month')+'-'+g('day')+'T'+hh+':'+g('minute');
+  }catch(e){ return String(ts).slice(0,16); }
+}
+function estParts(ts){
+  if(!ts) return null;
+  var d=new Date(ts); if(isNaN(d)) return null;
+  try{
+    var f=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour12:false,
+      weekday:'short',hour:'2-digit',minute:'2-digit'}).formatToParts(d);
+    var get=function(t){ var p=f.find(function(x){return x.type===t;}); return p?p.value:''; };
+    var dows={Sun:1,Mon:2,Tue:3,Wed:4,Thu:5,Fri:6,Sat:7};
+    var hh=parseInt(get('hour'),10), mm=parseInt(get('minute'),10);
+    return { minutes: hh*60+mm, dow: dows[get('weekday')]||'' };
+  }catch(e){ return { minutes: d.getHours()*60+d.getMinutes(), dow: d.getDay()+1 }; }
+}
+
+/* ============================ load + dashboard ============================ */
+function loadAll(){
+  log('Loading all tabs…');
+  return Promise.all(TABS.map(function(t){ return getTab(t).then(function(rows){ DATA[t]=rows; }); }))
+    .then(function(){ setConn(true,'connected'); renderStats(); renderWorklist(); renderAll(); log('Loaded.'); })
+    .catch(function(e){ setConn(false,'load failed'); log('Load failed: '+e.message); });
+}
+function renderStats(){
+  var defs=[['Drops','Drops'],['checks','sightings'],['raw_channel','raw channel'],['raw_threads','raw threads'],
+            ['Waves','waves'],['drop_bottles','bottle rows'],['lexicon','lexicon'],['Stores','stores']];
+  $('#stats').innerHTML = defs.map(function(d){
+    return '<div class="stat"><b>'+(DATA[d[0]].length)+'</b><span>'+d[1]+'</span></div>';
+  }).join('');
+}
+function renderWorklist(){
+  var drops = DATA.Drops.filter(function(d){ return String(d.Result)==='drop'; });
+  var capturedStores = {};
+  DATA.raw_threads.forEach(function(r){ if(r.store_guess!=='') capturedStores[String(r.store_guess)]=true; });
+  var pending = drops.filter(function(d){ return !capturedStores[String(d['Store #'])]; });
+  $('#worklistNote').textContent = pending.length
+    ? pending.length+' drop(s) have no thread captured yet — open each thread in Discord and click “Capture Thread”.'
+    : (drops.length? 'All drops have a captured thread. ✓' : 'No drops indexed yet — capture a channel and run Parse.');
+  if(!pending.length){ $('#worklist').innerHTML=''; return; }
+  $('#worklist').innerHTML = '<table><thead><tr><th>Store</th><th>Where</th><th>District</th><th>Reported</th><th>Reporter</th></tr></thead><tbody>'
+    + pending.map(function(d){
+        return '<tr><td><b>'+esc(d['Store #'])+'</b></td><td>'+esc(storeLabel(d['Store #']))+'</td><td>'+esc(d.district)
+          +'</td><td>'+esc(d.ReportedTS)+'</td><td>'+esc(d.Reporter)+'</td></tr>';
+      }).join('') + '</tbody></table>';
+}
+
+/* ============================ channel parser (Phase 5) ============================ */
+function lexiconByType(type){
+  return DATA.lexicon.filter(function(l){ return String(l.type).toLowerCase()===type && String(l.status).toLowerCase()!=='rejected'; })
+    .map(function(l){ return String(l.raw_term).toLowerCase(); });
+}
+function firstStoreNum(text){
+  var m=String(text).match(/!drop\s+(\d{2,3})/i); if(m) return Number(m[1]);
+  var n=String(text).match(/\b(\d{2,3})\b/); return n?Number(n[1]):null;
+}
+function parseChannel(){
+  if(!DATA.raw_channel.length){ log('No raw_channel rows. Capture a channel first.'); return; }
+  var negCues=lexiconByType('negative-cue'), statusCues=lexiconByType('status-cue');
+  var checks=[], drops=[], flags=[];
+  var todo=DATA.raw_channel.filter(function(r){ return !String(r.parsed_version).trim(); });
+  log('Parsing '+todo.length+' new channel message(s)…');
+  todo.forEach(function(r){
+    var author=String(r.msg_author||''); if(/average joe/i.test(author)) { flags.push({raw_id:r.raw_id, parsed_version:PARSER_VERSION}); return; }
+    var text=String(r.msg_text||''), low=text.toLowerCase();
+    var result='', store=firstStoreNum(text);
+    if(/!drop/i.test(text)) result='drop';
+    else if(negCues.some(function(c){return low.indexOf(c)>=0;})) result='nada';
+    else if(/leftover/i.test(low) || statusCues.some(function(c){return low.indexOf(c)>=0;})) result='leftover';
+    if(!result || store==null){ flags.push({raw_id:r.raw_id, parsed_version:PARSER_VERSION}); return; }
+    var rts=canonTS(r.msg_ts);
+    checks.push({ date: rts.slice(0,10), time: rts.slice(11,16),
+      store:store, district:storeDistrict(store), reporter:author, result:result,
+      leftover_bottles:'', source_raw_id:r.raw_id, parser_version:PARSER_VERSION });
+    if(result==='drop'){
+      drops.push({ dropId: store+'_'+rts, 'Store #':store, district:storeDistrict(store),
+        Result:'drop', ReportedTS:rts, Reporter:author,
+        'Needs Review': knownStore(store)?'':true });
+    }
+    flags.push({raw_id:r.raw_id, parsed_version:PARSER_VERSION});
+  });
+  $('#btnParse').disabled=true;
+  writeRows('checks',checks,'source_raw_id')
+    .then(function(){ return writeRows('Drops',drops,'dropId'); })
+    .then(function(){ return writeRows('raw_channel',flags,'raw_id'); })
+    .then(function(){ log('Channel parse done: '+checks.length+' sightings, '+drops.length+' drop(s) indexed.'); return loadAll(); })
+    .catch(function(e){ log('Parse error: '+e.message); })
+    .then(function(){ $('#btnParse').disabled=false; });
+}
+
+/* ============================ derived fields (Phase 6) ============================ */
+function bottlesForDrop(dropId){ return DATA.drop_bottles.filter(function(b){ return String(b.dropId)===String(dropId); }); }
+function waveTopBottle(waveLabel){
+  // #1 bottle of a wave = highest tier, then most frequent cellar_id among that wave's drops
+  var ids={};
+  DATA.Drops.filter(function(d){return d['Wave Label']===waveLabel;}).forEach(function(d){
+    bottlesForDrop(d.dropId).forEach(function(b){ if(b.cellar_id!=='' && b.cellar_id!=null){ ids[b.cellar_id]=(ids[b.cellar_id]||0)+1; } });
+  });
+  var best=null, bestKey=[-1,-1];
+  Object.keys(ids).forEach(function(id){
+    var bt=bottleById(id), score=[tierScore(bt&&bt.tier), ids[id]];
+    if(score[0]>bestKey[0] || (score[0]===bestKey[0]&&score[1]>bestKey[1])){ best=id; bestKey=score; }
+  });
+  return best;
+}
+function recomputeDerived(){
+  if(!DATA.Drops.length){ log('No Drops to score.'); return; }
+  if(!BOTTLES.length) log('Note: no Cellar bottle cache — quality/topBottle will be blank. Use Settings → Refresh.');
+  var topByWave={};
+  DATA.Waves.filter(function(w){return String(w.status).toLowerCase()==='confirmed';}).forEach(function(w){ topByWave[w.wave]=waveTopBottle(w.wave); });
+  var updates=DATA.Drops.map(function(d){
+    var u={ dropId:d.dropId };
+    var ep=estParts(d.ReportedTS); if(ep){ u.minutesSinceMidnight=ep.minutes; u.dayOfWeek=ep.dow; }
+    var bs=bottlesForDrop(d.dropId).filter(function(b){return b.cellar_id!==''&&b.cellar_id!=null;});
+    if(bs.length && BOTTLES.length){
+      var tiers=bs.map(function(b){ var bt=bottleById(b.cellar_id); return tierScore(bt&&bt.tier); });
+      var best=Math.max.apply(null,tiers);
+      var letter=Object.keys(TIER_SCORE).find(function(k){return TIER_SCORE[k]===best;})||'';
+      var good=tiers.filter(function(t){return t>=3;}).length;
+      u.dropQuality=letter; u.dropQualityDepth=good+' good / '+tiers.length;
+      var topId=topByWave[d['Wave Label']];
+      if(topId!=null) u.topBottle = bs.some(function(b){return String(b.cellar_id)===String(topId);});
+    }
+    // hellcat + truck notes from this store's captured thread messages
+    var th=DATA.raw_threads.filter(function(r){return String(r.store_guess)===String(d['Store #']);});
+    var hc=th.filter(function(r){return /hellcat/i.test(r.msg_author);}).map(function(r){return r.msg_text;});
+    if(hc.length) u.hellcatNotes=hc.join(' | ').slice(0,500);
+    var tk=th.filter(function(r){return /\b(truck|delivery|restock)\b/i.test(r.msg_text);}).map(function(r){return r.msg_text;});
+    if(tk.length) u.truckNotes=tk.join(' | ').slice(0,500);
+    return u;
+  });
+  $('#btnDerive').disabled=true;
+  writeRows('Drops',updates,'dropId')
+    .then(function(){ log('Derived fields recomputed for '+updates.length+' drop(s).'); return loadAll(); })
+    .catch(function(e){ log('Derive error: '+e.message); })
+    .then(function(){ $('#btnDerive').disabled=false; });
+}
+
+/* ============================ thread intake (Phase 3) ============================ */
+function parseThreadJson(){
+  var raw=$('#threadJson').value.trim(); if(!raw) return null;
+  var j; try{ j=JSON.parse(raw); }catch(e){ alert('Invalid JSON: '+e.message); return null; }
+  return Array.isArray(j)?j:[j];
+}
+function previewThread(){
+  var items=parseThreadJson(); if(!items) return;
+  threadState.parsed=items; threadState.resolved=null; $('#btnSaveThread').disabled=true;
+  $('#threadPreview').innerHTML = items.map(function(it,i){
+    var bl=(it.bottles||[]).map(function(b){ return '<li>'+esc(b.token)+' <span class="tag">'+esc(b.status||'confirmed')+'</span>'+(b.note?' <span class="muted small">'+esc(b.note)+'</span>':'')+'</li>'; }).join('');
+    return '<div class="card"><b>Drop '+(i+1)+'</b> — store '+esc(it.store)+' ('+esc(storeLabel(it.store)||'unknown')
+      +'), '+esc(it.reportedTS)+', result <span class="tag '+esc(it.result)+'">'+esc(it.result)+'</span>'
+      +(it.needsReview?' <span class="tag nada">needs review</span>':'')
+      +'<div class="ev">dropId: '+esc(it.store)+'_'+esc(canonTS(it.reportedTS))+'</div>'
+      +'<ul>'+bl+'</ul>'
+      +(it.nonBottleTerms&&it.nonBottleTerms.length?'<div class="muted small">non-bottle terms → lexicon: '+it.nonBottleTerms.map(function(t){return esc(t.term||t)+' ('+esc(t.type||'?')+')';}).join(', ')+'</div>':'')
+      +'<div class="resolveBox muted small" data-i="'+i+'" style="margin-top:6px"></div></div>';
+  }).join('');
+}
+function resolveThread(){
+  if(!threadState.parsed){ previewThread(); if(!threadState.parsed) return; }
+  var tokens=[]; threadState.parsed.forEach(function(it){ (it.bottles||[]).forEach(function(b){ if(tokens.indexOf(b.token)<0) tokens.push(b.token); }); });
+  if(!tokens.length){ threadState.resolved={}; $('#btnSaveThread').disabled=false; log('No bottle tokens to resolve.'); return; }
+  log('Resolving '+tokens.length+' token(s) via Cellar…');
+  resolveTokens(tokens).then(function(res){
+    // tolerate shapes: {matched:[...],unmatched:[...]} where matched items have id + name/shortcodes
+    var matched=(res&&res.matched)||[], map={};
+    tokens.forEach(function(tok){
+      var low=tok.toLowerCase();
+      var hit=matched.find(function(m){
+        var hay=((m.name||'')+' '+(m.shortcodes||'')+' '+(m.query||m.q||'')).toLowerCase();
+        return hay.indexOf(low)>=0 || (m.query&&String(m.query).toLowerCase()===low);
+      });
+      map[tok]= hit ? { id:hit.id, name:hit.name, tier:hit.tier } : null;
+    });
+    threadState.resolved=map;
+    $$('.resolveBox').forEach(function(box){
+      var it=threadState.parsed[+box.getAttribute('data-i')];
+      box.innerHTML=(it.bottles||[]).map(function(b){
+        var m=map[b.token];
+        return m?('✓ '+esc(b.token)+' → #'+esc(m.id)+' '+esc(m.name||'')):('✗ '+esc(b.token)+' (unmatched → needs review)');
+      }).join('<br>');
+    });
+    $('#btnSaveThread').disabled=false;
+    var miss=tokens.filter(function(t){return !map[t];}).length;
+    log('Resolved '+(tokens.length-miss)+'/'+tokens.length+' tokens'+(miss?' ('+miss+' unmatched)':'')+'.');
+  }).catch(function(e){ log('Resolve failed: '+e.message+' — you can still Save; unmatched tokens go to review.'); $('#btnSaveThread').disabled=false; });
+}
+function saveThread(){
+  if(!threadState.parsed) return;
+  var map=threadState.resolved||{};
+  var drops=[], bottles=[], lex=[];
+  threadState.parsed.forEach(function(it){
+    var dropId=it.store+'_'+canonTS(it.reportedTS);
+    var tokens=(it.bottles||[]).map(function(b){return b.token;});
+    drops.push({ dropId:dropId, 'Store #':it.store, district:storeDistrict(it.store), Result:it.result||'drop',
+      ReportedTS:canonTS(it.reportedTS), Reporter:it.reporter||'', Bottles:tokens.join(', '), Notes:it.notes||'',
+      'Link to report':it.discordLink||'', hellcatNotes:it.hellcatNotes||'', truckNotes:it.truckNotes||'',
+      'Needs Review': it.needsReview?true:'' });
+    (it.bottles||[]).forEach(function(b){
+      var m=map[b.token];
+      bottles.push({ dropId:dropId, store:it.store, cellar_id:m?m.id:'', raw_text:b.token,
+        status: m?(b.status||'confirmed'):'unmatched', note:b.note||'', parser_version:PARSER_VERSION });
+    });
+    (it.nonBottleTerms||[]).forEach(function(t){
+      var term=t.term||t; lex.push({ raw_term:term, type:t.type||'', maps_to:'', status:'needs-review', notes:'', frequency:'' });
+    });
+  });
+  $('#btnSaveThread').disabled=true;
+  writeRows('Drops',drops,'dropId')
+    .then(function(){ return writeRows('drop_bottles',bottles); })
+    .then(function(){ return lex.length?writeRows('lexicon',lex,'raw_term'):null; })
+    .then(function(){ log('Saved '+drops.length+' drop(s), '+bottles.length+' bottle row(s).'); $('#threadJson').value=''; $('#threadPreview').innerHTML=''; threadState={parsed:null,resolved:null}; return loadAll(); })
+    .catch(function(e){ log('Save failed: '+e.message); $('#btnSaveThread').disabled=false; });
+}
+
+/* ============================ wave suggester ============================ */
+function dropSignature(d){
+  var bs=bottlesForDrop(d.dropId).map(function(b){ return b.cellar_id!==''&&b.cellar_id!=null?('#'+b.cellar_id):String(b.raw_text||'').toLowerCase(); });
+  if(bs.length) return bs;
+  return String(d.Bottles||'').toLowerCase().split(/[,/]+/).map(function(s){return s.trim();}).filter(Boolean);
+}
+function jaccard(a,b){ if(!a.length||!b.length) return 0; var A={}; a.forEach(function(x){A[x]=1;}); var inter=0; b.forEach(function(x){if(A[x])inter++;}); return inter/(a.length+b.length-inter); }
+function suggestWaves(){
+  var WINDOW=9*864e5, THRESH=0.35;
+  var un=DATA.Drops.filter(function(d){ return String(d.Result)==='drop' && !String(d['Wave Label']).trim() && d.ReportedTS; });
+  un.sort(function(a,b){ return new Date(a.ReportedTS)-new Date(b.ReportedTS); });
+  var clusters=[];
+  un.forEach(function(d){
+    var sig=dropSignature(d), t=new Date(d.ReportedTS).getTime();
+    var c=clusters.find(function(cl){ return (t-cl.maxT)<=WINDOW && jaccard(sig,cl.sig)>=THRESH; });
+    if(!c){ c={drops:[],sig:[],minT:t,maxT:t}; clusters.push(c); }
+    c.drops.push(d); c.minT=Math.min(c.minT,t); c.maxT=Math.max(c.maxT,t);
+    sig.forEach(function(x){ if(c.sig.indexOf(x)<0) c.sig.push(x); });
+  });
+  if(!clusters.length){ $('#waveSuggestions').innerHTML='<div class="card muted">No unassigned drops to cluster. Capture & parse more, or all drops are assigned.</div>'; renderConfirmedWaves(); return; }
+  $('#waveSuggestions').innerHTML = clusters.map(function(c,i){
+    var date=new Date(c.minT).toISOString().slice(0,10).replace(/-/g,'.');
+    var sigNames=c.sig.slice(0,4).map(function(s){ if(s[0]==='#'){ var b=bottleById(s.slice(1)); return b?b.name:s; } return s; });
+    var label=date+' - '+sigNames.join(' ').slice(0,40);
+    var rows=c.drops.map(function(d,j){
+      return '<tr><td><input type="checkbox" checked data-c="'+i+'" data-d="'+j+'"></td><td>'+esc(d['Store #'])+' '+esc(storeLabel(d['Store #']))
+        +'</td><td>'+esc(d.ReportedTS)+'</td><td class="muted small">'+esc(dropSignature(d).join(', '))+'</td></tr>';
+    }).join('');
+    return '<div class="card"><div class="row"><label>Label</label><input id="wl'+i+'" value="'+esc(label)+'" style="flex:1;min-width:240px">'
+      +'<button class="act" data-confirm="'+i+'">Confirm wave</button></div>'
+      +'<div class="ev">'+c.drops.length+' drop(s) · '+new Date(c.minT).toLocaleDateString()+' → '+new Date(c.maxT).toLocaleDateString()+'</div>'
+      +'<table><thead><tr><th></th><th>Store</th><th>Reported</th><th>Signature</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }).join('');
+  window._clusters=clusters;
+  $$('#waveSuggestions [data-confirm]').forEach(function(btn){ btn.addEventListener('click',function(){ confirmWave(+btn.getAttribute('data-confirm')); }); });
+  renderConfirmedWaves();
+}
+function confirmWave(i){
+  var c=window._clusters[i], label=$('#wl'+i).value.trim(); if(!label){ alert('Enter a label'); return; }
+  var members=c.drops.filter(function(d,j){ var cb=$('#waveSuggestions input[data-c="'+i+'"][data-d="'+j+'"]'); return cb&&cb.checked; });
+  var waveRow={ wave:label, created:new Date().toISOString(), status:'confirmed', expectedDate:'', notes:'suggested+confirmed in pipeline' };
+  var dropUpdates=members.map(function(d){ return { dropId:d.dropId, 'Wave Label':label }; });
+  log('Confirming wave "'+label+'" with '+members.length+' drop(s)…');
+  writeRows('Waves',[waveRow],'wave')
+    .then(function(){ return writeRows('Drops',dropUpdates,'dropId'); })
+    .then(function(){ log('Wave locked: '+label); return loadAll(); })
+    .then(function(){ suggestWaves(); })
+    .catch(function(e){ log('Confirm failed: '+e.message); });
+}
+function renderConfirmedWaves(){
+  var w=DATA.Waves.filter(function(x){return String(x.status).toLowerCase()==='confirmed';});
+  $('#confirmedWaves').innerHTML = w.length? ('<table><thead><tr><th>Wave</th><th>Drops</th><th>Created</th><th>Notes</th></tr></thead><tbody>'
+    + w.map(function(x){ var n=DATA.Drops.filter(function(d){return d['Wave Label']===x.wave;}).length;
+        return '<tr><td>'+esc(x.wave)+'</td><td>'+n+'</td><td class="muted small">'+esc(String(x.created).slice(0,10))+'</td><td class="muted small">'+esc(x.notes)+'</td></tr>'; }).join('')
+    + '</tbody></table>') : '<div class="muted">No confirmed waves yet.</div>';
+}
+
+/* ============================ lexicon review ============================ */
+var LEX_TYPES=['negative-cue','sentiment','status-cue','joke','noise'];
+function renderLexicon(){
+  var pend=DATA.lexicon.filter(function(l){ return String(l.status).toLowerCase()==='needs-review'; });
+  $('#lexiconList').innerHTML = pend.length? ('<table><thead><tr><th>Term</th><th>Type</th><th>Notes</th><th></th></tr></thead><tbody>'
+    + pend.map(function(l){
+        return '<tr><td><b>'+esc(l.raw_term)+'</b></td><td><select data-term="'+esc(l.raw_term)+'">'
+          + LEX_TYPES.map(function(t){return '<option'+(t===l.type?' selected':'')+'>'+t+'</option>';}).join('')
+          + '</select></td><td><input data-note="'+esc(l.raw_term)+'" value="'+esc(l.notes)+'" placeholder="optional"></td>'
+          + '<td><button class="act sec" data-confirmlex="'+esc(l.raw_term)+'">Confirm</button></td></tr>';
+      }).join('') + '</tbody></table>') : '<div class="muted">Nothing to classify. ✓</div>';
+  $$('#lexiconList [data-confirmlex]').forEach(function(b){ b.addEventListener('click',function(){
+    var term=b.getAttribute('data-confirmlex');
+    var type=$('#lexiconList select[data-term="'+CSS.escape(term)+'"]').value;
+    var note=$('#lexiconList input[data-note="'+CSS.escape(term)+'"]').value;
+    writeRows('lexicon',[{raw_term:term,type:type,status:'confirmed',notes:note}],'raw_term')
+      .then(function(){ log('Lexicon confirmed: '+term); return loadAll(); }).catch(function(e){log('Lexicon save failed: '+e.message);});
+  }); });
+  var conf=DATA.lexicon.filter(function(l){ return String(l.status).toLowerCase()==='confirmed'; });
+  $('#lexiconAll').innerHTML = conf.length? ('<table><thead><tr><th>Term</th><th>Type</th><th>Maps to</th><th>Notes</th></tr></thead><tbody>'
+    + conf.map(function(l){ return '<tr><td>'+esc(l.raw_term)+'</td><td>'+esc(l.type)+'</td><td class="muted small">'+esc(l.maps_to)+'</td><td class="muted small">'+esc(l.notes)+'</td></tr>'; }).join('')
+    + '</tbody></table>') : '<div class="muted">No confirmed terms.</div>';
+}
+
+/* ============================ review queues ============================ */
+function renderReview(){
+  var nr=DATA.Drops.filter(function(d){ var v=d['Needs Review']; return v===true||String(v).toLowerCase()==='true'; });
+  $('#reviewDrops').innerHTML = nr.length? ('<table><thead><tr><th>Store</th><th>Result</th><th>Wave</th><th>Bottles</th><th></th></tr></thead><tbody>'
+    + nr.map(function(d){
+        return '<tr><td>'+esc(d['Store #'])+' '+esc(storeLabel(d['Store #']))+'</td>'
+          +'<td><input data-f="Result" data-id="'+esc(d.dropId)+'" value="'+esc(d.Result)+'" style="width:90px"></td>'
+          +'<td><input data-f="Wave Label" data-id="'+esc(d.dropId)+'" value="'+esc(d['Wave Label'])+'" style="width:160px"></td>'
+          +'<td><input data-f="Bottles" data-id="'+esc(d.dropId)+'" value="'+esc(d.Bottles)+'" style="width:200px"></td>'
+          +'<td><button class="act sec" data-clear="'+esc(d.dropId)+'">Save & clear</button></td></tr>';
+      }).join('') + '</tbody></table>') : '<div class="muted">No drops need review. ✓</div>';
+  $$('#reviewDrops [data-clear]').forEach(function(b){ b.addEventListener('click',function(){
+    var id=b.getAttribute('data-clear'), upd={dropId:id,'Needs Review':''};
+    $$('#reviewDrops [data-id="'+CSS.escape(id)+'"]').forEach(function(inp){ upd[inp.getAttribute('data-f')]=inp.value; });
+    writeRows('Drops',[upd],'dropId').then(function(){ log('Cleared review: '+id); return loadAll(); }).catch(function(e){log('Save failed: '+e.message);});
+  }); });
+
+  var bad=DATA.drop_bottles.filter(function(b){ return (b.cellar_id===''||b.cellar_id==null) || String(b.status).toLowerCase()==='unmatched'; });
+  $('#reviewBottles').innerHTML = bad.length? ('<table><thead><tr><th>Drop</th><th>Raw text</th><th>cellar_id</th><th></th></tr></thead><tbody>'
+    + bad.map(function(b,i){
+        return '<tr><td class="muted small">'+esc(b.dropId)+'</td><td>'+esc(b.raw_text)+'</td>'
+          +'<td><input id="cid'+i+'" value="'+esc(b.cellar_id)+'" style="width:90px" placeholder="id"></td>'
+          +'<td><button class="act sec" data-bi="'+i+'" data-drop="'+esc(b.dropId)+'" data-raw="'+esc(b.raw_text)+'">Set</button></td></tr>';
+      }).join('') + '</tbody></table>') : '<div class="muted">No unresolved bottle tokens. ✓</div>';
+  // note: drop_bottles has no single key column; manual set appends a corrected row + marks matched
+  $$('#reviewBottles [data-bi]').forEach(function(b){ b.addEventListener('click',function(){
+    var i=b.getAttribute('data-bi'), cid=$('#cid'+i).value.trim(); if(!cid){alert('Enter a cellar_id');return;}
+    var row={ dropId:b.getAttribute('data-drop'), store:'', cellar_id:cid, raw_text:b.getAttribute('data-raw'), status:'confirmed', note:'manual', parser_version:PARSER_VERSION };
+    writeRows('drop_bottles',[row]).then(function(){ log('Added corrected bottle row for '+b.getAttribute('data-raw')); return loadAll(); }).catch(function(e){log('Save failed: '+e.message);});
+  }); });
+}
+
+function renderAll(){ renderConfirmedWaves(); renderLexicon(); renderReview(); }
+
+/* ============================ bottle cache ============================ */
+function loadBottles(){
+  log('Refreshing Cellar bottle list…');
+  api('bottles',{}).then(function(d){
+    var arr=Array.isArray(d)?d:(d.bottles||d.rows||[]);
+    BOTTLES=arr; localStorage.setItem(LS.bottles,JSON.stringify(arr));
+    $('#bottleCount').textContent=arr.length+' bottles cached';
+    log('Cached '+arr.length+' bottles.');
+  }).catch(function(e){ log('Bottle refresh failed: '+e.message); });
+}
+
+/* ============================ settings + nav ============================ */
+function saveSettings(){
+  CFG.url=$('#setUrl').value.trim(); CFG.token=$('#setToken').value.trim();
+  localStorage.setItem(LS.url,CFG.url); localStorage.setItem(LS.token,CFG.token);
+  $('#pingMsg').textContent='saved'; ping();
+}
+function ping(){
+  api('ping',{}).then(function(d){ if(d&&d.ok){ setConn(true,'connected'); $('#pingMsg').textContent='✓ connected'; } else { setConn(false,'error'); $('#pingMsg').textContent='error'; } })
+    .catch(function(e){ setConn(false,'no connection'); $('#pingMsg').textContent='✗ '+e.message; });
+}
+function showTab(name){
+  $$('#nav button').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-tab')===name); });
+  $$('main section').forEach(function(s){ s.classList.toggle('active', s.id===name); });
+}
+
+/* ============================ wire up ============================ */
+$('#nav').addEventListener('click',function(e){ if(e.target.dataset.tab) showTab(e.target.dataset.tab); });
+$('#btnLoad').addEventListener('click',loadAll);
+$('#btnParse').addEventListener('click',parseChannel);
+$('#btnDerive').addEventListener('click',recomputeDerived);
+$('#btnPreview').addEventListener('click',previewThread);
+$('#btnResolve').addEventListener('click',resolveThread);
+$('#btnSaveThread').addEventListener('click',saveThread);
+$('#btnSuggest').addEventListener('click',suggestWaves);
+$('#btnSaveSettings').addEventListener('click',saveSettings);
+$('#btnPing').addEventListener('click',ping);
+$('#btnLoadBottles').addEventListener('click',loadBottles);
+
+$('#setUrl').value=CFG.url; $('#setToken').value=CFG.token;
+if(BOTTLES.length) $('#bottleCount').textContent=BOTTLES.length+' bottles cached';
+if(CFG.url){ ping(); loadAll(); } else { showTab('settings'); log('Welcome — add your Apps Script URL to begin.'); }
+</script>
+</body>
+</html>
