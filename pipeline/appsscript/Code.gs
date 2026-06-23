@@ -1,29 +1,29 @@
 /**
- * Drop Pipeline — Apps Script "dumb pipe" catcher
+ * Drop Pipeline - Apps Script "dumb pipe" catcher
  * ------------------------------------------------
  * This script is CONTAINER-BOUND to the Drop Pipeline Google Sheet
- * (open the Sheet → Extensions → Apps Script → paste this in).
+ * (open the Sheet -> Extensions -> Apps Script -> paste this in).
  * Because it is bound to the Sheet, it uses getActiveSpreadsheet() and
  * needs NO Sheet ID.
  *
  * WHAT IT DOES (and deliberately does NOT do):
  *   - doPost(): the HOT capture path used by the bookmarklets. It ONLY
  *     appends raw, per-message rows to a named tab. No parsing, no logic.
- *     This is the "dumb pipe" — keeping it dumb means you almost never
+ *     This is the "dumb pipe" - keeping it dumb means you almost never
  *     have to cut a new deployment.
  *   - doGet(): the path used by the review APP. It reads tabs, performs
  *     generic key-based writes (upserts), and proxies bottle lookups to
  *     the Cellar API. (GET responses from Apps Script are readable
  *     cross-origin, so the app can confirm its writes; POST responses are
- *     not — which is why capture is fire-and-forget over doPost.)
+ *     not - which is why capture is fire-and-forget over doPost.)
  *
  * SETUP (one time):
  *   1. Paste this whole file into the Apps Script editor and Save.
- *   2. Run setupToken() once (edit the token first) — or leave the token
+ *   2. Run setupToken() once (edit the token first) - or leave the token
  *      unset to disable auth while you test.
- *   3. Run test_doPost() — it appends a test row to raw_threads so you can
+ *   3. Run test_doPost() - it appends a test row to raw_threads so you can
  *      confirm it works WITHOUT cutting a deployment. Delete the test row after.
- *   4. Deploy → New deployment → Web app → Execute as: Me,
+ *   4. Deploy -> New deployment -> Web app -> Execute as: Me,
  *      Who has access: Anyone. Copy the /exec URL into the app + bookmarklets.
  *      (While iterating you can use the test "/dev" URL instead.)
  */
@@ -40,7 +40,7 @@ var RAW_TABS = ['raw_channel', 'raw_threads'];
 // ENTRY POINTS
 // ============================================================
 
-/** Capture path — bookmarklets POST raw rows here. Append-only. */
+/** Capture path - bookmarklets POST raw rows here. Append-only. */
 function doPost(e) {
   try {
     var body = JSON.parse(e.postData.contents);
@@ -56,7 +56,7 @@ function doPost(e) {
   }
 }
 
-/** App path — read tabs, write/upsert rows, resolve bottle tokens via Cellar. */
+/** App path - read tabs, write/upsert rows, resolve bottle tokens via Cellar. */
 function doGet(e) {
   var p = (e && e.parameter) || {};
   var action = p.action || 'ping';
@@ -103,7 +103,7 @@ function doGet(e) {
 
 
 // ============================================================
-// CORE HELPERS (generic data ops — no domain logic lives here)
+// CORE HELPERS (generic data ops - no domain logic lives here)
 // ============================================================
 
 function getSheetOrThrow_(name) {
@@ -189,7 +189,7 @@ function json_(obj) {
 
 
 // ============================================================
-// AUTH (optional — disabled until you set a token)
+// AUTH (optional - disabled until you set a token)
 // ============================================================
 
 function storedToken_() {
@@ -211,7 +211,7 @@ function setupToken() {
 
 
 // ============================================================
-// EDITOR TESTS (run these on Save — no deployment needed)
+// EDITOR TESTS (run these on Save - no deployment needed)
 // ============================================================
 
 /** Appends a real test row to raw_threads so you can confirm the pipe works. */
@@ -233,7 +233,7 @@ function test_doPost() {
   Logger.log(doPost(fakeE).getContent());
 }
 
-/** Reads the Stores tab back as JSON — confirms the app read path works. */
+/** Reads the Stores tab back as JSON - confirms the app read path works. */
 function test_getTab() {
   Logger.log(doGet({ parameter: { action: 'getTab', tab: 'Stores' } }).getContent());
 }
