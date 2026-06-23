@@ -1,13 +1,16 @@
-/* Drop Pipeline — THREAD bookmarklet  (one drop thread -> raw_threads)
+/* Drop Pipeline - THREAD bookmarklet  (one drop thread -> raw_threads)
  * --------------------------------------------------------------------
  * Click this while viewing a single drop THREAD (the conversation that opens
  * when someone posts "!drop <store#> ..."). It reads every rendered message in
- * the thread — the bottle ledger that accretes across messages, people, and
- * sometimes days — and ships them one row per message to the raw_threads tab.
+ * the thread - the bottle ledger that accretes across messages, people, and
+ * sometimes days - and ships them one row per message to the raw_threads tab.
  *
  * It also records the thread title and a best-guess store number parsed from it.
  * Scroll up to load older messages, then click again; duplicates are skipped
- * server-side via the Discord message id.
+ * (rows are keyed on the Discord message id).
+ *
+ * It sends with a GET (action=write) - the same proven transport the app's reads
+ * use - and reads the real reply, so the banner shows how many actually saved.
  *
  * CONFIG: install.html fills in __SCRIPT_URL__ and __TOKEN__ when it builds the
  * bookmarklet. To hand-edit, replace those two strings below.
@@ -27,11 +30,11 @@
       var el = document.querySelector(sel[i]);
       if (el && el.textContent.trim()) return el.textContent.trim();
     }
-    return (document.title || '').replace(/\s*[|\-–].*$/, '').trim() || 'unknown';
+    return (document.title || '').replace(/\s*[|\-].*$/, '').trim() || 'unknown';
   }
 
   function storeGuess(title) {
-    var m = (title || '').match(/\b(\d{2,3})\b/); // first 2-3 digit number in the title
+    var m = (title || '').match(/\b(\d{2,3})\b/);
     return m ? Number(m[1]) : '';
   }
 
@@ -68,7 +71,32 @@
       + 'background:' + (ok === false ? '#7f1d1d' : '#14532d') + ';color:#fff;padding:10px 16px;'
       + 'border-radius:8px;font:600 14px system-ui;box-shadow:0 4px 16px rgba(0,0,0,.4)';
     document.body.appendChild(d);
-    setTimeout(function () { d.remove(); }, 3500);
+    setTimeout(function () { d.remove(); }, 4000);
+  }
+
+  function sendRows(rows, tab, label) {
+    var chunks = [], cur = [], len = 0;
+    rows.forEach(function (r) {
+      var s = JSON.stringify(r);
+      if (len + s.length > 1500 && cur.length) { chunks.push(cur); cur = []; len = 0; }
+      cur.push(r); len += s.length;
+    });
+    if (cur.length) chunks.push(cur);
+
+    var saved = 0, idx = 0;
+    function next() {
+      if (idx >= chunks.length) { toast(label + ': saved ' + saved + ' / ' + rows.length + ' messages'); return; }
+      var chunk = chunks[idx++];
+      var url = CONFIG.scriptUrl + '?action=write&token=' + encodeURIComponent(CONFIG.token || '')
+        + '&tab=' + encodeURIComponent(tab) + '&key=raw_id'
+        + '&data=' + encodeURIComponent(JSON.stringify(chunk));
+      fetch(url).then(function (r) { return r.json(); }).then(function (d) {
+        if (d && d.success === false) { toast(label + ' error: ' + d.error, false); return; }
+        saved += ((d && d.appended) || 0) + ((d && d.updated) || 0);
+        next();
+      }).catch(function (e) { toast(label + ' failed: ' + e + ' (check the URL in install.html)', false); });
+    }
+    next();
   }
 
   try {
@@ -76,31 +104,12 @@
     var store = storeGuess(title);
     var msgs = extractMessages();
     if (!msgs.length) { toast('Thread: no messages found on screen', false); return; }
-
     var capturedAt = new Date().toISOString();
     var rows = msgs.map(function (m) {
-      return {
-        captured_at: capturedAt,
-        thread_title: title,
-        store_guess: store,
-        msg_author: m.author,
-        msg_ts: m.ts,
-        msg_text: m.text,
-        raw_id: m.msgId,
-        parsed_version: ''
-      };
+      return { captured_at: capturedAt, thread_title: title, store_guess: store, msg_author: m.author,
+        msg_ts: m.ts, msg_text: m.text, raw_id: m.msgId, parsed_version: '' };
     });
-
-    fetch(CONFIG.scriptUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ token: CONFIG.token, tab: 'raw_threads', rows: rows })
-    }).then(function () {
-      toast('Thread: sent ' + rows.length + ' msgs (store ' + (store || '?') + ')');
-    }).catch(function (e) {
-      toast('Thread send failed: ' + e, false);
-    });
+    sendRows(rows, 'raw_threads', 'Thread (store ' + (store || '?') + ')');
   } catch (err) {
     toast('Thread error: ' + err, false);
   }
