@@ -72,6 +72,14 @@
     </div>
     <div class="grid" id="stats" style="margin-top:14px"></div>
 
+    <h2>Paste capture — from the 🔥 / 🧵 buttons</h2>
+    <div class="card">
+      <p class="muted small">Click a capture button in Discord (it copies the messages to your clipboard),
+        then paste here and Save. Re-pasting the same messages is safe — duplicates are skipped.</p>
+      <textarea id="pasteCapture" placeholder='Paste here — looks like {"tab":"raw_channel","rows":[ ... ]}'></textarea>
+      <div class="row" style="margin-top:8px"><button class="act" id="btnSaveCapture">Save capture to sheet</button></div>
+    </div>
+
     <h2>Worklist — drops that still need their thread captured</h2>
     <div class="card">
       <div class="muted small" id="worklistNote">Run “Parse channel” first to build the drop index.</div>
@@ -578,9 +586,24 @@ function showTab(name){
   $$('main section').forEach(function(s){ s.classList.toggle('active', s.id===name); });
 }
 
+/* ============================ paste capture (from bookmarklets) ============================ */
+function saveCapture(){
+  var raw=$('#pasteCapture').value.trim();
+  if(!raw){ alert('Nothing to paste. Click a capture button in Discord first, then paste here.'); return; }
+  var j; try{ j=JSON.parse(raw); }catch(e){ log('Paste is not valid JSON: '+e.message); alert('That doesn\'t look like a copied capture. Click 🔥 or 🧵 in Discord, then paste what it copied.'); return; }
+  if(!j.tab || !Array.isArray(j.rows)){ alert('Missing tab/rows — did you paste the copied capture?'); return; }
+  $('#btnSaveCapture').disabled=true;
+  log('Saving '+j.rows.length+' captured row(s) to '+j.tab+'…');
+  writeRows(j.tab, j.rows, 'raw_id')
+    .then(function(r){ log('Saved to '+j.tab+': '+((r.appended||0)+(r.updated||0))+' row(s).'); $('#pasteCapture').value=''; return loadAll(); })
+    .catch(function(e){ log('Save failed: '+e.message); })
+    .then(function(){ $('#btnSaveCapture').disabled=false; });
+}
+
 /* ============================ wire up ============================ */
 $('#nav').addEventListener('click',function(e){ if(e.target.dataset.tab) showTab(e.target.dataset.tab); });
 $('#btnLoad').addEventListener('click',loadAll);
+$('#btnSaveCapture').addEventListener('click',saveCapture);
 $('#btnParse').addEventListener('click',parseChannel);
 $('#btnDerive').addEventListener('click',recomputeDerived);
 $('#btnPreview').addEventListener('click',previewThread);
