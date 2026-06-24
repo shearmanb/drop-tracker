@@ -1,13 +1,14 @@
 /* Drop Pipeline - FIREHOSE bookmarklet  (auto-scroll channel -> clipboard)
  * ------------------------------------------------------------------------
- * Click once on a geographic channel. It AUTO-SCROLLS up through the history,
- * collecting every message it renders (deduped by Discord message id), then
- * copies them all to your clipboard as JSON. Paste into the app's "Paste
- * capture" box and Save.
+ * Click once on a geographic channel. It asks for an optional "stop at date",
+ * then AUTO-SCROLLS up through the history, collecting every message it renders
+ * (deduped by Discord message id), and copies them all to your clipboard as JSON.
+ * Paste into the app's "Paste capture" box and Save.
  *
- * Discord only keeps a screenful of messages in the page at once, so a single
- * read would miss older ones - the auto-scroll walks back through them for you.
- * It stops when it reaches the top, stops finding new messages, or hits a cap.
+ * Backfill: enter a date (YYYY-MM-DD) and it scrolls back until it passes that
+ * date, then stops. Leave it blank to grab as far back as it can (up to the cap).
+ * Re-running picks up from where you left off; dedup merges any overlap, so you
+ * can walk a year back month-by-month safely.
  *
  * No Discord API, no token, no network call from Discord. Needs no config.
  */
@@ -35,7 +36,6 @@
       try { var ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;left:-9999px;top:0'; document.body.appendChild(ta); ta.focus(); ta.select(); var ok = document.execCommand('copy'); ta.remove(); cb(ok); } catch (e) { cb(false); }
     }
   }
-  // the scrollable element that holds the message list
   function findScroller() {
     var li = document.querySelector('li[id^="chat-messages-"]'), el = li;
     while (el) { var st; try { st = getComputedStyle(el); } catch (e) { st = { overflowY: '' }; } if (el.scrollHeight > el.clientHeight + 40 && /auto|scroll/.test(st.overflowY || '')) return el; el = el.parentElement; }
@@ -44,7 +44,7 @@
 
   var chan = channelName();
   var capturedAt = new Date().toISOString();
-  var collected = {}; // msgId -> row  (dedupes across scroll steps)
+  var collected = {}; // msgId -> row (dedupes across scroll steps)
 
   function collectVisible() {
     var lis = document.querySelectorAll('li[id^="chat-messages-"]');
@@ -59,31 +59,42 @@
       if (!collected[msgId]) collected[msgId] = { captured_at: capturedAt, channel: chan, msg_author: author, msg_ts: ts, msg_text: text, raw_id: msgId, parsed_version: '' };
     });
   }
+  function oldestMs() {
+    var min = Infinity;
+    for (var k in collected) { var t = collected[k].msg_ts; if (t) { var ms = new Date(t).getTime(); if (!isNaN(ms) && ms < min) min = ms; } }
+    return min;
+  }
+  function fmt(ms) { if (ms === Infinity) return '?'; try { return new Date(ms).toISOString().slice(0, 10); } catch (e) { return '?'; } }
 
   try {
+    var ans = prompt('Backfill — stop when you reach this date (YYYY-MM-DD).\nLeave blank to grab as far back as it can.', '');
+    var targetMs = null;
+    if (ans && /\d{4}-\d{2}-\d{2}/.test(ans)) { var dd = new Date(ans.trim().slice(0, 10) + 'T00:00:00'); if (!isNaN(dd)) targetMs = dd.getTime(); }
     var sc = findScroller();
     var status = toast('Firehose: scanning…', true, true);
-    var lastN = -1, stable = 0, iter = 0, MAXITER = 500, MAXMSG = 4000;
+    var lastN = -1, stable = 0, iter = 0, MAXITER = 3000, MAXMSG = 25000;
     function finish() {
       var rows = Object.keys(collected).map(function (k) { return collected[k]; });
       if (status) status.remove();
       if (!rows.length) { toast('Firehose: no messages found on screen', false); return; }
       copyText(JSON.stringify({ tab: 'raw_channel', rows: rows }), function (ok) {
-        if (ok) toast('Firehose: copied ' + rows.length + ' messages from #' + chan + '. Now paste into the app.');
+        if (ok) toast('Firehose: copied ' + rows.length + ' messages from #' + chan + ' (back to ' + fmt(oldestMs()) + '). Now paste into the app.');
         else toast('Firehose: clipboard was blocked - tell Claude.', false);
       });
     }
     function step() {
       collectVisible();
       var n = Object.keys(collected).length;
-      if (status) status.textContent = 'Firehose: scanned ' + n + ' messages…';
+      var oldest = oldestMs();
+      if (status) status.textContent = 'Firehose: ' + n + ' messages, back to ' + fmt(oldest) + '…';
       iter++;
       var atTop = !sc || sc.scrollTop <= 0;
+      var hitDate = targetMs && oldest !== Infinity && oldest <= targetMs;
       if (n === lastN) stable++; else stable = 0;
       lastN = n;
-      if (atTop || stable >= 4 || iter >= MAXITER || n >= MAXMSG) { finish(); return; }
+      if (atTop || hitDate || stable >= 8 || iter >= MAXITER || n >= MAXMSG) { finish(); return; }
       if (sc) sc.scrollTop = Math.max(0, sc.scrollTop - Math.max(220, sc.clientHeight * 0.85));
-      setTimeout(step, 320);
+      setTimeout(step, 400);
     }
     step();
   } catch (err) { toast('Firehose error: ' + err, false); }
