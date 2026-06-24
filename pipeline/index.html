@@ -301,7 +301,7 @@ function firstStoreNum(text){
 function parseChannel(){
   if(!DATA.raw_channel.length){ log('No raw_channel rows. Capture a channel first.'); return; }
   var negCues=lexiconByType('negative-cue'), statusCues=lexiconByType('status-cue');
-  var checks=[], drops=[], flags=[];
+  var checks=[], drops=[], flags=[], dropTokens={};
   var todo=DATA.raw_channel.filter(function(r){ return !String(r.parsed_version).trim(); });
   log('Parsing '+todo.length+' new channel message(s)…');
   todo.forEach(function(r){
@@ -317,19 +317,43 @@ function parseChannel(){
       store:store, district:storeDistrict(store), reporter:author, result:result,
       leftover_bottles:'', source_raw_id:r.raw_id, parser_version:PARSER_VERSION });
     if(result==='drop'){
-      drops.push({ dropId: store+'_'+rts, 'Store #':store, district:storeDistrict(store),
-        Result:'drop', ReportedTS:rts, Reporter:author,
-        'Needs Review': knownStore(store)?'':true });
+      var dropId=store+'_'+rts;
+      var d={ dropId:dropId, 'Store #':store, district:storeDistrict(store),
+        Result:'drop', ReportedTS:rts, Reporter:author, 'Needs Review': knownStore(store)?'':true };
+      // LIGHT pass: bottles listed right on the !drop line  ("!drop 267 EHT, Blanton SFTB, ER")
+      var bm=text.match(/!drop\s+\d{2,3}\s+(.+)/i);
+      if(bm){ var toks=bm[1].split(/[,\/]+/).map(function(s){return s.trim().replace(/[.!?]+$/,'');}).filter(Boolean); if(toks.length){ dropTokens[dropId]=toks; d.Bottles=toks.join(', '); } }
+      drops.push(d);
     }
     flags.push({raw_id:r.raw_id, parsed_version:PARSER_VERSION});
   });
   $('#btnParse').disabled=true;
-  writeRows('checks',checks,'source_raw_id')
-    .then(function(){ return writeRows('Drops',drops,'dropId'); })
-    .then(function(){ return writeRows('raw_channel',flags,'raw_id'); })
-    .then(function(){ log('Channel parse done: '+checks.length+' sightings, '+drops.length+' drop(s) indexed.'); return loadAll(); })
-    .catch(function(e){ log('Parse error: '+e.message); })
-    .then(function(){ $('#btnParse').disabled=false; });
+  // batch-resolve all light-pass tokens against Cellar, then write everything (drop_bottles deduped)
+  var allToks=[]; Object.keys(dropTokens).forEach(function(id){ dropTokens[id].forEach(function(t){ if(allToks.indexOf(t)<0) allToks.push(t); }); });
+  var rp = allToks.length ? resolveTokens(allToks).catch(function(){ return {matched:[]}; }) : Promise.resolve({matched:[]});
+  rp.then(function(res){
+    var matched=((res&&res.matched)||[]).map(normMatch).filter(Boolean);
+    function findHit(tok){ var low=tok.toLowerCase(); return matched.find(function(m){ return ((m.name||'')+' '+(m.shortcodes||'')).toLowerCase().indexOf(low)>=0; })||null; }
+    var existing={}; DATA.drop_bottles.forEach(function(b){ existing[String(b.dropId)+'|'+((b.cellar_id!==''&&b.cellar_id!=null)?('#'+b.cellar_id):String(b.raw_text||'').toLowerCase())]=true; });
+    var bottleRows=[];
+    Object.keys(dropTokens).forEach(function(dropId){
+      var store=dropId.split('_')[0];
+      dropTokens[dropId].forEach(function(tok){
+        var hit=findHit(tok);
+        var k=dropId+'|'+(hit?('#'+hit.id):tok.toLowerCase());
+        if(existing[k]) return; existing[k]=true;
+        bottleRows.push({ dropId:dropId, store:store, cellar_id:hit?hit.id:'', raw_text:tok, status:hit?'confirmed':'unmatched', note:'light', parser_version:PARSER_VERSION });
+      });
+    });
+    return writeRows('checks',checks,'source_raw_id')
+      .then(function(){ return writeRows('Drops',drops,'dropId'); })
+      .then(function(){ return bottleRows.length?writeRows('drop_bottles',bottleRows):null; })
+      .then(function(){ return writeRows('raw_channel',flags,'raw_id'); })
+      .then(function(){ log('Channel parse: '+checks.length+' sightings, '+drops.length+' drop(s), '+bottleRows.length+' bottle(s) from !drop lines.'); });
+  })
+  .then(function(){ return loadAll(); })
+  .catch(function(e){ log('Parse error: '+e.message); })
+  .then(function(){ $('#btnParse').disabled=false; });
 }
 
 /* ============================ derived fields (Phase 6) ============================ */
@@ -520,17 +544,22 @@ function autoParseThread(){
   var reportedTS=rows.length?canonTS(rows[0].msg_ts):'';
   var reporter=rows.length?rows[0].msg_author:'';
   log('Auto-parsing thread (store '+(store||'?')+')…');
+  // pre-load bottles already on this drop (e.g. from the Light pass) so the 2nd pass ADDS, never wipes
+  var preDropId=store+'_'+reportedTS;
+  var preBottles=DATA.drop_bottles.filter(function(b){ return String(b.dropId)===String(preDropId); })
+    .map(function(b){ return { token:b.raw_text, cellar_id:(b.cellar_id!==''&&b.cellar_id!=null)?b.cellar_id:'', status:(b.status&&b.status!=='unmatched')?b.status:'confirmed' }; });
   var cands=extractCandidates(texts);
   $('#btnAutoParse').disabled=true;
   resolveTokens(cands).then(function(res){
     var matched=((res&&res.matched)||[]).map(normMatch).filter(Boolean);
-    var seen={}, bottles=[];
-    matched.forEach(function(m){ if(!seen[m.id]){ seen[m.id]=1; bottles.push({token:m.name, cellar_id:m.id, status:detectStatus(texts,m)}); } });
+    var seen={}; preBottles.forEach(function(b){ if(b.cellar_id!=='') seen['#'+b.cellar_id]=1; seen[String(b.token).toLowerCase()]=1; });
+    var bottles=preBottles.slice();
+    matched.forEach(function(m){ if(!seen['#'+m.id] && !seen[String(m.name).toLowerCase()]){ seen['#'+m.id]=1; bottles.push({token:m.name, cellar_id:m.id, status:detectStatus(texts,m)}); } });
     renderThreadParse({store:store, reportedTS:reportedTS, reporter:reporter, result:'drop', bottles:bottles, rawText:texts.join('\n')});
-    log('Found '+bottles.length+' bottle(s). Review and Save.');
+    log('Draft has '+bottles.length+' bottle(s) ('+preBottles.length+' kept from before). Review and Save.');
   }).catch(function(e){
-    log('Cellar lookup failed ('+e.message+') — enter bottles manually, then Re-resolve.');
-    renderThreadParse({store:store, reportedTS:reportedTS, reporter:reporter, result:'drop', bottles:[], rawText:texts.join('\n')});
+    log('Cellar lookup failed ('+e.message+') — kept existing bottles; add more manually, then Re-resolve.');
+    renderThreadParse({store:store, reportedTS:reportedTS, reporter:reporter, result:'drop', bottles:preBottles.slice(), rawText:texts.join('\n')});
   }).then(function(){ $('#btnAutoParse').disabled=false; });
 }
 function renderThreadParse(s){
@@ -582,13 +611,18 @@ function saveParsedThread(){
   var drop={ dropId:dropId, 'Store #':s.store, district:storeDistrict(s.store), Result:s.result,
     ReportedTS:canonTS(s.reportedTS), Reporter:s.reporter||'', Bottles:tokens.join(', '), Notes:'',
     'Needs Review': s.bottles.some(function(b){return !(b.cellar_id!==''&&b.cellar_id!=null);})?true:'' };
-  var bottles=s.bottles.filter(function(b){return b.token;}).map(function(b){
+  // only append bottles NOT already saved for this drop (keep what's there, add the new)
+  var existKeys={}; DATA.drop_bottles.forEach(function(b){ if(String(b.dropId)===String(dropId)){ existKeys[(b.cellar_id!==''&&b.cellar_id!=null)?('#'+b.cellar_id):String(b.raw_text||'').toLowerCase()]=true; } });
+  var bottles=s.bottles.filter(function(b){return b.token;}).filter(function(b){
+    var ok=(b.cellar_id!==''&&b.cellar_id!=null); var k=ok?('#'+b.cellar_id):b.token.toLowerCase();
+    if(existKeys[k]) return false; existKeys[k]=true; return true;
+  }).map(function(b){
     var ok=(b.cellar_id!==''&&b.cellar_id!=null);
     return { dropId:dropId, store:s.store, cellar_id:ok?b.cellar_id:'', raw_text:b.token, status:ok?b.status:'unmatched', note:'', parser_version:PARSER_VERSION };
   });
   $('#btnSaveParsed').disabled=true;
-  writeRows('Drops',[drop],'dropId').then(function(){ return writeRows('drop_bottles',bottles); })
-    .then(function(){ log('Saved drop '+dropId+' ('+bottles.length+' bottle row(s)).'); $('#threadParseBox').innerHTML=''; $('#threadPick').value=''; return loadAll(); })
+  writeRows('Drops',[drop],'dropId').then(function(){ return bottles.length?writeRows('drop_bottles',bottles):null; })
+    .then(function(){ log('Saved drop '+dropId+' ('+bottles.length+' new bottle(s); '+tokens.length+' total).'); $('#threadParseBox').innerHTML=''; $('#threadPick').value=''; return loadAll(); })
     .catch(function(e){ log('Save failed: '+e.message); $('#btnSaveParsed').disabled=false; });
 }
 
@@ -743,8 +777,8 @@ function saveCapture(){
   log('Saving '+j.rows.length+' captured row(s) to '+j.tab+'…');
   writeRows(j.tab, j.rows, 'raw_id')
     .then(function(r){ log('Saved to '+j.tab+': '+((r.appended||0)+(r.updated||0))+' row(s).'); $('#pasteCapture').value=''; return loadAll(); })
-    .catch(function(e){ log('Save failed: '+e.message); })
-    .then(function(){ $('#btnSaveCapture').disabled=false; });
+    .then(function(){ $('#btnSaveCapture').disabled=false; if(j.tab==='raw_channel'){ log('Channel saved — parsing for drops + bottles…'); parseChannel(); } })
+    .catch(function(e){ log('Save failed: '+e.message); $('#btnSaveCapture').disabled=false; });
 }
 
 /* ============================ wire up ============================ */
