@@ -40,13 +40,15 @@
   // store from message text - ONLY a "!drop NNN" or "started a thread ... NNN" cue, never a bare number (avoids "ER 10")
   function storeFromText(t) { t = t || ''; var m = t.match(/!drop\s+(\d{2,3})/i) || t.match(/started a thread[\s\S]*?(\d{2,3})/i); return m ? Number(m[1]) : ''; }
 
-  function pickTitle(scope) {
-    var sels = ['[class*="threadName"]', '[class*="title"]', 'h1', 'h2', 'h3', '[role="heading"]'];
-    for (var i = 0; i < sels.length; i++) {
-      var el = scope.querySelector(sels[i]);
-      if (el && el.textContent.trim()) return el.textContent.trim();
-    }
-    return '';
+  // Find the thread's store # + name from any short heading / breadcrumb / sidebar label
+  // that contains "!drop NNN" (preferred), else a short label with a bare 2-3 digit number.
+  // Searches the whole document so it works in both full and split-screen views.
+  function findStore() {
+    var all = document.querySelectorAll('h1,h2,h3,[role="heading"],[class*="title"],[class*="threadName"],[class*="name"]');
+    var i, t, m;
+    for (i = 0; i < all.length; i++) { t = (all[i].textContent || '').trim(); if (t && t.length < 140) { m = t.match(/!drop\s+(\d{2,3})/i); if (m) return { store: Number(m[1]), title: t }; } }
+    for (i = 0; i < all.length; i++) { t = (all[i].textContent || '').trim(); if (t && t.length < 60) { m = t.match(/\b(\d{2,3})\b/); if (m) return { store: Number(m[1]), title: t }; } }
+    return { store: '', title: '' };
   }
 
   // Read all rendered messages (within `scope`), keeping author/timestamp carry-forward
@@ -93,9 +95,9 @@
       msgs = g.rows.filter(function (r) { return r.cid === threadCid; });
     }
 
-    var title = pickTitle(scope) || pickTitle(document) || '(thread)';
-    var store = storeFromTitle(title);
-    // fallback: scan everything on screen for a "!drop NNN" / "started a thread ... NNN" cue
+    var found = findStore();
+    var store = found.store, title = found.title || '(thread)';
+    // fallback: scan messages for a "!drop NNN" / "started a thread ... NNN" cue
     if (store === '') { for (var i = 0; i < g.rows.length; i++) { var s = storeFromText(g.rows[i].text); if (s) { store = s; break; } } }
 
     var capturedAt = new Date().toISOString();
