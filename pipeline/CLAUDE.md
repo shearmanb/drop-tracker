@@ -61,6 +61,11 @@ the *consumer*. They integrate via data (the Sheet + the Cellar API), never via 
 
 ## Data model — the new Sheet's 8 tabs
 - `raw_channel`, `raw_threads` — append-only, per-message capture (`raw_id` = Discord message id).
+  `raw_channel` also has `msg_link` — the captured per-message Discord deep link
+  (`/channels/<guild>/<channel>/<raw_id>`). The channel parser converts a `!drop` row's link
+  into a **thread** link (`/channels/<guild>/<raw_id>`, since a thread's id == its starter
+  message id) and writes it to `Drops.'Link to report'`. **A `msg_link` header must exist on the
+  `raw_channel` tab** — writes only fill columns that already exist, so without it the link is dropped.
 - `checks` — parsed sightings (drop / leftover / nada) from the channel; revives nada "bracketing".
 - `Drops` — event table; `dropId` join key; `dropQuality` (overall) + `dropQualityDepth`
   (count/distribution of good bottles) side by side; `topBottle` is wave-relative.

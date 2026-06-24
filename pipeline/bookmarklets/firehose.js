@@ -42,8 +42,15 @@
     return document.querySelector('[class*="scroller"]');
   }
 
+  // server + channel id from the Discord URL (/channels/<guild>/<channel>); '@me' for DMs.
+  // A "!drop" message starts a thread whose id == the message id, so the app can turn this
+  // per-message deep link into a thread link later. Captured once; same for every row.
+  function loc() { var m = (location.pathname || '').match(/\/channels\/(\d+|@me)\/(\d+)/); return m ? { g: m[1], c: m[2] } : { g: '', c: '' }; }
+  function msgLink(loc, msgId) { return (loc.g && loc.c && /^\d+$/.test(loc.g)) ? 'https://discord.com/channels/' + loc.g + '/' + loc.c + '/' + msgId : ''; }
+
   var chan = channelName();
   var capturedAt = new Date().toISOString();
+  var here = loc();
   var collected = {}; // msgId -> row (dedupes across scroll steps)
 
   function collectVisible() {
@@ -56,7 +63,7 @@
       var timeEl = li.querySelector('time[datetime]'); var ts = timeEl ? timeEl.getAttribute('datetime') : lastTs; if (timeEl) lastTs = ts;
       var contentEl = li.querySelector('[id^="message-content-"]'); var text = contentEl ? (contentEl.innerText || contentEl.textContent || '').trim() : '';
       if (!text) return;
-      if (!collected[msgId]) collected[msgId] = { captured_at: capturedAt, channel: chan, msg_author: author, msg_ts: ts, msg_text: text, raw_id: msgId, parsed_version: '' };
+      if (!collected[msgId]) collected[msgId] = { captured_at: capturedAt, channel: chan, msg_author: author, msg_ts: ts, msg_text: text, raw_id: msgId, msg_link: msgLink(here, msgId), parsed_version: '' };
     });
   }
   function oldestMs() {
