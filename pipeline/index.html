@@ -320,11 +320,11 @@ function parseChannel(){
       var dropId=store+'_'+rts;
       var d={ dropId:dropId, 'Store #':store, district:storeDistrict(store),
         Result:'drop', ReportedTS:rts, Reporter:author, 'Needs Review': knownStore(store)?'':true };
-      // A !drop message starts a thread whose id == the message id, so the captured
-      // per-message deep link (msg_link) converts to a thread link. Only set it when we
-      // actually have one, so re-parsing an old capture never wipes an existing link.
-      var gm=String(r.msg_link||'').match(/channels\/(\d+)\//);
-      if(gm) d['Link to report']='https://discord.com/channels/'+gm[1]+'/'+r.raw_id;
+      // Use the captured full message link (Discord's own "Copy Message Link" form,
+      // /channels/<guild>/<channel>/<msg>): it lands on the !drop message with its thread
+      // attached right below. Only set it when present, so re-parsing an old capture
+      // (no msg_link) never wipes an existing link.
+      if(r.msg_link) d['Link to report']=String(r.msg_link);
       // LIGHT pass: bottles listed right on the !drop line  ("!drop 267 EHT, Blanton SFTB, ER")
       var bm=text.match(/!drop\s+\d{2,3}\s+(.+)/i);
       if(bm){ var toks=bm[1].split(/[,\/]+/).map(function(s){return s.trim().replace(/[.!?]+$/,'');}).filter(Boolean); if(toks.length){ dropTokens[dropId]=toks; d.Bottles=toks.join(', '); } }

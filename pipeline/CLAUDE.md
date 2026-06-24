@@ -62,10 +62,12 @@ the *consumer*. They integrate via data (the Sheet + the Cellar API), never via 
 ## Data model — the new Sheet's 8 tabs
 - `raw_channel`, `raw_threads` — append-only, per-message capture (`raw_id` = Discord message id).
   `raw_channel` also has `msg_link` — the captured per-message Discord deep link
-  (`/channels/<guild>/<channel>/<raw_id>`). The channel parser converts a `!drop` row's link
-  into a **thread** link (`/channels/<guild>/<raw_id>`, since a thread's id == its starter
-  message id) and writes it to `Drops.'Link to report'`. **A `msg_link` header must exist on the
-  `raw_channel` tab** — writes only fill columns that already exist, so without it the link is dropped.
+  (`/channels/<guild>/<channel>/<raw_id>`, Discord's own "Copy Message Link" form). The channel
+  parser copies a `!drop` row's `msg_link` straight into `Drops.'Link to report'`; it lands on the
+  `!drop` message with its thread attached right below. (Do NOT rewrite it to a thread-only
+  `/channels/<guild>/<raw_id>` link — a thread's id does not reliably equal its starter message id
+  here, so that form fails to resolve.) **A `msg_link` header must exist on the `raw_channel` tab**
+  — writes only fill columns that already exist, so without it the link is dropped.
 - `checks` — parsed sightings (drop / leftover / nada) from the channel; revives nada "bracketing".
 - `Drops` — event table; `dropId` join key; `dropQuality` (overall) + `dropQualityDepth`
   (count/distribution of good bottles) side by side; `topBottle` is wave-relative.
