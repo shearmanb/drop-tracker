@@ -72,6 +72,12 @@
     </div>
     <div class="grid" id="stats" style="margin-top:14px"></div>
 
+    <h2>Coverage — what you have & where to continue</h2>
+    <div class="card" id="coverage"><div class="muted small">Load data to see coverage.</div></div>
+
+    <h2>Gap check — dates to double-check or back-fill</h2>
+    <div class="card" id="gaps"><div class="muted small">Load data to see gaps.</div></div>
+
     <h2>Paste capture — from the 🔥 / 🧵 buttons</h2>
     <div class="card">
       <p class="muted small">Click a capture button in Discord (it copies the messages to your clipboard),
@@ -263,7 +269,7 @@ function estParts(ts){
 function loadAll(){
   log('Loading all tabs…');
   return Promise.all(TABS.map(function(t){ return getTab(t).then(function(rows){ DATA[t]=rows; }); }))
-    .then(function(){ setConn(true,'connected'); renderStats(); renderWorklist(); renderAll(); log('Loaded.'); })
+    .then(function(){ setConn(true,'connected'); renderStats(); renderCoverage(); renderGaps(); renderWorklist(); renderAll(); log('Loaded.'); })
     .catch(function(e){ setConn(false,'load failed'); log('Load failed: '+e.message); });
 }
 function renderStats(){
@@ -272,6 +278,64 @@ function renderStats(){
   $('#stats').innerHTML = defs.map(function(d){
     return '<div class="stat"><b>'+(DATA[d[0]].length)+'</b><span>'+d[1]+'</span></div>';
   }).join('');
+}
+function snippet(t){ t=String(t==null?'':t).replace(/\s+/g,' ').trim(); return t.length>64? t.slice(0,64)+'…' : t; }
+function nextDay(ds){ var d=new Date(ds+'T12:00:00Z'); d.setUTCDate(d.getUTCDate()+1); return d.toISOString().slice(0,10); }
+// coverage: per-channel oldest (back-fill toward) + newest (continue forward from), plus pending-parse count
+function renderCoverage(){
+  var el=$('#coverage'); if(!el) return;
+  var rows=DATA.raw_channel.filter(function(r){ return r.msg_ts && !isNaN(new Date(r.msg_ts)); });
+  if(!rows.length){ el.innerHTML='<div class="muted small">No channel data yet — capture a channel and Save.</div>'; return; }
+  function ms(r){ return new Date(r.msg_ts).getTime(); }
+  var parsed=rows.filter(function(r){ return String(r.parsed_version).trim(); }).length;
+  var by={};
+  rows.forEach(function(r){ var c=String(r.channel||'unknown'); (by[c]||(by[c]=[])).push(r); });
+  var html='<div class="row" style="gap:22px;margin-bottom:12px">'
+    +'<div><b style="font-size:20px">'+rows.length+'</b><div class="muted small">channel messages</div></div>'
+    +'<div><b style="font-size:20px">'+(rows.length-parsed)+'</b><div class="muted small">waiting to parse</div></div>'
+    +'<div><b style="font-size:20px">'+Object.keys(by).length+'</b><div class="muted small">channels</div></div></div>';
+  html+='<table><thead><tr><th>Channel</th><th>Oldest — back-fill toward</th><th>Newest — continue forward from</th><th>Msgs</th></tr></thead><tbody>';
+  Object.keys(by).sort().forEach(function(c){
+    var rs=by[c].slice().sort(function(a,b){ return ms(a)-ms(b); });
+    var o=rs[0], n=rs[rs.length-1];
+    html+='<tr><td><b>'+esc(c)+'</b></td>'
+      +'<td>'+esc(canonTS(o.msg_ts))+'<div class="muted small">'+esc(o.msg_author||'')+': '+esc(snippet(o.msg_text))+'</div></td>'
+      +'<td>'+esc(canonTS(n.msg_ts))+'<div class="muted small">'+esc(n.msg_author||'')+': '+esc(snippet(n.msg_text))+'</div></td>'
+      +'<td>'+rs.length+'</td></tr>';
+  });
+  el.innerHTML=html+'</tbody></table>';
+}
+// gap check: per channel, flag missing calendar days and abnormally thin days vs that channel's median
+function renderGaps(){
+  var el=$('#gaps'); if(!el) return;
+  var rows=DATA.raw_channel.filter(function(r){ return r.msg_ts && !isNaN(new Date(r.msg_ts)); });
+  if(!rows.length){ el.innerHTML='<div class="muted small">No channel data yet.</div>'; return; }
+  var by={};
+  rows.forEach(function(r){ var c=String(r.channel||'unknown'); var d=canonTS(r.msg_ts).slice(0,10);
+    (by[c]||(by[c]={}))[d]=(by[c][d]||0)+1; });
+  var blocks=[];
+  Object.keys(by).sort().forEach(function(c){
+    var counts=by[c], dates=Object.keys(counts).sort();
+    var first=dates[0], last=dates[dates.length-1];
+    var vals=dates.map(function(d){ return counts[d]; }).sort(function(a,b){ return a-b; });
+    var median=vals[Math.floor(vals.length/2)]||0;
+    var lowThresh=Math.max(2, Math.round(median*0.25));
+    var missing=[], thin=[], run=null, ds=first, guard=0;
+    while(ds<=last && guard++<4000){
+      if(!counts[ds]){ if(run) run.to=ds; else run={from:ds,to:ds}; }
+      else { if(run){ missing.push(run); run=null; } if(counts[ds]<lowThresh) thin.push({d:ds,n:counts[ds]}); }
+      ds=nextDay(ds);
+    }
+    if(run) missing.push(run);
+    if(!missing.length && !thin.length) return;
+    var b='<div style="margin-bottom:12px"><b>'+esc(c)+'</b> <span class="muted small">('+esc(first)+' → '+esc(last)+', ~'+median+' msgs/day typical)</span>';
+    if(missing.length) b+='<div class="small" style="margin-top:4px"><span class="tag nada">no data</span> '
+      + missing.map(function(g){ return esc(g.from===g.to? g.from : g.from+'…'+g.to); }).join(', ')+'</div>';
+    if(thin.length) b+='<div class="small" style="margin-top:4px"><span class="tag leftover">thin</span> '
+      + thin.map(function(g){ return esc(g.d)+' ('+g.n+')'; }).join(', ')+'</div>';
+    blocks.push(b+'</div>');
+  });
+  el.innerHTML = blocks.length ? blocks.join('') : '<div class="muted small">No missing days or thin days detected. ✓</div>';
 }
 function renderWorklist(){
   var drops = DATA.Drops.filter(function(d){ return String(d.Result)==='drop'; });
@@ -786,7 +850,9 @@ function saveCapture(){
   log('Saving '+j.rows.length+' captured row(s) to '+j.tab+'…');
   writeRows(j.tab, j.rows, 'raw_id')
     .then(function(r){ log('Saved to '+j.tab+': '+((r.appended||0)+(r.updated||0))+' row(s).'); $('#pasteCapture').value=''; return loadAll(); })
-    .then(function(){ $('#btnSaveCapture').disabled=false; if(j.tab==='raw_channel'){ log('Channel saved — parsing for drops + bottles…'); parseChannel(); } })
+    .then(function(){ $('#btnSaveCapture').disabled=false;
+      if(j.tab==='raw_channel'){ var pend=DATA.raw_channel.filter(function(x){return !String(x.parsed_version).trim();}).length;
+        log('Saved. '+pend+' message(s) waiting — paste more captures if you like, then click “⚙ Parse channel” once when you’re done.'); } })
     .catch(function(e){ log('Save failed: '+e.message); $('#btnSaveCapture').disabled=false; });
 }
 
