@@ -92,11 +92,23 @@
 
   <!-- THREADS -->
   <section id="threads">
-    <h2>Thread intake — paste the parser artifact's JSON</h2>
+    <h2>Parse a captured thread → drop (no claude.ai)</h2>
     <div class="card">
-      <p class="muted small">Paste one JSON object (or an array of them) from the thread-parser artifact
-        (see <code>artifact-prompt.md</code>). Preview maps it to a Drops row + bottle tokens; Resolve looks
-        the tokens up in Cellar; Save writes everything.</p>
+      <p class="muted small">Pick a thread you captured with 🧵, click <b>Auto-parse</b>: the app pulls the
+        bottle names out of the messages, looks them up in Cellar, and shows an editable draft. Fix anything,
+        then Save. No claude.ai needed.</p>
+      <div class="row">
+        <label>Captured thread</label>
+        <select id="threadPick" style="flex:1;min-width:220px"><option value="">— pick a captured thread —</option></select>
+        <button class="act" id="btnAutoParse">Auto-parse</button>
+      </div>
+      <div id="threadParseBox"></div>
+    </div>
+
+    <h2 class="muted">Advanced — paste AI JSON (messy threads only)</h2>
+    <div class="card">
+      <p class="muted small">Optional: for a gnarly thread, paste JSON from the artifact prompt
+        (see <code>artifact-prompt.md</code>). Preview → Resolve → Save.</p>
       <textarea id="threadJson" placeholder='{ "store":267, "reportedTS":"2026-04-27T09:30", ... }'></textarea>
       <div class="row" style="margin-top:10px">
         <button class="act sec" id="btnPreview">Preview</button>
@@ -445,6 +457,141 @@ function saveThread(){
     .catch(function(e){ log('Save failed: '+e.message); $('#btnSaveThread').disabled=false; });
 }
 
+/* ============================ one-click thread parser (rules + Cellar) ============================ */
+function threadGroups(){
+  var by={};
+  DATA.raw_threads.forEach(function(r){
+    var key=String(r.thread_title||'(thread)')+'|'+String(r.store_guess||'');
+    if(!by[key]) by[key]={title:r.thread_title||'(thread)', store:r.store_guess||'', rows:[]};
+    by[key].rows.push(r);
+  });
+  return Object.keys(by).map(function(k){return by[k];});
+}
+function populateThreadPicker(){
+  var sel=$('#threadPick'); if(!sel) return;
+  var groups=threadGroups(); window._threadGroups=groups;
+  sel.innerHTML='<option value="">— pick a captured thread —</option>'+groups.map(function(g,i){
+    return '<option value="'+i+'">'+esc((g.store||'?')+' — '+g.title+' ('+g.rows.length+' msgs)')+'</option>';
+  }).join('');
+}
+var PARSE_STOP={the:1,a:1,an:1,and:1,or:1,of:1,on:1,in:1,at:1,up:1,to:1,for:1,is:1,was:1,are:1,be:1,got:1,get:1,just:1,some:1,couple:1,few:1,front:1,shelf:1,back:1,there:1,here:1,today:1,yesterday:1,week:1,last:1,now:1,left:1,still:1,out:1,one:1,two:1,my:1,me:1,it:1,that:1,this:1,with:1,not:1,much:1,see:1,all:1,threads:1,thread:1,started:1};
+function extractCandidates(texts){
+  var lex={}; DATA.lexicon.forEach(function(l){ lex[String(l.raw_term).toLowerCase()]=1; });
+  var cands={};
+  texts.forEach(function(t){
+    var dm=t.match(/!drop\s+\d{2,3}\s+(.+)/i);
+    if(dm){ dm[1].split(/[,\/]+/).forEach(function(p){ p=p.trim().replace(/[.!?]+$/,''); if(p) cands[p]=1; }); }
+    var words=t.replace(/[^A-Za-z0-9 ]/g,' ').split(/\s+/).filter(Boolean);
+    for(var i=0;i<words.length;i++){
+      var w=words[i], lw=w.toLowerCase();
+      if(w.length>=2 && !PARSE_STOP[lw] && !lex[lw] && !/^\d+$/.test(w)) cands[w]=1;
+      if(i+1<words.length) cands[w+' '+words[i+1]]=1;
+    }
+  });
+  return Object.keys(cands).slice(0,80);
+}
+function normMatch(m){
+  if(!m) return null;
+  var b=m.bottle||m;
+  var id=(b.id!=null)?b.id:(b.cellar_id!=null?b.cellar_id:null);
+  if(id==null) return null;
+  return { id:id, name:b.name||b.label||('#'+id), shortcodes:b.shortcodes||b.aliases||'' };
+}
+function detectStatus(texts, b){
+  var keys=[String(b.name||'')].concat(String(b.shortcodes||'').split(/[,\s]+/)).filter(Boolean).map(function(s){return s.toLowerCase();});
+  for(var i=0;i<texts.length;i++){
+    var low=texts[i].toLowerCase();
+    if(keys.some(function(k){return k.length>=2 && low.indexOf(k)>=0;})){
+      if(/leftover|was there yesterday|last week|older/.test(low)) return 'leftover';
+      if(/\bgone\b|sold out|last (one|bottle)|grabbed|none left/.test(low)) return 'gone';
+      return 'confirmed';
+    }
+  }
+  return 'confirmed';
+}
+function autoParseThread(){
+  if(!$('#threadPick')) return;
+  var idx=$('#threadPick').value; if(idx===''){ alert('Pick a captured thread first.'); return; }
+  var g=window._threadGroups[+idx];
+  var rows=g.rows.slice().sort(function(a,b){ return new Date(a.msg_ts)-new Date(b.msg_ts); });
+  var texts=rows.map(function(r){ return String(r.msg_text||''); });
+  var store=g.store;
+  if(store===''||store==null){ for(var i=0;i<texts.length;i++){ var m=texts[i].match(/!drop\s+(\d{2,3})/i); if(m){ store=Number(m[1]); break; } } }
+  var reportedTS=rows.length?canonTS(rows[0].msg_ts):'';
+  var reporter=rows.length?rows[0].msg_author:'';
+  log('Auto-parsing thread (store '+(store||'?')+')…');
+  var cands=extractCandidates(texts);
+  $('#btnAutoParse').disabled=true;
+  resolveTokens(cands).then(function(res){
+    var matched=((res&&res.matched)||[]).map(normMatch).filter(Boolean);
+    var seen={}, bottles=[];
+    matched.forEach(function(m){ if(!seen[m.id]){ seen[m.id]=1; bottles.push({token:m.name, cellar_id:m.id, status:detectStatus(texts,m)}); } });
+    renderThreadParse({store:store, reportedTS:reportedTS, reporter:reporter, result:'drop', bottles:bottles, rawText:texts.join('\n')});
+    log('Found '+bottles.length+' bottle(s). Review and Save.');
+  }).catch(function(e){
+    log('Cellar lookup failed ('+e.message+') — enter bottles manually, then Re-resolve.');
+    renderThreadParse({store:store, reportedTS:reportedTS, reporter:reporter, result:'drop', bottles:[], rawText:texts.join('\n')});
+  }).then(function(){ $('#btnAutoParse').disabled=false; });
+}
+function renderThreadParse(s){
+  window._parseState=s;
+  var bl=s.bottles.map(function(b,i){
+    return '<tr><td><input data-bt="'+i+'" data-f="token" value="'+esc(b.token)+'" style="width:180px"></td>'
+      +'<td>'+((b.cellar_id!==''&&b.cellar_id!=null)?('#'+esc(b.cellar_id)):'<span class="muted">unmatched</span>')+'</td>'
+      +'<td><select data-bt="'+i+'" data-f="status">'+['confirmed','leftover','gone','rumored'].map(function(x){return '<option'+(x===b.status?' selected':'')+'>'+x+'</option>';}).join('')+'</select></td>'
+      +'<td><button class="act sec" data-rmbt="'+i+'">✕</button></td></tr>';
+  }).join('');
+  $('#threadParseBox').innerHTML=
+    '<div class="row" style="margin-top:12px"><label>Store</label><input id="ps_store" value="'+esc(s.store)+'" style="width:80px">'
+    +'<label>Reported</label><input id="ps_ts" value="'+esc(s.reportedTS)+'" style="width:150px">'
+    +'<label>Result</label><select id="ps_result">'+['drop','leftover','nada'].map(function(x){return '<option'+(x===s.result?' selected':'')+'>'+x+'</option>';}).join('')+'</select></div>'
+    +'<table style="margin-top:8px"><thead><tr><th>Bottle</th><th>Cellar</th><th>Status</th><th></th></tr></thead><tbody>'+(bl||'<tr><td colspan="4" class="muted">No bottles found — add them below.</td></tr>')+'</tbody></table>'
+    +'<div class="row" style="margin-top:8px"><input id="ps_add" placeholder="add a bottle (e.g. EHT)" style="width:180px"><button class="act sec" id="btnAddBottle">+ add</button>'
+    +'<button class="act sec" id="btnReResolve">Re-resolve in Cellar</button><button class="act" id="btnSaveParsed">Save drop</button></div>'
+    +'<details style="margin-top:8px"><summary class="muted small">show raw thread text</summary><pre class="log">'+esc(s.rawText)+'</pre></details>';
+  $('#btnSaveParsed').addEventListener('click',saveParsedThread);
+  $('#btnReResolve').addEventListener('click',reResolveParsed);
+  $('#btnAddBottle').addEventListener('click',function(){ collectParseEdits(); var v=$('#ps_add').value.trim(); if(v){ window._parseState.bottles.push({token:v,cellar_id:'',status:'confirmed'}); renderThreadParse(window._parseState); } });
+  $$('#threadParseBox [data-rmbt]').forEach(function(btn){ btn.addEventListener('click',function(){ collectParseEdits(); window._parseState.bottles.splice(+btn.getAttribute('data-rmbt'),1); renderThreadParse(window._parseState); }); });
+}
+function collectParseEdits(){
+  var s=window._parseState; if(!s||!$('#ps_store')) return;
+  s.store=$('#ps_store').value.trim(); s.reportedTS=$('#ps_ts').value.trim(); s.result=$('#ps_result').value;
+  $$('#threadParseBox [data-bt]').forEach(function(el){ var i=+el.getAttribute('data-bt'), f=el.getAttribute('data-f'); if(s.bottles[i]) s.bottles[i][f]=el.value; });
+}
+function reResolveParsed(){
+  collectParseEdits(); var s=window._parseState;
+  var tokens=s.bottles.map(function(b){return b.token;}).filter(Boolean);
+  if(!tokens.length){ renderThreadParse(s); return; }
+  log('Re-resolving '+tokens.length+' token(s) in Cellar…');
+  resolveTokens(tokens).then(function(res){
+    var matched=((res&&res.matched)||[]).map(normMatch).filter(Boolean);
+    s.bottles.forEach(function(b){
+      var low=b.token.toLowerCase();
+      var hit=matched.find(function(m){ return ((m.name||'')+' '+(m.shortcodes||'')).toLowerCase().indexOf(low)>=0; });
+      b.cellar_id=hit?hit.id:'';
+    });
+    renderThreadParse(s); log('Re-resolved.');
+  }).catch(function(e){ log('Resolve failed: '+e.message); });
+}
+function saveParsedThread(){
+  collectParseEdits(); var s=window._parseState;
+  if(!s.store){ alert('Enter a store number.'); return; }
+  var dropId=s.store+'_'+canonTS(s.reportedTS);
+  var tokens=s.bottles.map(function(b){return b.token;}).filter(Boolean);
+  var drop={ dropId:dropId, 'Store #':s.store, district:storeDistrict(s.store), Result:s.result,
+    ReportedTS:canonTS(s.reportedTS), Reporter:s.reporter||'', Bottles:tokens.join(', '), Notes:'',
+    'Needs Review': s.bottles.some(function(b){return !(b.cellar_id!==''&&b.cellar_id!=null);})?true:'' };
+  var bottles=s.bottles.filter(function(b){return b.token;}).map(function(b){
+    var ok=(b.cellar_id!==''&&b.cellar_id!=null);
+    return { dropId:dropId, store:s.store, cellar_id:ok?b.cellar_id:'', raw_text:b.token, status:ok?b.status:'unmatched', note:'', parser_version:PARSER_VERSION };
+  });
+  $('#btnSaveParsed').disabled=true;
+  writeRows('Drops',[drop],'dropId').then(function(){ return writeRows('drop_bottles',bottles); })
+    .then(function(){ log('Saved drop '+dropId+' ('+bottles.length+' bottle row(s)).'); $('#threadParseBox').innerHTML=''; $('#threadPick').value=''; return loadAll(); })
+    .catch(function(e){ log('Save failed: '+e.message); $('#btnSaveParsed').disabled=false; });
+}
+
 /* ============================ wave suggester ============================ */
 function dropSignature(d){
   var bs=bottlesForDrop(d.dropId).map(function(b){ return b.cellar_id!==''&&b.cellar_id!=null?('#'+b.cellar_id):String(b.raw_text||'').toLowerCase(); });
@@ -558,7 +705,7 @@ function renderReview(){
   }); });
 }
 
-function renderAll(){ renderConfirmedWaves(); renderLexicon(); renderReview(); }
+function renderAll(){ renderConfirmedWaves(); renderLexicon(); renderReview(); populateThreadPicker(); }
 
 /* ============================ bottle cache ============================ */
 function loadBottles(){
@@ -609,6 +756,7 @@ $('#btnDerive').addEventListener('click',recomputeDerived);
 $('#btnPreview').addEventListener('click',previewThread);
 $('#btnResolve').addEventListener('click',resolveThread);
 $('#btnSaveThread').addEventListener('click',saveThread);
+$('#btnAutoParse').addEventListener('click',autoParseThread);
 $('#btnSuggest').addEventListener('click',suggestWaves);
 $('#btnSaveSettings').addEventListener('click',saveSettings);
 $('#btnPing').addEventListener('click',ping);
