@@ -1,54 +1,16 @@
 /* Drop Pipeline - THREAD bookmarklet  (one drop thread -> clipboard)
  * ------------------------------------------------------------------
- * Click this while viewing a single drop THREAD. It reads every rendered
- * message and COPIES them to your clipboard as JSON. Then paste that into the
- * Worklist app's "Paste capture" box and click Save.
+ * Reads an open drop THREAD and COPIES its messages to your clipboard as JSON.
+ * Paste into the Worklist app's "Paste capture" box and Save.
  *
- * Why copy instead of send? Discord's security policy (CSP) blocks its pages
- * from sending data to outside servers. Copying is not blocked; the app writes
- * to the sheet. No Discord API, no token, no network call from Discord.
+ * Split-screen aware: Discord opens threads in a side panel next to the channel
+ * by default. This grabs ONLY the thread's messages (not the channel beside it)
+ * by (1) scoping to the thread side-panel when present, and (2) falling back to
+ * isolating messages by their thread/channel container id.
  *
- * This bookmarklet needs NO configuration - no URL, no token.
+ * No Discord API, no token, no network call from Discord. Needs no config.
  */
 (function () {
-  function threadTitle() {
-    var sel = ['section[aria-label="Channel header"] h1',
-      'section[aria-label="Channel header"] [class*="title"]',
-      '[class*="threadName"]', 'header [class*="title"]', 'h1[class*="title"]'];
-    for (var i = 0; i < sel.length; i++) {
-      var el = document.querySelector(sel[i]);
-      if (el && el.textContent.trim()) return el.textContent.trim();
-    }
-    return (document.title || '').replace(/\s*[|\-].*$/, '').trim() || 'unknown';
-  }
-
-  function storeGuess(title) {
-    var m = (title || '').match(/\b(\d{2,3})\b/);
-    return m ? Number(m[1]) : '';
-  }
-
-  function extractMessages() {
-    var lis = document.querySelectorAll('li[id^="chat-messages-"]');
-    var out = [], lastAuthor = '', lastTs = '';
-    lis.forEach(function (li) {
-      var parts = li.id.split('-');
-      var msgId = parts[parts.length - 1];
-      var authorEl = li.querySelector('[id^="message-username-"]')
-        || li.querySelector('h3 span[class*="username"]')
-        || li.querySelector('span[class*="username"]');
-      var author = authorEl ? authorEl.textContent.trim() : lastAuthor;
-      if (authorEl) lastAuthor = author;
-      var timeEl = li.querySelector('time[datetime]');
-      var ts = timeEl ? timeEl.getAttribute('datetime') : lastTs;
-      if (timeEl) lastTs = ts;
-      var contentEl = li.querySelector('[id^="message-content-"]');
-      var text = contentEl ? (contentEl.innerText || contentEl.textContent || '').trim() : '';
-      if (!text) return;
-      out.push({ author: author, ts: ts, text: text, msgId: msgId });
-    });
-    return out;
-  }
-
   function toast(msg, ok) {
     var d = document.createElement('div');
     d.textContent = msg;
@@ -56,7 +18,7 @@
       + 'background:' + (ok === false ? '#7f1d1d' : '#14532d') + ';color:#fff;padding:11px 18px;'
       + 'border-radius:8px;font:600 14px system-ui;box-shadow:0 4px 16px rgba(0,0,0,.4);max-width:80vw;text-align:center';
     document.body.appendChild(d);
-    setTimeout(function () { d.remove(); }, 5000);
+    setTimeout(function () { d.remove(); }, 6000);
   }
 
   function copyText(t, cb) {
@@ -73,11 +35,69 @@
     }
   }
 
+  // store from a TITLE ("!drop 267 ..." or "267 McLean") - whole-number, prefers the !drop form
+  function storeFromTitle(t) { t = t || ''; var m = t.match(/!drop\s+(\d{2,3})/i) || t.match(/\b(\d{2,3})\b/); return m ? Number(m[1]) : ''; }
+  // store from message text - ONLY a "!drop NNN" or "started a thread ... NNN" cue, never a bare number (avoids "ER 10")
+  function storeFromText(t) { t = t || ''; var m = t.match(/!drop\s+(\d{2,3})/i) || t.match(/started a thread[\s\S]*?(\d{2,3})/i); return m ? Number(m[1]) : ''; }
+
+  function pickTitle(scope) {
+    var sels = ['[class*="threadName"]', '[class*="title"]', 'h1', 'h2', 'h3', '[role="heading"]'];
+    for (var i = 0; i < sels.length; i++) {
+      var el = scope.querySelector(sels[i]);
+      if (el && el.textContent.trim()) return el.textContent.trim();
+    }
+    return '';
+  }
+
+  // Read all rendered messages (within `scope`), keeping author/timestamp carry-forward
+  // per container, and tagging each row with its container id (the bit of the <li> id
+  // between "chat-messages-" and the message id == the channel or thread id).
+  function gather(scope) {
+    var lis = scope.querySelectorAll('li[id^="chat-messages-"]');
+    var carry = {}, order = [], rows = [];
+    lis.forEach(function (li) {
+      var parts = li.id.split('-');
+      var msgId = parts[parts.length - 1];
+      var cid = parts[parts.length - 2] || '';
+      if (!carry[cid]) { carry[cid] = { a: '', t: '' }; order.push(cid); }
+      var authorEl = li.querySelector('[id^="message-username-"]')
+        || li.querySelector('h3 span[class*="username"]')
+        || li.querySelector('span[class*="username"]');
+      var author = authorEl ? authorEl.textContent.trim() : carry[cid].a;
+      if (authorEl) carry[cid].a = author;
+      var timeEl = li.querySelector('time[datetime]');
+      var ts = timeEl ? timeEl.getAttribute('datetime') : carry[cid].t;
+      if (timeEl) carry[cid].t = ts;
+      var contentEl = li.querySelector('[id^="message-content-"]');
+      var text = contentEl ? (contentEl.innerText || contentEl.textContent || '').trim() : '';
+      if (!text) return;
+      rows.push({ cid: cid, author: author, ts: ts, text: text, msgId: msgId });
+    });
+    return { rows: rows, order: order };
+  }
+
   try {
-    var title = threadTitle();
-    var store = storeGuess(title);
-    var msgs = extractMessages();
-    if (!msgs.length) { toast('Thread: no messages found on screen', false); return; }
+    // Prefer the thread side-panel if Discord rendered one (split-screen view).
+    var panel = document.querySelector('[class*="threadSidebar"]')
+      || document.querySelector('[class*="threadSidebarOpen"]');
+    var scope = panel || document;
+
+    var g = gather(scope);
+    if (!g.rows.length) { toast('Thread: no messages found on screen', false); return; }
+
+    // If we couldn't scope to a panel but there are multiple containers on screen
+    // (channel + thread), the thread renders last -> keep only the last container's messages.
+    var msgs = g.rows;
+    if (!panel && g.order.length > 1) {
+      var threadCid = g.rows[g.rows.length - 1].cid;
+      msgs = g.rows.filter(function (r) { return r.cid === threadCid; });
+    }
+
+    var title = pickTitle(scope) || pickTitle(document) || '(thread)';
+    var store = storeFromTitle(title);
+    // fallback: scan everything on screen for a "!drop NNN" / "started a thread ... NNN" cue
+    if (store === '') { for (var i = 0; i < g.rows.length; i++) { var s = storeFromText(g.rows[i].text); if (s) { store = s; break; } } }
+
     var capturedAt = new Date().toISOString();
     var rows = msgs.map(function (m) {
       return { captured_at: capturedAt, thread_title: title, store_guess: store, msg_author: m.author,
@@ -85,8 +105,9 @@
     });
     var payload = JSON.stringify({ tab: 'raw_threads', rows: rows });
     copyText(payload, function (ok) {
-      if (ok) toast('Thread: copied ' + rows.length + ' messages (store ' + (store || '?') + '). Now paste into the app’s "Paste capture" box.');
-      else toast('Thread: clipboard was blocked - tell Claude.', false);
+      if (!ok) { toast('Thread: clipboard was blocked - tell Claude.', false); return; }
+      if (store === '') toast('Thread: copied ' + rows.length + ' messages, but no store # found - set it in the app, or make sure the thread name starts with the store number.', false);
+      else toast('Thread: copied ' + rows.length + ' messages (store ' + store + '). Now paste into the app’s "Paste capture" box.');
     });
   } catch (err) { toast('Thread error: ' + err, false); }
 })();
