@@ -64,6 +64,11 @@ Worklist app (index.html)  ── parse, suggest, confirm, score ──►  Drop
 ```
 
 ## Notes
+- **Drop thread links are captured during the channel sweep** — the firehose now records each
+  message's Discord link, and **Parse channel** turns every `!drop` into a link to its thread
+  (shown as the ↗ Discord arrow in the Drop Tracker). One-time setup: add a column header named
+  **`msg_link`** to the `raw_channel` tab (writes only fill columns that already exist). No need to
+  open threads just to grab their links.
 - **Re-clicking a bookmarklet never duplicates** — rows dedup on the Discord message id (`raw_id`).
 - **Parsing is re-runnable.** Improve a rule, re-parse; confirmed waves stay locked.
 - The Apps Script stays a dumb pipe on capture, so you rarely redeploy. Changing the *app* or the

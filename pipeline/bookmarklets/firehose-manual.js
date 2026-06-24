@@ -37,8 +37,15 @@
     }
   }
 
+  // server + channel id from the Discord URL (/channels/<guild>/<channel>); '@me' for DMs.
+  // A "!drop" message starts a thread whose id == the message id, so the app can turn this
+  // per-message deep link into a thread link later.
+  function loc() { var m = (location.pathname || '').match(/\/channels\/(\d+|@me)\/(\d+)/); return m ? { g: m[1], c: m[2] } : { g: '', c: '' }; }
+  function msgLink(loc, msgId) { return (loc.g && loc.c && /^\d+$/.test(loc.g)) ? 'https://discord.com/channels/' + loc.g + '/' + loc.c + '/' + msgId : ''; }
+
   try {
     var chan = channelName();
+    var here = loc();
     // running total persists across clicks while this Discord tab stays open
     if (!window.__dpManual) window.__dpManual = { chan: chan, capturedAt: new Date().toISOString(), collected: {} };
     var store = window.__dpManual;
@@ -53,7 +60,7 @@
       var timeEl = li.querySelector('time[datetime]'); var ts = timeEl ? timeEl.getAttribute('datetime') : lastTs; if (timeEl) lastTs = ts;
       var contentEl = li.querySelector('[id^="message-content-"]'); var text = contentEl ? (contentEl.innerText || contentEl.textContent || '').trim() : '';
       if (!text) return;
-      if (!store.collected[msgId]) { store.collected[msgId] = { captured_at: store.capturedAt, channel: chan, msg_author: author, msg_ts: ts, msg_text: text, raw_id: msgId, parsed_version: '' }; added++; }
+      if (!store.collected[msgId]) { store.collected[msgId] = { captured_at: store.capturedAt, channel: chan, msg_author: author, msg_ts: ts, msg_text: text, raw_id: msgId, msg_link: msgLink(here, msgId), parsed_version: '' }; added++; }
     });
 
     var rows = Object.keys(store.collected).map(function (k) { return store.collected[k]; });
