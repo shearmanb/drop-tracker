@@ -33,9 +33,14 @@
     <h2 style="margin-top:0">Drag these to your bookmarks bar</h2>
     <p id="buildmsg">Building…</p>
     <div class="row">
-      <a class="bm" id="bmFirehose" href="#" draggable="true">🔥 Capture Channel</a>
+      <a class="bm" id="bmFirehose" href="#" draggable="true">🔥 Capture Channel (auto)</a>
       <button data-copy="bmFirehose">Copy</button>
-      <span class="pill">use on a geographic channel</span>
+      <span class="pill">gentle auto-scroll + stop-at-date</span>
+    </div>
+    <div class="row">
+      <a class="bm" id="bmManual" href="#" draggable="true">✋ Capture Channel (manual)</a>
+      <button data-copy="bmManual">Copy</button>
+      <span class="pill">max-safety: you scroll, it reads</span>
     </div>
     <div class="row">
       <a class="bm" id="bmThread" href="#" draggable="true">🧵 Capture Thread</a>
@@ -61,7 +66,7 @@
 
 <script>
   var $ = function(id){ return document.getElementById(id); };
-  var SRC = { firehose: 'bookmarklets/firehose.js', thread: 'bookmarklets/thread.js' };
+  var SRC = { firehose: 'bookmarklets/firehose.js', manual: 'bookmarklets/firehose-manual.js', thread: 'bookmarklets/thread.js' };
   var cache = {};
 
   function fetchSrc(key){
@@ -69,8 +74,9 @@
     return fetch(SRC[key]).then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); }).then(function(t){ cache[key]=t; return t; });
   }
   function build(){
-    Promise.all([fetchSrc('firehose'), fetchSrc('thread')]).then(function(){
+    Promise.all([fetchSrc('firehose'), fetchSrc('manual'), fetchSrc('thread')]).then(function(){
       $('bmFirehose').href = 'javascript:' + encodeURIComponent(cache.firehose);
+      $('bmManual').href   = 'javascript:' + encodeURIComponent(cache.manual);
       $('bmThread').href   = 'javascript:' + encodeURIComponent(cache.thread);
       $('buildmsg').innerHTML = '<span class="ok">Ready — drag the buttons below to your bookmarks bar.</span>';
     }).catch(function(){

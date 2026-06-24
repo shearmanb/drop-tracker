@@ -72,7 +72,7 @@
     if (ans && /\d{4}-\d{2}-\d{2}/.test(ans)) { var dd = new Date(ans.trim().slice(0, 10) + 'T00:00:00'); if (!isNaN(dd)) targetMs = dd.getTime(); }
     var sc = findScroller();
     var status = toast('Firehose: scanning…', true, true);
-    var lastN = -1, stable = 0, iter = 0, MAXITER = 3000, MAXMSG = 25000;
+    var lastN = -1, stable = 0, iter = 0, MAXITER = 3000, MAXMSG = 12000;
     function finish() {
       var rows = Object.keys(collected).map(function (k) { return collected[k]; });
       if (status) status.remove();
@@ -93,8 +93,8 @@
       if (n === lastN) stable++; else stable = 0;
       lastN = n;
       if (atTop || hitDate || stable >= 8 || iter >= MAXITER || n >= MAXMSG) { finish(); return; }
-      if (sc) sc.scrollTop = Math.max(0, sc.scrollTop - Math.max(220, sc.clientHeight * 0.85));
-      setTimeout(step, 400);
+      if (sc) sc.scrollTop = Math.max(0, sc.scrollTop - Math.max(200, sc.clientHeight * 0.75));
+      setTimeout(step, 700 + Math.floor(Math.random() * 700)); // gentle, human-like jittered pace
     }
     step();
   } catch (err) { toast('Firehose error: ' + err, false); }
