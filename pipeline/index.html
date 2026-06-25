@@ -208,8 +208,32 @@ function api(action, params){
   Object.keys(params||{}).forEach(function(k){ qs += '&'+k+'='+encodeURIComponent(params[k]); });
   return fetch(CFG.url+qs).then(function(r){ return r.json(); });
 }
-function getTab(tab){ return api('getTab',{tab:tab}).then(function(d){ return d.rows||[]; }); }
+function getTab(tab){ return apiRetry('getTab',{tab:tab},'load '+tab).then(function(d){ return d.rows||[]; }); }
 function resolveTokens(tokens){ return api('resolve',{q:tokens.join(',')}); }
+
+// wait helper (used for retry backoff)
+function delay(ms){ return new Promise(function(res){ setTimeout(res,ms); }); }
+
+// Run an Apps Script call, retrying transient failures with exponential backoff.
+// A big save fires hundreds of sequential requests; without this, ONE momentary
+// "Failed to fetch" (network blip, Apps Script cold start, a non-JSON error page)
+// aborts the whole batch. We retry on a rejected fetch AND on a {success:false}
+// reply, so a single hiccup self-heals instead of losing a 20-minute save.
+function apiRetry(action, params, label){
+  var TRIES=4; // 1 attempt + 3 retries; backoff 2s, 4s, 8s
+  function attempt(n){
+    return api(action,params).then(function(d){
+      if(d && d.success===false) throw new Error(d.error||'server returned an error');
+      return d;
+    }).catch(function(e){
+      if(n>=TRIES) throw e;
+      var wait=Math.pow(2,n)*1000;
+      log('  ↻ '+label+' hiccup ('+e.message+') — retry '+n+'/'+(TRIES-1)+' in '+(wait/1000)+'s…');
+      return delay(wait).then(function(){ return attempt(n+1); });
+    });
+  }
+  return attempt(1);
+}
 
 // write rows, chunked so the GET URL never gets too long
 function writeRows(tab, rows, key){
@@ -222,11 +246,20 @@ function writeRows(tab, rows, key){
     cur.push(r); len+=s.length;
   });
   if(cur.length) chunks.push(cur);
-  var totals={updated:0,appended:0};
-  return chunks.reduce(function(p,chunk){
+  var totals={updated:0,appended:0}, done=0, N=chunks.length;
+  return chunks.reduce(function(p,chunk,i){
     return p.then(function(){
       var params={tab:tab, data:JSON.stringify(chunk)}; if(key) params.key=key;
-      return api('write',params).then(function(d){ totals.updated+=d.updated||0; totals.appended+=d.appended||0; });
+      return apiRetry('write',params,tab+' part '+(i+1)+'/'+N).then(function(d){
+        totals.updated+=d.updated||0; totals.appended+=d.appended||0; done++;
+        // progress on big saves only, every 20 parts, so the log isn't flooded
+        if(N>1 && (done%20===0 || done===N)) log('  …'+done+'/'+N+' parts saved to '+tab+' ('+(totals.appended+totals.updated)+' rows)');
+      }).catch(function(e){
+        // dedup on raw_id / upsert on key means a re-run skips what already landed
+        e.message=tab+' part '+(i+1)+'/'+N+' failed after retries: '+e.message
+          +' — '+(totals.appended+totals.updated)+' row(s) saved so far. Click Save again to resume (already-saved rows are skipped).';
+        throw e;
+      });
     });
   }, Promise.resolve()).then(function(){ return totals; });
 }
