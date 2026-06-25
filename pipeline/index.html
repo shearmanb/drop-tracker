@@ -358,6 +358,32 @@ function estParts(ts){
   }catch(e){ return { minutes: d.getHours()*60+d.getMinutes(), dow: d.getDay()+1 }; }
 }
 
+/* ============================ reporter normalizer ============================ */
+// The capture bookmarklets read .textContent of Discord's username element
+// (firehose.js / thread.js), so any role/status badge or "server tag" pill that
+// renders next to the name gets glued onto it with no delimiter, e.g.
+//   "spidermanVerified", "cmoneymontanaPatreon Supporter",
+//   "Average Joe's BotModeratorAPP",
+//   "Bourbonagogo [MP], Server Tag: MPMPVerified".
+// The real name is intact; the junk is always a SUFFIX, so we strip only the
+// known Discord badges (and the server-tag block) off the end and nothing else.
+// Conservative (anything unrecognized is left untouched) and idempotent, so it
+// is safe to run as one pass over the whole backlog and to run again after.
+function cleanReporter(name){
+  var s=String(name==null?'':name);
+  // 1) server-tag pill: " [TAG], Server Tag: TAGTAG" — the tag shows in brackets,
+  //    then doubled after the label. The \1\1 backreference ties the doubled tag
+  //    to the bracketed one, so we only ever strip a genuine pill (never a real
+  //    name that happens to contain "[...]").
+  s=s.replace(/\s*\[([^\]]+)\],\s*Server Tag:\s*\1\1/, '');
+  // 2) trailing role/status badges, which can stack ("ModeratorAPP"). Strip
+  //    repeatedly until the end is clean.
+  var badge=/(?:Verified|Patreon Supporter|Moderator|Server Booster|APP)$/;
+  var prev;
+  do { prev=s; s=s.replace(badge,'').replace(/\s+$/,''); } while(s!==prev);
+  return s.trim();
+}
+
 /* ============================ load + dashboard ============================ */
 function loadAll(){
   log('Loading all tabs…');
@@ -549,7 +575,7 @@ function parseChannel(){
   var todo=DATA.raw_channel.filter(function(r){ return !String(r.parsed_version).trim(); });
   log('Parsing '+todo.length+' new channel message(s)…');
   todo.forEach(function(r){
-    var author=String(r.msg_author||''); if(/average joe/i.test(author)) { flags.push({raw_id:r.raw_id, parsed_version:PARSER_VERSION}); return; }
+    var author=cleanReporter(r.msg_author); if(/average joe/i.test(author)) { flags.push({raw_id:r.raw_id, parsed_version:PARSER_VERSION}); return; }
     var text=String(r.msg_text||''), low=text.toLowerCase();
     var result='', store=firstStoreNum(text);
     if(/!drop/i.test(text)) result='drop';
@@ -795,7 +821,7 @@ function autoParseThread(){
   var store=g.store;
   if(store===''||store==null){ for(var i=0;i<texts.length;i++){ var m=texts[i].match(/!drop\s+(\d{2,3})/i); if(m){ store=Number(m[1]); break; } } }
   var reportedTS=rows.length?canonTS(rows[0].msg_ts):'';
-  var reporter=rows.length?rows[0].msg_author:'';
+  var reporter=rows.length?cleanReporter(rows[0].msg_author):'';
   log('Auto-parsing thread (store '+(store||'?')+')…');
   // pre-load bottles already on this drop (e.g. from the Light pass) so the 2nd pass ADDS, never wipes
   var preDropId=store+'_'+reportedTS;
