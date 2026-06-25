@@ -915,16 +915,37 @@ function saveCapture(){
   var j; try{ j=JSON.parse(raw); }catch(e){ log('Paste is not valid JSON: '+e.message); alert('That doesn\'t look like a copied capture. Click 🔥 or 🧵 in Discord, then paste what it copied.'); return; }
   if(!j.tab || !Array.isArray(j.rows)){ alert('Missing tab/rows — did you paste the copied capture?'); return; }
   $('#btnSaveCapture').disabled=true;
-  var before=(DATA[j.tab]||[]).length; // POST replies are opaque, so confirm by the reload delta
+  var before=(DATA[j.tab]||[]).length; // POST replies are opaque, so we verify against the reload
+  // Which of these rows are NOT yet present in the freshly-loaded tab (matched by raw_id).
+  // loadAll() GET-reads the whole tab back from the sheet, so this is a real server-side check
+  // of EVERY row — not a sample — and it's free because we reload after saving anyway.
+  function missingFrom(rows){
+    var have={}; (DATA[j.tab]||[]).forEach(function(r){ if(r.raw_id!=null && r.raw_id!=='') have[String(r.raw_id)]=true; });
+    return rows.filter(function(r){ return r.raw_id!=null && r.raw_id!=='' && !have[String(r.raw_id)]; });
+  }
   log('Saving '+j.rows.length+' captured row(s) to '+j.tab+' in big batches…');
   postRows(j.tab, j.rows, function(done,N){ if(N>1) log('  …uploaded batch '+done+'/'+N); })
-    .then(function(){ log('Upload sent — reloading to confirm what landed…'); $('#pasteCapture').value=''; return loadAll(); })
-    .then(function(){ $('#btnSaveCapture').disabled=false;
+    .then(function(){ log('Upload sent — reloading to verify every row landed…'); return loadAll(); })
+    .then(function(){
+      if((DATA[j.tab]||[]).length<before) throw new Error('the reload came back short, so the save could not be verified — click Load, then re-Save if the count looks low.');
+      var miss=missingFrom(j.rows);
+      log('Verified '+(j.rows.length-miss.length)+' / '+j.rows.length+' row(s) present in '+j.tab+'.');
+      if(!miss.length) return;
+      // fast upload didn't land everything (e.g. doPost not deployed) — fill the gaps the reliable GET way
+      log('⚠ '+miss.length+' row(s) didn\'t land via fast upload — backfilling those the reliable way…');
+      return writeRows(j.tab, miss, 'raw_id').then(function(){ return loadAll(); }).then(function(){
+        var still=missingFrom(j.rows).length;
+        if(still) log('⚠ Still missing '+still+' row(s) after backfill — check Settings → Ping and your Apps Script deployment.');
+        else log('✓ Backfill complete — all '+j.rows.length+' row(s) now saved.');
+      });
+    })
+    .then(function(){
+      $('#pasteCapture').value=''; $('#btnSaveCapture').disabled=false;
       var added=(DATA[j.tab]||[]).length-before;
       log('Saved to '+j.tab+': '+added+' new row(s) (rows already saved were skipped).');
       if(j.tab==='raw_channel'){ var pend=DATA.raw_channel.filter(function(x){return !String(x.parsed_version).trim();}).length;
         log('Saved. '+pend+' message(s) waiting — paste more captures if you like, then click “⚙ Parse channel” once when you’re done.'); } })
-    .catch(function(e){ log('Save failed: '+e.message); $('#btnSaveCapture').disabled=false; });
+    .catch(function(e){ log('Save failed: '+e.message+' (your paste is kept — just click Save again, duplicates are skipped).'); $('#btnSaveCapture').disabled=false; });
 }
 
 /* ============================ wire up ============================ */
