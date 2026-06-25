@@ -46,6 +46,28 @@
   .scroll{max-height:460px;overflow:auto;border:1px solid var(--border);border-radius:10px}
   .ev{font-size:12px;color:var(--muted);margin:4px 0}
   hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+  /* gap-check calendar heatmap (collapsible per channel) */
+  .hm-chan{margin-bottom:10px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);overflow:hidden}
+  .hm-sum{cursor:pointer;padding:9px 12px;font-size:13px}
+  .hm-sum b{font-size:14px}
+  .hm-chan[open] .hm-sum{border-bottom:1px solid var(--border);margin-bottom:10px}
+  .hm-sub{color:var(--muted);font-size:12px;margin:0 0 8px;padding:0 12px}
+  .hm-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:8px;padding:0 12px;font-size:11px;color:var(--muted)}
+  .hm-legend span{display:inline-flex;align-items:center;gap:5px}
+  .hm-sw{width:10px;height:10px;border-radius:2px;border:1px solid var(--border)}
+  .hm-scroll{overflow-x:auto;padding:0 12px 4px}
+  .hm-months{display:grid;grid-auto-flow:column;grid-auto-columns:12px;font-size:9px;color:var(--muted);height:13px}
+  .hm-months span{grid-row:1;white-space:nowrap}
+  .hm-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,10px);grid-auto-columns:10px;gap:2px}
+  .hm-cell{width:10px;height:10px;border-radius:2px;background:#2b3138;border:1px solid transparent}
+  .hm-pad{background:transparent;border-color:rgba(48,54,61,.5)}
+  .hm-n{background:#2b3138}
+  .hm-h{background:rgba(63,185,80,.22);border-color:rgba(63,185,80,.45)}
+  .hm-t1{background:rgba(245,158,11,.45)}
+  .hm-t2{background:rgba(245,158,11,.9)}
+  .hm-0{background:var(--bad)}
+  .hm-detail{margin-top:8px;padding:0 12px 10px}
+  .hm-detail .small{margin:3px 0}
 </style>
 </head>
 <body>
@@ -373,14 +395,27 @@ function renderCoverage(){
   });
   el.innerHTML=html+'</tbody></table>';
 }
-// gap check: per channel, flag missing calendar days and abnormally thin days vs that channel's median
+// gap check: per-channel collapsible calendar heatmap (GitHub-style) — gaps & thin days at a glance.
+// Collapsed by default to a one-line "how bad" summary; expand for the calendar + legend + exact dates.
 function renderGaps(){
   var el=$('#gaps'); if(!el) return;
   var rows=DATA.raw_channel.filter(function(r){ return r.msg_ts && !isNaN(new Date(r.msg_ts)); });
   if(!rows.length){ el.innerHTML='<div class="muted small">No channel data yet.</div>'; return; }
+
   var by={};
   rows.forEach(function(r){ var c=String(r.channel||'unknown'); var d=canonTS(r.msg_ts).slice(0,10);
     (by[c]||(by[c]={}))[d]=(by[c][d]||0)+1; });
+
+  // weekday (0=Sun..6=Sat) via the same UTC-noon trick as nextDay (DST-safe)
+  function dow(ds){ return new Date(ds+'T12:00:00Z').getUTCDay(); }
+  var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var THIN_DETAIL_CAP=12;
+  var legend='<div class="hm-legend">'
+    + '<span><i class="hm-sw hm-0"></i>no data</span>'
+    + '<span><i class="hm-sw hm-t1"></i>thin</span>'
+    + '<span><i class="hm-sw hm-n"></i>normal</span>'
+    + '<span><i class="hm-sw hm-h"></i>busy (≥ typical)</span></div>';
+
   var blocks=[];
   Object.keys(by).sort().forEach(function(c){
     var counts=by[c], dates=Object.keys(counts).sort();
@@ -388,21 +423,74 @@ function renderGaps(){
     var vals=dates.map(function(d){ return counts[d]; }).sort(function(a,b){ return a-b; });
     var median=vals[Math.floor(vals.length/2)]||0;
     var lowThresh=Math.max(2, Math.round(median*0.25));
+
+    // single pass first..last: missing runs, thin list, day counters, heatmap cells, month labels
     var missing=[], thin=[], run=null, ds=first, guard=0;
+    var inRange=0, missingDays=0, cells=[], months=[], lastMonth='', weekIdx=0, posInCol;
+
+    var pad=dow(first), i;
+    for(i=0;i<pad;i++) cells.push('<div class="hm-cell hm-pad"></div>');
+    posInCol=pad;
+
     while(ds<=last && guard++<4000){
-      if(!counts[ds]){ if(run) run.to=ds; else run={from:ds,to:ds}; }
-      else { if(run){ missing.push(run); run=null; } if(counts[ds]<lowThresh) thin.push({d:ds,n:counts[ds]}); }
+      var n=counts[ds]||0, cls, title;
+      if(n===0){
+        if(run) run.to=ds; else run={from:ds,to:ds};
+        missingDays++; cls='hm-0'; title=ds+' · no data';
+      } else {
+        if(run){ missing.push(run); run=null; }
+        if(n<lowThresh){
+          thin.push({d:ds,n:n});
+          cls=(n*2<lowThresh)?'hm-t2':'hm-t1';
+          title=ds+' · '+n+' msgs (thin, typical ~'+median+')';
+        } else if(n>=median){
+          cls='hm-h'; title=ds+' · '+n+' msgs';
+        } else {
+          cls='hm-n'; title=ds+' · '+n+' msgs';
+        }
+      }
+      var mo=ds.slice(0,7);
+      if(mo!==lastMonth){ months.push('<span style="grid-column:'+(weekIdx+1)+'">'+MON[parseInt(ds.slice(5,7),10)-1]+'</span>'); lastMonth=mo; }
+      cells.push('<div class="hm-cell '+cls+'" title="'+esc(title)+'"></div>');
+      inRange++;
+      posInCol++; if(posInCol===7){ posInCol=0; weekIdx++; }
       ds=nextDay(ds);
     }
     if(run) missing.push(run);
-    if(!missing.length && !thin.length) return;
-    var b='<div style="margin-bottom:12px"><b>'+esc(c)+'</b> <span class="muted small">('+esc(first)+' → '+esc(last)+', ~'+median+' msgs/day typical)</span>';
-    if(missing.length) b+='<div class="small" style="margin-top:4px"><span class="tag nada">no data</span> '
-      + missing.map(function(g){ return esc(g.from===g.to? g.from : g.from+'…'+g.to); }).join(', ')+'</div>';
-    if(thin.length) b+='<div class="small" style="margin-top:4px"><span class="tag leftover">thin</span> '
-      + thin.map(function(g){ return esc(g.d)+' ('+g.n+')'; }).join(', ')+'</div>';
-    blocks.push(b+'</div>');
+    while(posInCol>0 && posInCol<7){ cells.push('<div class="hm-cell hm-pad"></div>'); posInCol++; }
+
+    if(!missing.length && !thin.length) return; // healthy channel: skip
+
+    var cov=inRange? Math.round((inRange-missingDays)/inRange*100) : 100;
+
+    var sum='<summary class="hm-sum"><b>'+esc(c)+'</b>';
+    if(missingDays) sum+=' <span class="tag nada">'+missingDays+' missing day'+(missingDays===1?'':'s')+'</span>';
+    if(thin.length) sum+=' <span class="tag leftover">'+thin.length+' thin day'+(thin.length===1?'':'s')+'</span>';
+    sum+=' <span class="muted small">'+cov+'% day coverage</span></summary>';
+
+    var sub='<div class="hm-sub">'+esc(first)+' → '+esc(last)+' · ~'+median+' msgs/day typical</div>';
+
+    var map='<div class="hm-scroll"><div class="hm-months">'+months.join('')+'</div>'
+          + '<div class="hm-grid">'+cells.join('')+'</div></div>';
+
+    var det='<details class="hm-detail"><summary class="muted small">exact dates to back-fill</summary>';
+    if(missing.length){
+      det+='<div class="small"><span class="tag nada">no data</span> '
+        + missing.map(function(g){ return esc(g.from===g.to? g.from : g.from+'…'+g.to); }).join(',  ')+'</div>';
+    }
+    if(thin.length){
+      var worst=thin.slice().sort(function(a,b){ return a.n-b.n; });
+      var shown=worst.slice(0,THIN_DETAIL_CAP);
+      var more=worst.length-shown.length;
+      det+='<div class="small"><span class="tag leftover">thinnest</span> '
+        + shown.map(function(g){ return esc(g.d)+' ('+g.n+')'; }).join(',  ')
+        + (more>0? '  <span class="muted">…+'+more+' more</span>' : '')+'</div>';
+    }
+    det+='</details>';
+
+    blocks.push('<details class="hm-chan">'+sum+sub+legend+map+det+'</details>');
   });
+
   el.innerHTML = blocks.length ? blocks.join('') : '<div class="muted small">No missing days or thin days detected. ✓</div>';
 }
 function renderWorklist(){
