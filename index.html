@@ -846,8 +846,15 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
     <!-- ── LOG TAB ── -->
     <div id="tab-log" class="tab-panel">
       <div id="log-scroll">
-        <div style="padding:12px">
+        <div style="padding:12px 12px 8px">
           <button id="log-new-drop-btn" onclick="openModal()">＋ Log New Drop</button>
+        </div>
+        <div style="padding:0 12px 12px;display:flex;align-items:center;gap:8px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px">Active Wave</div>
+            <div id="log-current-wave" style="font-size:12px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">–</div>
+          </div>
+          <button onclick="openNewWave()" style="background:var(--surface2);border:1px solid var(--accent);color:var(--accent);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">＋ New Wave</button>
         </div>
         <div class="log-section" id="log-fillin-section">
           <div class="log-section-hdr">Fill-in Tasks <span class="tab-badge tab-badge-amber" id="log-fillin-count" style="display:none">0</span></div>
@@ -1330,6 +1337,9 @@ textarea.ef-input{resize:vertical;min-height:72px;font-size:12px;line-height:1.5
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFjkKeNmvRXkxe2nj0I58wrwcgRLud97job4_2c3DQaHRf3lvGHRY5hvx-W429F6pg/exec";
+// Bottle master list is sourced from Cellar (a bottle is "in the hunt list" when it has a
+// Display Value). The Google Sheet's getBottles stays as an automatic fallback if Cellar is unreachable.
+const CELLAR_URL = "https://cellar-production-1ba7.up.railway.app/api/drop-tracker";
 const APP_VERSION = "v0.4";
 let lastSyncTime = null;
 
@@ -1498,6 +1508,8 @@ function renderLogTab(){
   if(fc){ fc.textContent=fn; fc.style.display=fn?'inline':'none'; }
   if(qc){ qc.textContent=qn; qc.style.display=qn?'inline':'none'; }
   if(rc){ rc.textContent=rn; rc.style.display=rn?'inline':'none'; }
+  const logWaveEl=document.getElementById('log-current-wave');
+  if(logWaveEl) logWaveEl.textContent=currentWave||'–';
 }
 
 function renderStatsTab(){
@@ -1668,7 +1680,7 @@ const DC = {
 function distColor(d){ return DC[d]||"#9A9AA8"; }
 function distZ(d){ return DISTRICT_Z[d]||100; }
 
-const CACHE_VERSION = '5'; // bump when schema changes
+const CACHE_VERSION = '6'; // bump when schema changes (v6: bottles from Cellar + displayValue)
 
 function setLoad(msg,pct){
   document.getElementById("load-msg").textContent=msg;
@@ -1730,6 +1742,23 @@ function parseBottle(r){
   };
 }
 
+function parseCellarBottle(b){
+  // Cellar /api/drop-tracker shape: {id, name, displayValue, brand, tier, codes(comma-sep), warn, abcNo}
+  // displayValue is the label shown AND the "in Drop Tracker" switch — blank = excluded.
+  const codes = String(b.codes||"").split(",").map(c=>c.trim()).filter(Boolean);
+  const display = String(b.displayValue||"").trim();
+  return {
+    id:    Number(b.id),
+    name:  display || String(b.name||"").trim(),  // show the Display Value
+    displayValue: display,                         // used by the include filter
+    brand: String(b.brand||"").trim(),
+    tier:  String(b.tier||"").trim(),
+    codes,
+    warn:  String(b.warn||"").trim()||undefined,
+    abcNo: String(b.abcNo||"").trim()||undefined
+  };
+}
+
 function rebuildBottleLookup(){
   Object.keys(BOTTLE_LOOKUP).forEach(k=>delete BOTTLE_LOOKUP[k]);
   BOTTLES.forEach(b=>b.codes.forEach(c=>{
@@ -1752,12 +1781,13 @@ async function loadFromSheet(){
   try{
     setLoad("Loading data...",20);
     // ── PARALLEL FETCH — all four at once ──
-    const [sr, dr, pr, br, wr] = await Promise.all([
+    const [sr, dr, pr, br, wr, cr] = await Promise.all([
       fetch(SCRIPT_URL+"?action=getStores"),
       fetch(SCRIPT_URL+"?action=getDrops"),
       fetch(SCRIPT_URL+"?action=getPatterns").catch(()=>null),
-      fetch(SCRIPT_URL+"?action=getBottles").catch(()=>null),
-      fetch(SCRIPT_URL+"?action=getWaves").catch(()=>null)
+      fetch(SCRIPT_URL+"?action=getBottles").catch(()=>null),  // Sheet bottles — fallback if Cellar is down
+      fetch(SCRIPT_URL+"?action=getWaves").catch(()=>null),
+      fetch(CELLAR_URL).catch(()=>null)                        // Cellar bottles — primary source
     ]);
     setLoad("Parsing...",65);
     const [srows, drows] = await Promise.all([sr.json(), dr.json()]);
@@ -1772,7 +1802,16 @@ async function loadFromSheet(){
       }catch(e){ console.warn("Patterns parse failed",e); PATTERNS=[]; }
     }
 
-    if(br){
+    // Bottles: prefer Cellar (only bottles with a Display Value); fall back to the Google Sheet.
+    let bottlesLoaded = false;
+    if(cr){
+      try{
+        const resp = await cr.json();
+        const loaded = (resp.bottles||[]).map(parseCellarBottle).filter(b=>b.id&&b.name&&b.displayValue);
+        if(loaded.length){ BOTTLES = loaded; bottlesLoaded = true; }
+      }catch(e){ console.warn("Cellar bottles parse failed, falling back to Sheet",e); }
+    }
+    if(!bottlesLoaded && br){
       try{
         const brows = await br.json();
         const loaded = brows.slice(1).map(parseBottle).filter(b=>b.id&&b.name);
@@ -3701,6 +3740,8 @@ function updateSbWaveInfo(){
   const el2=document.getElementById('sb-wave-info');
   if(el1) el1.textContent=currentWave||'–';
   if(el2) el2.textContent=wd.length+' drops · '+[...new Set(wd.map(d=>d.district))].filter(Boolean).join(', ');
+  const logWaveEl=document.getElementById('log-current-wave');
+  if(logWaveEl) logWaveEl.textContent=currentWave||'–';
   populateSbWaveSelect();
 }
 
