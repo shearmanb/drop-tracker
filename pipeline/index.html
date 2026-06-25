@@ -264,7 +264,42 @@ function writeRows(tab, rows, key){
   }, Promise.resolve()).then(function(){ return totals; });
 }
 
-/* ============================ store / bottle lookups ============================ */
+// POST one batch via the "dumb pipe" doPost path. text/plain + no-cors keeps it a
+// simple cross-origin request (no preflight); the response is opaque, so this is
+// fire-and-forget and we confirm by reloading. Retries the transient network blip.
+function postBatch(body, label){
+  var TRIES=4;
+  function attempt(n){
+    return fetch(CFG.url, {method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'}, body:body})
+      .catch(function(e){
+        if(n>=TRIES) throw e;
+        var wait=Math.pow(2,n)*1000;
+        log('  ↻ '+label+' hiccup ('+e.message+') — retry '+n+'/'+(TRIES-1)+' in '+(wait/1000)+'s…');
+        return delay(wait).then(function(){ return attempt(n+1); });
+      });
+  }
+  return attempt(1);
+}
+
+// Bulk-upload raw rows in a few big batches via doPost (vs writeRows' hundreds of
+// tiny GETs). doPost appends with server-side dedup on raw_id, so already-saved
+// rows are SKIPPED (fast re-pastes) — no per-cell rewrites. Sequential so each
+// batch's dedup sees the previous one's appends. ~400/batch stays well under the
+// Apps Script 6-min limit even as the tab grows.
+function postRows(tab, rows, onProgress){
+  if(!rows.length) return Promise.resolve();
+  var BATCH=400, batches=[];
+  for(var i=0;i<rows.length;i+=BATCH) batches.push(rows.slice(i,i+BATCH));
+  var done=0, N=batches.length;
+  return batches.reduce(function(p,batch,idx){
+    return p.then(function(){
+      var body=JSON.stringify({token:CFG.token||'', tab:tab, rows:batch});
+      return postBatch(body, tab+' batch '+(idx+1)+'/'+N).then(function(){ done++; if(onProgress) onProgress(done,N); });
+    });
+  }, Promise.resolve());
+}
+
 function storeDistrict(id){ var s=DATA.Stores.find(function(x){return String(x.id)===String(id);}); return s?s.district:''; }
 function storeLabel(id){ var s=DATA.Stores.find(function(x){return String(x.id)===String(id);}); return s?s.label:''; }
 function knownStore(id){ return DATA.Stores.some(function(x){return String(x.id)===String(id);}); }
@@ -880,10 +915,13 @@ function saveCapture(){
   var j; try{ j=JSON.parse(raw); }catch(e){ log('Paste is not valid JSON: '+e.message); alert('That doesn\'t look like a copied capture. Click 🔥 or 🧵 in Discord, then paste what it copied.'); return; }
   if(!j.tab || !Array.isArray(j.rows)){ alert('Missing tab/rows — did you paste the copied capture?'); return; }
   $('#btnSaveCapture').disabled=true;
-  log('Saving '+j.rows.length+' captured row(s) to '+j.tab+'…');
-  writeRows(j.tab, j.rows, 'raw_id')
-    .then(function(r){ log('Saved to '+j.tab+': '+((r.appended||0)+(r.updated||0))+' row(s).'); $('#pasteCapture').value=''; return loadAll(); })
+  var before=(DATA[j.tab]||[]).length; // POST replies are opaque, so confirm by the reload delta
+  log('Saving '+j.rows.length+' captured row(s) to '+j.tab+' in big batches…');
+  postRows(j.tab, j.rows, function(done,N){ if(N>1) log('  …uploaded batch '+done+'/'+N); })
+    .then(function(){ log('Upload sent — reloading to confirm what landed…'); $('#pasteCapture').value=''; return loadAll(); })
     .then(function(){ $('#btnSaveCapture').disabled=false;
+      var added=(DATA[j.tab]||[]).length-before;
+      log('Saved to '+j.tab+': '+added+' new row(s) (rows already saved were skipped).');
       if(j.tab==='raw_channel'){ var pend=DATA.raw_channel.filter(function(x){return !String(x.parsed_version).trim();}).length;
         log('Saved. '+pend+' message(s) waiting — paste more captures if you like, then click “⚙ Parse channel” once when you’re done.'); } })
     .catch(function(e){ log('Save failed: '+e.message); $('#btnSaveCapture').disabled=false; });
