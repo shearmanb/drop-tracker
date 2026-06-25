@@ -99,3 +99,19 @@ confirmed waves lock. `topBottle` = the wave's #1 bottle (highest tier, then mos
 - Apps Script: while iterating, use the **/dev** (head) URL so saved code runs without a new
   deployment; switch to **/exec** when stable. Bookmarklets are saved as browser bookmarks; the HTML
   apps deploy via the GitHub browser editor to Pages.
+
+## Claude Code on the web — network allowlist
+To let a cloud session **read the live Sheet** through the Apps Script endpoint (`?action=getTab`),
+the environment's Network access must be **Custom** with these hosts (plus "Also include default
+list of common package managers" checked):
+```
+script.google.com
+*.googleusercontent.com
+docs.google.com
+```
+Why: the default **Trusted** level blocks `script.google.com`. An Apps Script `/exec` GET also
+302-redirects to `script.googleusercontent.com`, so the wildcard host is required or the read fails
+mid-redirect. `docs.google.com` is only needed for the Sheet CSV-export fallback
+(`/spreadsheets/d/<ID>/gviz/tq?tqx=out:csv&sheet=<tab>`). One-time, per-environment; persists across
+sessions. Without it, hand the data to Claude directly (paste/CSV) — capture is recoverable, so the
+cleanup is a re-runnable parse pass regardless.
