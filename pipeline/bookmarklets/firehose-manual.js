@@ -1,4 +1,4 @@
-/* Drop Pipeline - FIREHOSE (MANUAL) bookmarklet  (no auto-scroll)
+/* Drop Pipeline - THIEF (MANUAL) bookmarklet  (no auto-scroll)
  * ----------------------------------------------------------------
  * Maximum-safety capture: this does NO automated scrolling. YOU scroll the
  * channel by hand at normal speed; each click reads whatever is on screen right
@@ -64,10 +64,10 @@
     });
 
     var rows = Object.keys(store.collected).map(function (k) { return store.collected[k]; });
-    if (!rows.length) { toast('Manual: no messages on screen yet — scroll into the channel and click again.', false); return; }
+    if (!rows.length) { toast('Thief (manual): no messages on screen yet — scroll into the channel and click again.', false); return; }
     copyText(JSON.stringify({ tab: 'raw_channel', rows: rows }), function (ok) {
-      if (ok) toast('Manual: +' + added + ' new (total ' + rows.length + ' for #' + chan + '). Scroll & click to add more, or paste now.');
-      else toast('Manual: clipboard was blocked - tell Claude.', false);
+      if (ok) toast('Thief (manual): +' + added + ' new (total ' + rows.length + ' for #' + chan + '). Scroll & click to add more, or paste now.');
+      else toast('Thief (manual): clipboard was blocked - tell Claude.', false);
     });
   } catch (err) { toast('Manual error: ' + err, false); }
 })();

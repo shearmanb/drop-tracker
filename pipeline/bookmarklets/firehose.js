@@ -1,4 +1,5 @@
-/* Drop Pipeline - FIREHOSE bookmarklet  (auto-scroll channel -> clipboard)
+/* Drop Pipeline - THIEF bookmarklet  (auto-scroll channel -> clipboard)
+ * (named for a whiskey thief: the tube used to sample whiskey straight from a barrel)
  * ------------------------------------------------------------------------
  * Click once on a geographic channel. It asks for an optional "stop at date",
  * then AUTO-SCROLLS up through the history, collecting every message it renders
@@ -99,7 +100,7 @@
     var targetMs = null;
     if (ans && /\d{4}-\d{2}-\d{2}/.test(ans)) { var dd = new Date(ans.trim().slice(0, 10) + 'T00:00:00'); if (!isNaN(dd)) targetMs = dd.getTime(); }
     var sc = findScroller();
-    var status = toast('Firehose: scanning…', true, true);
+    var status = toast('Thief: scanning…', true, true);
     var lastN = -1, stable = 0, iter = 0, MAXITER = 3000, MAXMSG = 12000;
     // Adaptive pace: scroll fast while new messages keep loading; only slow down when the
     // count stops growing (Discord is still rendering, or we've hit the top). Self-correcting —
@@ -110,17 +111,17 @@
       releaseWake();
       var rows = Object.keys(collected).map(function (k) { return collected[k]; });
       if (status) status.remove();
-      if (!rows.length) { toast('Firehose: no messages found on screen', false); return; }
+      if (!rows.length) { toast('Thief: no messages found on screen', false); return; }
       copyText(JSON.stringify({ tab: 'raw_channel', rows: rows }), function (ok) {
-        if (ok) toast('Firehose: copied ' + rows.length + ' messages from #' + chan + ' (back to ' + fmt(oldestMs()) + '). Now paste into the app.');
-        else toast('Firehose: clipboard was blocked - tell Claude.', false);
+        if (ok) toast('Thief: copied ' + rows.length + ' messages from #' + chan + ' (back to ' + fmt(oldestMs()) + '). Now paste into the app.');
+        else toast('Thief: clipboard was blocked - tell Claude.', false);
       });
     }
     function step() {
       // A hidden tab/window stops rendering, so Discord can't load older messages — pause
       // (don't silently stall) and tell the user, then resume the moment it's visible again.
       if (document.hidden) {
-        if (status) status.textContent = 'Firehose: paused — bring this window to the front to keep capturing…';
+        if (status) status.textContent = 'Thief: paused — bring this window to the front to keep capturing…';
         setTimeout(step, 500);
         return;
       }
@@ -133,11 +134,11 @@
       if (n > lastN) { stable = 0; delay = MINDELAY; }                     // new messages -> stay fast
       else { stable++; delay = Math.min(MAXDELAY, Math.round(delay * 1.7)); } // nothing new -> let it render
       lastN = n;
-      if (status) status.textContent = 'Firehose: ' + n + ' messages, back to ' + fmt(oldest) + '…';
+      if (status) status.textContent = 'Thief: ' + n + ' messages, back to ' + fmt(oldest) + '…';
       if (atTop || hitDate || stable >= 8 || iter >= MAXITER || n >= MAXMSG) { finish(); return; }
       if (sc) sc.scrollTop = Math.max(0, sc.scrollTop - Math.max(300, sc.clientHeight * SPEED.frac));
       setTimeout(step, delay);
     }
     step();
-  } catch (err) { releaseWake(); toast('Firehose error: ' + err, false); }
+  } catch (err) { releaseWake(); toast('Thief error: ' + err, false); }
 })();
