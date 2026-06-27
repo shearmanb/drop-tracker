@@ -21,6 +21,13 @@
   .ok{color:#3fb950} .bad{color:#f85149}
   ol{color:var(--muted)} ol li{margin:7px 0}
   .pill{font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:999px;padding:3px 9px}
+  .speed{margin-top:14px;padding-top:14px;border-top:1px dashed var(--border)}
+  .speed-head{font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .seg{display:inline-flex;gap:0;margin-top:10px;border:1px solid var(--border);border-radius:9px;overflow:hidden;flex-wrap:wrap}
+  .seg button{background:var(--surface2);border:0;border-right:1px solid var(--border);border-radius:0;padding:9px 14px}
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:var(--accent);color:#1a1205}
+  .seg button:hover{border-color:var(--border)}
 </style>
 </head>
 <body>
@@ -35,7 +42,19 @@
     <div class="row">
       <a class="bm" id="bmFirehose" href="#" draggable="true">🔥 Capture Channel (auto)</a>
       <button data-copy="bmFirehose">Copy</button>
-      <span class="pill">gentle auto-scroll + stop-at-date</span>
+      <span class="pill">auto-scroll + stop-at-date</span>
+    </div>
+    <div class="speed">
+      <div class="speed-head">Auto-capture speed <span id="speedNote" class="pill"></span></div>
+      <div class="seg" id="speedSeg">
+        <button data-speed="gentle">🐢 Gentle</button>
+        <button data-speed="balanced">⚖️ Balanced</button>
+        <button data-speed="fast">⚡ Fast</button>
+        <button data-speed="turbo">🚀 Turbo</button>
+      </div>
+      <p style="margin:8px 0 0">Faster scrolls quicker but gives Discord less time to load each
+        screenful; it auto-slows when needed so it won’t skip messages. <b>After changing this, re-drag
+        (or re-Copy) the 🔥 button</b> — the speed is baked into the button.</p>
     </div>
     <div class="row">
       <a class="bm" id="bmManual" href="#" draggable="true">✋ Capture Channel (manual)</a>
@@ -86,13 +105,41 @@
   var SRC = { firehose: 'bookmarklets/firehose.js', manual: 'bookmarklets/firehose-manual.js', thread: 'bookmarklets/thread.js' };
   var cache = {};
 
+  // Auto-capture speed presets. The numbers are baked straight into firehose.js's `var SPEED = {…}`
+  // line below, so the chosen speed travels inside the 🔥 button (it can't read this page at runtime).
+  // min/max = ms between scroll steps (fast while loading, up to max when stalled); frac = screenful per jump.
+  var PRESETS = {
+    gentle:   { min: 700, max: 1800, frac: 0.60 },
+    balanced: { min: 400, max: 1600, frac: 0.75 },
+    fast:     { min: 220, max: 1500, frac: 0.85 },  // default (matches the shipped firehose.js)
+    turbo:    { min: 120, max: 1100, frac: 0.95 }
+  };
+  var SPEED_KEY = 'dp_capture_speed';
+  function curSpeed(){ var k = localStorage.getItem(SPEED_KEY); return PRESETS[k] ? k : 'fast'; }
+  // Rewrite the single marked SPEED line in the firehose source with the chosen preset's numbers.
+  function applySpeed(src, key){
+    var p = PRESETS[key] || PRESETS.fast;
+    return src.replace(/var SPEED = \{[^}]*\};\s*\/\/ __DP_SPEED__/,
+      'var SPEED = { min: ' + p.min + ', max: ' + p.max + ', frac: ' + p.frac + ' };  // __DP_SPEED__');
+  }
+
   function fetchSrc(key){
     if(cache[key]) return Promise.resolve(cache[key]);
     return fetch(SRC[key]).then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); }).then(function(t){ cache[key]=t; return t; });
   }
+  // Rebuild the 🔥 button href for the current speed and reflect the choice in the UI.
+  function renderFirehose(){
+    if(!cache.firehose) return;
+    var key = curSpeed(), p = PRESETS[key];
+    $('bmFirehose').href = 'javascript:' + encodeURIComponent(applySpeed(cache.firehose, key));
+    $('speedNote').textContent = (p.min/1000).toFixed(2) + '–' + (p.max/1000).toFixed(1) + 's/step · ' + Math.round(p.frac*100) + '% jumps';
+    document.querySelectorAll('#speedSeg button').forEach(function(b){
+      b.classList.toggle('on', b.getAttribute('data-speed') === key);
+    });
+  }
   function build(){
     Promise.all([fetchSrc('firehose'), fetchSrc('manual'), fetchSrc('thread')]).then(function(){
-      $('bmFirehose').href = 'javascript:' + encodeURIComponent(cache.firehose);
+      renderFirehose();
       $('bmManual').href   = 'javascript:' + encodeURIComponent(cache.manual);
       $('bmThread').href   = 'javascript:' + encodeURIComponent(cache.thread);
       $('buildmsg').innerHTML = '<span class="ok">Ready — drag the buttons below to your bookmarks bar.</span>';
@@ -100,6 +147,11 @@
       $('buildmsg').innerHTML = '<span class="bad">Couldn\'t load the button code. Open this page from your GitHub Pages URL (…github.io/drop-tracker/pipeline/install.html), not a local file.</span>';
     });
   }
+  $('speedSeg').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-speed]'); if(!b) return;
+    localStorage.setItem(SPEED_KEY, b.getAttribute('data-speed'));
+    renderFirehose();
+  });
   document.querySelectorAll('button[data-copy]').forEach(function(b){
     b.addEventListener('click', function(){
       var a = $(b.getAttribute('data-copy'));

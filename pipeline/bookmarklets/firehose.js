@@ -13,6 +13,11 @@
  * No Discord API, no token, no network call from Discord. Needs no config.
  */
 (function () {
+  // Capture speed. The installer (install.html) rewrites THIS exact line to bake a chosen
+  // preset into the button — keep it on one line, format `var SPEED = { ... };  // __DP_SPEED__`.
+  // min/max = ms to wait between scroll steps (fast while messages load, up to max when stalled);
+  // frac = how much of a screenful to jump per step (bigger = faster, but less render overlap).
+  var SPEED = { min: 220, max: 1500, frac: 0.85 };  // __DP_SPEED__
   function channelName() {
     var sel = ['section[aria-label="Channel header"] h1', 'section[aria-label="Channel header"] [class*="title"]', 'header [class*="title"]', 'h1[class*="title"]'];
     for (var i = 0; i < sel.length; i++) { var el = document.querySelector(sel[i]); if (el && el.textContent.trim()) return el.textContent.trim(); }
@@ -100,7 +105,7 @@
     // count stops growing (Discord is still rendering, or we've hit the top). Self-correcting —
     // if a big jump outruns the render, growth stalls, we back off, it catches up. Much faster
     // than the old fixed 700-1400ms-per-step wait, without skipping messages.
-    var MINDELAY = 220, MAXDELAY = 1500, delay = MINDELAY;
+    var MINDELAY = SPEED.min, MAXDELAY = SPEED.max, delay = MINDELAY;
     function finish() {
       releaseWake();
       var rows = Object.keys(collected).map(function (k) { return collected[k]; });
@@ -130,7 +135,7 @@
       lastN = n;
       if (status) status.textContent = 'Firehose: ' + n + ' messages, back to ' + fmt(oldest) + '…';
       if (atTop || hitDate || stable >= 8 || iter >= MAXITER || n >= MAXMSG) { finish(); return; }
-      if (sc) sc.scrollTop = Math.max(0, sc.scrollTop - Math.max(300, sc.clientHeight * 0.85));
+      if (sc) sc.scrollTop = Math.max(0, sc.scrollTop - Math.max(300, sc.clientHeight * SPEED.frac));
       setTimeout(step, delay);
     }
     step();
