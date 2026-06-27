@@ -48,6 +48,22 @@
   function loc() { var m = (location.pathname || '').match(/\/channels\/(\d+|@me)\/(\d+)/); return m ? { g: m[1], c: m[2] } : { g: '', c: '' }; }
   function msgLink(loc, msgId) { return (loc.g && loc.c && /^\d+$/.test(loc.g)) ? 'https://discord.com/channels/' + loc.g + '/' + loc.c + '/' + msgId : ''; }
 
+  // Keep the SCREEN awake for the whole run so an idle lock screen / display sleep
+  // can't suspend the page and kill a long backfill. Re-acquired if the OS drops it.
+  var wakeLock = null;
+  function acquireWake() {
+    try {
+      if (navigator.wakeLock && navigator.wakeLock.request) {
+        navigator.wakeLock.request('screen').then(function (w) {
+          wakeLock = w; w.addEventListener('release', function () { wakeLock = null; });
+        }, function () {});
+      }
+    } catch (e) {}
+  }
+  function releaseWake() { try { if (wakeLock) { wakeLock.release(); } wakeLock = null; } catch (e) {} }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) acquireWake(); });
+  acquireWake();
+
   var chan = channelName();
   var capturedAt = new Date().toISOString();
   var here = loc();
@@ -80,7 +96,13 @@
     var sc = findScroller();
     var status = toast('Firehose: scanning…', true, true);
     var lastN = -1, stable = 0, iter = 0, MAXITER = 3000, MAXMSG = 12000;
+    // Adaptive pace: scroll fast while new messages keep loading; only slow down when the
+    // count stops growing (Discord is still rendering, or we've hit the top). Self-correcting —
+    // if a big jump outruns the render, growth stalls, we back off, it catches up. Much faster
+    // than the old fixed 700-1400ms-per-step wait, without skipping messages.
+    var MINDELAY = 220, MAXDELAY = 1500, delay = MINDELAY;
     function finish() {
+      releaseWake();
       var rows = Object.keys(collected).map(function (k) { return collected[k]; });
       if (status) status.remove();
       if (!rows.length) { toast('Firehose: no messages found on screen', false); return; }
@@ -90,19 +112,27 @@
       });
     }
     function step() {
+      // A hidden tab/window stops rendering, so Discord can't load older messages — pause
+      // (don't silently stall) and tell the user, then resume the moment it's visible again.
+      if (document.hidden) {
+        if (status) status.textContent = 'Firehose: paused — bring this window to the front to keep capturing…';
+        setTimeout(step, 500);
+        return;
+      }
       collectVisible();
       var n = Object.keys(collected).length;
       var oldest = oldestMs();
-      if (status) status.textContent = 'Firehose: ' + n + ' messages, back to ' + fmt(oldest) + '…';
       iter++;
       var atTop = !sc || sc.scrollTop <= 0;
       var hitDate = targetMs && oldest !== Infinity && oldest <= targetMs;
-      if (n === lastN) stable++; else stable = 0;
+      if (n > lastN) { stable = 0; delay = MINDELAY; }                     // new messages -> stay fast
+      else { stable++; delay = Math.min(MAXDELAY, Math.round(delay * 1.7)); } // nothing new -> let it render
       lastN = n;
+      if (status) status.textContent = 'Firehose: ' + n + ' messages, back to ' + fmt(oldest) + '…';
       if (atTop || hitDate || stable >= 8 || iter >= MAXITER || n >= MAXMSG) { finish(); return; }
-      if (sc) sc.scrollTop = Math.max(0, sc.scrollTop - Math.max(200, sc.clientHeight * 0.75));
-      setTimeout(step, 700 + Math.floor(Math.random() * 700)); // gentle, human-like jittered pace
+      if (sc) sc.scrollTop = Math.max(0, sc.scrollTop - Math.max(300, sc.clientHeight * 0.85));
+      setTimeout(step, delay);
     }
     step();
-  } catch (err) { toast('Firehose error: ' + err, false); }
+  } catch (err) { releaseWake(); toast('Firehose error: ' + err, false); }
 })();
