@@ -40,12 +40,12 @@
     <h2 style="margin-top:0">Drag these to your bookmarks bar</h2>
     <p id="buildmsg">Building…</p>
     <div class="row">
-      <a class="bm" id="bmFirehose" href="#" draggable="true">🔥 Capture Channel (auto)</a>
+      <a class="bm" id="bmFirehose" href="#" draggable="true">🥃 Thief (auto)</a>
       <button data-copy="bmFirehose">Copy</button>
       <span class="pill">auto-scroll + stop-at-date</span>
     </div>
     <div class="speed">
-      <div class="speed-head">Auto-capture speed <span id="speedNote" class="pill"></span></div>
+      <div class="speed-head">Thief speed <span id="speedNote" class="pill"></span></div>
       <div class="seg" id="speedSeg">
         <button data-speed="gentle">🐢 Gentle</button>
         <button data-speed="balanced">⚖️ Balanced</button>
@@ -54,10 +54,10 @@
       </div>
       <p style="margin:8px 0 0">Faster scrolls quicker but gives Discord less time to load each
         screenful; it auto-slows when needed so it won’t skip messages. <b>After changing this, re-drag
-        (or re-Copy) the 🔥 button</b> — the speed is baked into the button.</p>
+        (or re-Copy) the 🥃 Thief button</b> — the speed is baked into the button.</p>
     </div>
     <div class="row">
-      <a class="bm" id="bmManual" href="#" draggable="true">✋ Capture Channel (manual)</a>
+      <a class="bm" id="bmManual" href="#" draggable="true">✋ Thief (manual)</a>
       <button data-copy="bmManual">Copy</button>
       <span class="pill">max-safety: you scroll, it reads</span>
     </div>
@@ -73,7 +73,7 @@
     <ol>
       <li>Show your bookmarks bar (Ctrl/Cmd&nbsp;+&nbsp;Shift&nbsp;+&nbsp;B) and drag both buttons onto it.
           <br><span class="pill">If dragging won't stick: click <b>Copy</b>, then right-click the bar → Add page → paste as the URL.</span></li>
-      <li>Open Discord <b>in your browser</b>. On a <b>channel</b> click <b>🔥 Capture Channel</b>; inside a <b>thread</b> click <b>🧵 Capture Thread</b>.</li>
+      <li>Open Discord <b>in your browser</b>. On a <b>channel</b> click <b>🥃 Thief</b>; inside a <b>thread</b> click <b>🧵 Capture Thread</b>.</li>
       <li>A green banner says “copied N messages.”</li>
       <li>Go to the Worklist app → <b>Dashboard → Paste capture</b> box → paste (Ctrl/Cmd&nbsp;+&nbsp;V) → <b>Save capture to sheet</b>.</li>
       <li>Scroll up in Discord to load older messages, click again, paste again — duplicates are skipped automatically.</li>
@@ -84,7 +84,7 @@
 
   <div class="card">
     <h2 style="margin-top:0">Capturing a lot of history? (long auto-runs)</h2>
-    <p>The <b>🔥 Capture Channel (auto)</b> button reads Discord <i>as it appears on screen</i>, so the run
+    <p>The <b>🥃 Thief (auto)</b> button reads Discord <i>as it appears on screen</i>, so the run
        only continues while that window is actually showing. Three tips make long backfills painless:</p>
     <ol>
       <li><b>It now keeps your screen awake.</b> While a run is going the display won’t sleep and the lock
@@ -96,7 +96,8 @@
       <li><b>It’s faster now</b> — it speeds up while messages keep loading and only waits when Discord needs
           a moment to catch up, so it won’t skip anything.</li>
     </ol>
-    <p>For a fully hands-off, no-browser capture down the road, ask Claude about a server-side Discord bot.</p>
+    <p>Tip: pick a <b>Thief speed</b> above to match your machine — start on ⚡ Fast, drop to ⚖️ Balanced if it
+       pauses a lot, or push 🚀 Turbo if it keeps up.</p>
   </div>
 </div>
 
@@ -106,7 +107,7 @@
   var cache = {};
 
   // Auto-capture speed presets. The numbers are baked straight into firehose.js's `var SPEED = {…}`
-  // line below, so the chosen speed travels inside the 🔥 button (it can't read this page at runtime).
+  // line below, so the chosen speed travels inside the 🥃 Thief button (it can't read this page at runtime).
   // min/max = ms between scroll steps (fast while loading, up to max when stalled); frac = screenful per jump.
   var PRESETS = {
     gentle:   { min: 700, max: 1800, frac: 0.60 },
@@ -127,7 +128,7 @@
     if(cache[key]) return Promise.resolve(cache[key]);
     return fetch(SRC[key]).then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); }).then(function(t){ cache[key]=t; return t; });
   }
-  // Rebuild the 🔥 button href for the current speed and reflect the choice in the UI.
+  // Rebuild the 🥃 Thief button href for the current speed and reflect the choice in the UI.
   function renderFirehose(){
     if(!cache.firehose) return;
     var key = curSpeed(), p = PRESETS[key];

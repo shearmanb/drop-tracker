@@ -17,6 +17,8 @@
   nav button{background:transparent;border:1px solid transparent;color:var(--muted);border-radius:8px;padding:7px 12px;font-weight:600;cursor:pointer}
   nav button.active{background:var(--surface2);color:var(--text);border-color:var(--border)}
   nav button:hover{color:var(--text)}
+  nav a.navlink{text-decoration:none;color:var(--accent);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-weight:600}
+  nav a.navlink:hover{background:var(--surface2)}
   #conn{margin-left:auto;font-size:12px;color:var(--muted)}
   .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:5px;vertical-align:middle}
   .dot.ok{background:var(--good)} .dot.bad{background:var(--bad)}
@@ -85,6 +87,7 @@
     <button data-tab="lexicon">Lexicon</button>
     <button data-tab="review">Review</button>
     <button data-tab="settings">Settings</button>
+    <a class="navlink" href="install.html" target="_blank" rel="noopener" title="Install / update the capture buttons & set Thief speed">🥃 Thief setup ↗</a>
   </nav>
   <div id="conn"><span class="dot" id="connDot"></span><span id="connTxt">not connected</span></div>
 </header>
@@ -105,7 +108,7 @@
     <h2>Gap check — dates to double-check or back-fill</h2>
     <div class="card" id="gaps"><div class="muted small">Load data to see gaps.</div></div>
 
-    <h2>Paste capture — from the 🔥 / 🧵 buttons</h2>
+    <h2>Paste capture — from the 🥃 Thief / 🧵 buttons</h2>
     <div class="card">
       <p class="muted small">Click a capture button in Discord (it copies the messages to your clipboard),
         then paste here and Save. Re-pasting the same messages is safe — duplicates are skipped.</p>
@@ -200,12 +203,12 @@
       <p class="muted small" style="margin-top:10px">Bottle lookups (Cellar) are proxied through the Apps Script,
         so the Cellar URL lives in <code>Code.gs</code>, not here.</p>
     </div>
-    <h2>Capture buttons</h2>
+    <h2>Thief &amp; capture buttons</h2>
     <div class="card">
-      <p class="muted small" style="margin:0 0 10px">Install or re-install the 🔥/✋/🧵 bookmarklets, and
-        set the <b>auto-capture speed</b> (Gentle → Turbo). Speed is baked into the 🔥 button, so re-drag it
-        after changing — it can’t be set from here because the button runs on Discord, not in this app.</p>
-      <a class="act sec" href="install.html" target="_blank" rel="noopener">Open capture buttons &amp; speed →</a>
+      <p class="muted small" style="margin:0 0 10px">Install or re-install the 🥃 Thief / ✋ Thief (manual) / 🧵 Thread
+        bookmarklets, and set the <b>Thief speed</b> (Gentle → Turbo). Speed is baked into the 🥃 Thief button, so
+        re-drag it after changing — it can’t be set from here because the button runs on Discord, not in this app.</p>
+      <a class="act sec" href="install.html" target="_blank" rel="noopener">Open Thief setup &amp; speed →</a>
     </div>
     <h2>Bottle cache</h2>
     <div class="card row">
@@ -1059,7 +1062,7 @@ function showTab(name){
 function saveCapture(){
   var raw=$('#pasteCapture').value.trim();
   if(!raw){ alert('Nothing to paste. Click a capture button in Discord first, then paste here.'); return; }
-  var j; try{ j=JSON.parse(raw); }catch(e){ log('Paste is not valid JSON: '+e.message); alert('That doesn\'t look like a copied capture. Click 🔥 or 🧵 in Discord, then paste what it copied.'); return; }
+  var j; try{ j=JSON.parse(raw); }catch(e){ log('Paste is not valid JSON: '+e.message); alert('That doesn\'t look like a copied capture. Click 🥃 Thief or 🧵 in Discord, then paste what it copied.'); return; }
   if(!j.tab || !Array.isArray(j.rows)){ alert('Missing tab/rows — did you paste the copied capture?'); return; }
   $('#btnSaveCapture').disabled=true;
   var before=(DATA[j.tab]||[]).length; // POST replies are opaque, so we verify against the reload
