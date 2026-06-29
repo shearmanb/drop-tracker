@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Drop Data — Health Check</title>
+<style>
+  :root{
+    --bg:#0d1117; --surface:#161b22; --surface2:#21262d; --border:#30363d;
+    --text:#e6edf3; --muted:#7d8590; --muted2:#484f58; --accent:#f59e0b;
+    --red:#ef4444; --amber:#f59e0b; --blue:#2563eb; --green:#10b981;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;padding:0 0 60px}
+  .wrap{max-width:860px;margin:0 auto;padding:18px 16px}
+  header{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:6px}
+  h1{font-size:20px;margin:0;font-weight:700}
+  .sub{color:var(--muted);font-size:12.5px;margin:2px 0 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  button{font:inherit;cursor:pointer;border:1px solid var(--border);background:var(--surface2);
+    color:var(--text);border-radius:8px;padding:6px 12px}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);color:#1a1205;border-color:var(--accent);font-weight:600}
+  .spacer{flex:1}
+
+  /* top summary band */
+  .summary{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:16px;margin-bottom:18px}
+  .stats{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:12px}
+  .stat .n{font-size:26px;font-weight:700;line-height:1}
+  .stat .l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:3px}
+  .bar{height:10px;border-radius:6px;background:var(--surface2);overflow:hidden;display:flex}
+  .bar .clean{background:var(--green)}
+  .bar .dirty{background:var(--amber)}
+  .barnote{font-size:12px;color:var(--muted);margin-top:7px}
+
+  /* category cards */
+  .cat{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    margin-bottom:16px;overflow:hidden}
+  .cat>.head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);
+    background:var(--surface2)}
+  .cat>.head .icon{font-size:18px}
+  .cat>.head .title{font-weight:700;font-size:15px}
+  .cat>.head .ct{margin-left:auto;font-size:12.5px;color:var(--muted)}
+
+  .check{border-bottom:1px solid var(--border)}
+  .check:last-child{border-bottom:none}
+  details>summary{list-style:none;cursor:pointer;padding:12px 16px;display:flex;align-items:flex-start;gap:11px}
+  details>summary::-webkit-details-marker{display:none}
+  .dot{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:0 0 auto}
+  .sev-high{background:var(--red)} .sev-med{background:var(--amber)} .sev-low{background:var(--blue)}
+  .badge{flex:0 0 auto;min-width:42px;text-align:center;font-weight:700;font-size:13px;
+    background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:2px 8px}
+  .badge.zero{color:var(--muted2);font-weight:600}
+  .ck-text{flex:1;min-width:0}
+  .ck-label{font-weight:600}
+  .ck-hint{color:var(--muted);font-size:12.5px;margin-top:1px}
+  .chev{color:var(--muted2);margin-top:2px;transition:transform .15s}
+  details[open] .chev{transform:rotate(90deg)}
+
+  .tablewrap{overflow-x:auto;padding:0 16px 14px}
+  table{border-collapse:collapse;width:100%;font-size:12.5px}
+  th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+  th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+  td.fix{color:var(--green)}
+  td .pill{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:11.5px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .trunc{color:var(--muted);font-size:12px;padding:8px 16px 2px}
+  .none{color:var(--muted);padding:10px 16px 14px;font-size:13px}
+
+  .msg{padding:40px 16px;text-align:center;color:var(--muted)}
+  .err{color:var(--red)}
+  footer{color:var(--muted2);font-size:11.5px;text-align:center;margin-top:24px;line-height:1.6}
+  code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🥃 Drop Data — Health Check</h1>
+    <div class="spacer"></div>
+    <button class="primary" id="refresh">↻ Refresh</button>
+    <button id="copy">⧉ Copy summary</button>
+  </header>
+  <div class="sub" id="meta">Loading live data from the Sheet…</div>
+
+  <div id="content"><div class="msg">Fetching drops &amp; stores…</div></div>
+
+  <footer>
+    Reads the live Google Sheet through the Apps Script endpoint (<code>getDrops</code>,
+    <code>getStores</code>, <code>getWaves</code>) — same source the tracker app uses. Read-only;
+    nothing here writes back. Counts can overlap (one drop may trip several checks).
+  </footer>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFjkKeNmvRXkxe2nj0I58wrwcgRLud97job4_2c3DQaHRf3lvGHRY5hvx-W429F6pg/exec";
+const MAX_ROWS = 250; // cap per-check table for performance
+
+const blank = v => v===null || v===undefined || (typeof v==="string" && v.trim()==="");
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const dateOnly = ts => (typeof ts==="string" && ts.length>=10) ? ts.slice(0,10) : "—";
+
+// rows = array-of-arrays, first row is the header. Returns objects keyed by header name.
+function toObjects(rows){
+  if(!rows || !rows.length) return [];
+  const hdr = rows[0];
+  return rows.slice(1).map(r=>{
+    const o={}; hdr.forEach((h,i)=>{ o[h]=r[i]; }); return o;
+  });
+}
+
+// ── The checks. Each: cat, sev, label, hint, test(d,ctx), note(d,ctx) ──
+const CHECKS = [
+  // ── NEEDS ENTERING ────────────────────────────────────────────────
+  { cat:"enter", sev:"high", label:"Drop logged but details never entered",
+    hint:'Reporter is the placeholder “NEED TO ENTER”.',
+    test:d=> String(d["Reporter"]||"").trim().toUpperCase()==="NEED TO ENTER" },
+  { cat:"enter", sev:"med", label:"Missing report timestamp",
+    hint:"No ReportedTS — can't place the drop on the day / time / wave timeline.",
+    test:d=> blank(d["ReportedTS"]) },
+  { cat:"enter", sev:"high", label:"Confirmed drop with no bottle list",
+    hint:'Result is “drop” but the Bottles field is empty.',
+    test:d=> String(d["Result"]||"").trim()==="drop" && blank(d["Bottles"]) },
+  { cat:"enter", sev:"med", label:"Not assigned to a wave",
+    hint:"Blank Wave Label — needs to be clustered into / confirmed onto a wave.",
+    test:d=> blank(d["Wave Label"]) },
+
+  // ── NEEDS FIXING ──────────────────────────────────────────────────
+  { cat:"fix", sev:"med", label:"Blank district",
+    hint:"District is empty — usually recoverable from the store's entry in the Stores tab.",
+    test:d=> blank(d["district"]),
+    note:(d,ctx)=>{ const sd=ctx.storeDistrict[String(d["Store #"])];
+      return sd ? ("→ "+sd+" (from store "+d["Store #"]+")") : ("store "+d["Store #"]+" not in Stores ref"); } },
+  { cat:"fix", sev:"med", label:"Ambiguous “1924” bottle (OF1924 collision)",
+    hint:"Could be Old Fitzgerald 1924 (Heaven Hill) OR Old Forester 1924 (Brown-Forman) — disambiguate.",
+    test:d=> /1924/.test(String(d["Bottles"]||"")) || /1924/.test(String(d["Notes"]||"")) },
+
+  // ── NEEDS REVIEW / UPDATING ───────────────────────────────────────
+  { cat:"review", sev:"med", label:"Flagged “Needs Review”",
+    hint:"Explicitly marked for review in the Sheet.",
+    test:d=> d["Needs Review"]===true || String(d["Needs Review"]).toUpperCase()==="TRUE" },
+  { cat:"review", sev:"low", label:"Unconfirmed result",
+    hint:'Result is “unknown” — follow up to confirm whether it was a drop or a no-drop.',
+    test:d=> String(d["Result"]||"").trim()==="unknown" },
+];
+
+const CATS = {
+  enter : {icon:"✍️", title:"Needs entering", desc:"missing data a human must type in"},
+  fix   : {icon:"🔧", title:"Needs fixing",  desc:"present but wrong or ambiguous"},
+  review: {icon:"🔄", title:"Needs review / updating", desc:"flagged or unconfirmed"},
+};
+
+let LAST = null; // cache last computed result for the Copy button
+
+async function load(){
+  document.getElementById("content").innerHTML = '<div class="msg">Fetching drops &amp; stores…</div>';
+  document.getElementById("meta").textContent = "Loading live data from the Sheet…";
+  try{
+    const [dr, sr, wr] = await Promise.all([
+      fetch(SCRIPT_URL+"?action=getDrops"),
+      fetch(SCRIPT_URL+"?action=getStores"),
+      fetch(SCRIPT_URL+"?action=getWaves").catch(()=>null),
+    ]);
+    const drops  = toObjects(await dr.json());
+    const stores = toObjects(await sr.json());
+    let waves = [];
+    if(wr){ try{ waves = toObjects(await wr.json()); }catch(e){} }
+
+    const ctx = { storeDistrict:{} };
+    stores.forEach(s=>{ if(!blank(s["id"]) && !blank(s["district"])) ctx.storeDistrict[String(s["id"])] = s["district"]; });
+
+    render(drops, stores, waves, ctx);
+  }catch(e){
+    console.error(e);
+    document.getElementById("meta").textContent = "";
+    document.getElementById("content").innerHTML =
+      '<div class="msg err">Couldn\'t reach the live Sheet.<br><small>'+esc(e.message||e)+
+      '</small><br><br>Check your connection and hit Refresh. (The endpoint must be reachable from this browser.)</div>';
+  }
+}
+
+function render(drops, stores, waves, ctx){
+  const total = drops.length;
+
+  // compute matches per check + union of "needs attention"
+  const dirty = new Set();
+  const results = CHECKS.map(c=>{
+    const rows = [];
+    drops.forEach((d,i)=>{ if(c.test(d,ctx)){ rows.push(d); dirty.add(i); } });
+    return { c, rows };
+  });
+  const needAttn = dirty.size;
+  const clean = total - needAttn;
+  const pct = total ? Math.round(needAttn/total*100) : 0;
+
+  // ── summary band ──
+  let html = '<div class="summary"><div class="stats">'+
+    stat(total,"total drops")+
+    stat(clean,"clean")+
+    stat(needAttn,"need attention")+
+    stat(pct+"%","of records")+
+    stat(stores.length,"stores")+
+    stat(waves.length||"—","waves")+
+    '</div>'+
+    '<div class="bar"><div class="clean" style="width:'+(total?clean/total*100:0)+'%"></div>'+
+      '<div class="dirty" style="width:'+(total?needAttn/total*100:100)+'%"></div></div>'+
+    '<div class="barnote">'+needAttn+' of '+total+' drop records trip at least one cleanup check.</div>'+
+    '</div>';
+
+  // ── one card per category ──
+  ["enter","fix","review"].forEach(cat=>{
+    const meta = CATS[cat];
+    const checks = results.filter(r=>r.c.cat===cat);
+    const catCount = checks.reduce((a,r)=>a+r.rows.length,0);
+    html += '<div class="cat"><div class="head"><span class="icon">'+meta.icon+'</span>'+
+      '<span class="title">'+meta.title+'</span>'+
+      '<span class="ct">'+meta.desc+' · '+catCount+' hits</span></div>';
+    checks.forEach(r=> html += checkRow(r, ctx));
+    html += '</div>';
+  });
+
+  document.getElementById("content").innerHTML = html;
+
+  const now = new Date();
+  document.getElementById("meta").innerHTML =
+    'Live from the Sheet · refreshed '+now.toLocaleString()+' · '+total+' drops scanned';
+
+  // stash a plain-text version for Copy
+  LAST = textSummary(total, clean, needAttn, pct, results, now);
+}
+
+function stat(n,l){ return '<div class="stat"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>'; }
+
+function checkRow(r, ctx){
+  const c=r.c, n=r.rows.length;
+  const badge = '<span class="badge'+(n?'':' zero')+'">'+n+'</span>';
+  const head = '<summary><span class="dot sev-'+c.sev+'"></span>'+badge+
+    '<span class="ck-text"><div class="ck-label">'+esc(c.label)+'</div>'+
+    '<div class="ck-hint">'+esc(c.hint)+'</div></span>'+
+    (n?'<span class="chev">▶</span>':'')+'</summary>';
+  if(!n) return '<div class="check"><div style="padding:0">'+
+    '<div style="display:flex;align-items:flex-start;gap:11px;padding:12px 16px">'+
+    '<span class="dot sev-'+c.sev+'"></span>'+badge+
+    '<span class="ck-text"><div class="ck-label">'+esc(c.label)+'</div>'+
+    '<div class="ck-hint">'+esc(c.hint)+'</div></span></div></div></div>';
+
+  const shown = r.rows.slice(0, MAX_ROWS);
+  let body = '<div class="tablewrap"><table><thead><tr>'+
+    '<th>Store</th><th>District</th><th>Wave</th><th>Reporter</th><th>Bottles</th><th>Date</th><th>Link</th>'+
+    (c.note?'<th>Suggested</th>':'')+'</tr></thead><tbody>';
+  shown.forEach(d=>{
+    const link = !blank(d["Link to report"]) ? '<a href="'+esc(d["Link to report"])+'" target="_blank" rel="noopener">↗</a>' : '';
+    body += '<tr>'+
+      '<td><span class="pill">'+esc(d["Store #"])+'</span></td>'+
+      '<td>'+esc(d["district"]||"—")+'</td>'+
+      '<td>'+esc(d["Wave Label"]||"—")+'</td>'+
+      '<td>'+esc(d["Reporter"]||"—")+'</td>'+
+      '<td>'+esc(d["Bottles"]||"—")+'</td>'+
+      '<td>'+esc(dateOnly(d["ReportedTS"]))+'</td>'+
+      '<td>'+link+'</td>'+
+      (c.note?'<td class="fix">'+esc(c.note(d,ctx))+'</td>':'')+
+      '</tr>';
+  });
+  body += '</tbody></table></div>';
+  if(r.rows.length>MAX_ROWS) body += '<div class="trunc">…showing first '+MAX_ROWS+' of '+r.rows.length+'.</div>';
+
+  return '<div class="check"><details>'+head+body+'</details></div>';
+}
+
+function textSummary(total, clean, needAttn, pct, results, now){
+  let t = "DROP DATA — HEALTH CHECK ("+now.toLocaleString()+")\n";
+  t += total+" drops · "+clean+" clean · "+needAttn+" need attention ("+pct+"%)\n";
+  ["enter","fix","review"].forEach(cat=>{
+    t += "\n"+CATS[cat].icon+" "+CATS[cat].title.toUpperCase()+"\n";
+    results.filter(r=>r.c.cat===cat).forEach(r=>{
+      t += "  ["+String(r.rows.length).padStart(3)+"] "+r.c.label+"\n";
+    });
+  });
+  return t;
+}
+
+document.getElementById("refresh").addEventListener("click", load);
+document.getElementById("copy").addEventListener("click", ()=>{
+  if(!LAST) return;
+  navigator.clipboard.writeText(LAST).then(
+    ()=>{ const b=document.getElementById("copy"); const o=b.textContent; b.textContent="✓ Copied"; setTimeout(()=>b.textContent=o,1400); },
+    ()=>alert(LAST)
+  );
+});
+
+load();
+</script>
+</body>
+</html>
