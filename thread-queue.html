@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thread Collection Queue</title>
+<style>
+  :root{
+    --bg:#0d1117; --surface:#161b22; --surface2:#21262d; --border:#30363d;
+    --text:#e6edf3; --muted:#7d8590; --muted2:#484f58; --accent:#f59e0b;
+    --red:#ef4444; --blue:#2563eb; --green:#10b981;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;padding:0 0 80px}
+  .wrap{max-width:720px;margin:0 auto;padding:16px 14px}
+  header{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+  h1{font-size:19px;margin:0;font-weight:700}
+  .spacer{flex:1}
+  button{font:inherit;cursor:pointer;border:1px solid var(--border);background:var(--surface2);
+    color:var(--text);border-radius:8px;padding:7px 12px}
+  button:hover{border-color:var(--accent)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.primary{background:var(--accent);color:#1a1205;border-color:var(--accent);font-weight:700}
+  button.ghost{background:transparent}
+  .sub{color:var(--muted);font-size:12.5px;margin:4px 0 14px}
+
+  /* progress */
+  .prog{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .prog .row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .prog .big{font-size:24px;font-weight:700}
+  .prog .lbl{color:var(--muted);font-size:13px}
+  .bar{height:9px;border-radius:6px;background:var(--surface2);overflow:hidden;margin-top:10px}
+  .bar>div{height:100%;background:var(--green);width:0;transition:width .25s}
+
+  /* controls */
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
+  label.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text);cursor:pointer;user-select:none}
+  label.chk input{width:16px;height:16px;accent-color:var(--accent)}
+
+  /* wave group */
+  .grp{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;
+    margin:18px 2px 8px;display:flex;align-items:center;gap:8px}
+  .grp .ct{color:var(--muted2);font-weight:600}
+
+  /* card */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
+  .card.gone{opacity:0;transform:scale(.97);transition:opacity .2s,transform .2s}
+  .meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:10px}
+  .store{font-weight:700;font-size:16px}
+  .pill{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:1px 8px;font-size:12px;color:var(--muted)}
+  .dist{font-weight:700}
+  .d14{color:var(--accent)} .d17{color:#2563eb} .d18{color:#10b981} .d07{color:#ef4444}
+  .d20{color:#06b6d4} .d16{color:#64748b} .d12{color:#475569}
+  .cardactions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  a.open{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-weight:700;
+    background:var(--blue);color:#fff;border-radius:8px;padding:8px 14px}
+  a.open:hover{filter:brightness(1.12)}
+  .nolink{font-size:13px;color:var(--red);background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+    border-radius:8px;padding:7px 11px}
+  textarea{width:100%;min-height:54px;resize:vertical;background:var(--bg);color:var(--text);
+    border:1px solid var(--border);border-radius:8px;padding:9px 11px;font:inherit;font-size:13.5px}
+  textarea:focus{outline:none;border-color:var(--accent)}
+  .savebar{display:flex;gap:8px;margin-top:9px;align-items:center}
+  .savebar .hint{font-size:12px;color:var(--muted2);margin-left:auto}
+
+  .empty{text-align:center;padding:50px 16px;color:var(--muted)}
+  .empty .em{font-size:40px}
+  .msg{padding:40px 16px;text-align:center;color:var(--muted)}
+  .err{color:var(--red)}
+
+  /* collected drawer */
+  .collected{margin-top:24px;border-top:1px solid var(--border);padding-top:14px}
+  .collected h2{font-size:14px;margin:0 0 8px}
+  .citem{display:flex;gap:10px;align-items:flex-start;font-size:13px;padding:8px 0;border-bottom:1px solid var(--border)}
+  .citem .txt{flex:1;min-width:0;color:var(--muted);white-space:pre-wrap;word-break:break-word}
+  .citem button{padding:3px 9px;font-size:12px}
+  footer{color:var(--muted2);font-size:11.5px;text-align:center;margin-top:26px;line-height:1.6}
+  code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🧵 Thread Collection Queue</h1>
+    <div class="spacer"></div>
+    <button class="ghost" id="refresh" title="Re-pull drops from the Sheet">↻</button>
+  </header>
+  <div class="sub" id="meta">Loading drops from the Sheet…</div>
+
+  <div class="prog" id="prog" style="display:none">
+    <div class="row"><span class="big" id="remain">–</span><span class="lbl" id="proglbl"></span></div>
+    <div class="bar"><div id="barfill"></div></div>
+  </div>
+
+  <div class="controls" id="controls" style="display:none">
+    <label class="chk"><input type="checkbox" id="incNeed"> Include “NEED TO ENTER” drops</label>
+    <div class="spacer"></div>
+    <button id="export">⧉ Copy all collected</button>
+    <button id="download">⬇ Download</button>
+    <button class="ghost" id="toggleCollected"></button>
+  </div>
+
+  <div id="queue"><div class="msg">Fetching drops &amp; stores…</div></div>
+  <div id="collected"></div>
+
+  <footer>
+    Reads the live Sheet (<code>getDrops</code>/<code>getStores</code>). Pasted threads are saved in
+    <b>this browser</b> (<code>localStorage</code>) and survive reloads — use <b>Copy all collected</b> /
+    <b>Download</b> to move them into the Sheet. Collecting does not yet write back to Google Sheets.
+  </footer>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFjkKeNmvRXkxe2nj0I58wrwcgRLud97job4_2c3DQaHRf3lvGHRY5hvx-W429F6pg/exec";
+const LS_KEY  = "collectedThreads"; // [{dropId, storeId, label, district, wave, reporter, link, text, collectedAt}]
+const LS_SCOPE = "threadQueue.includeNeedEnter";
+
+const blank = v => v===null||v===undefined||(typeof v==="string"&&v.trim()==="");
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const dateOnly = ts => (typeof ts==="string" && ts.length>=10) ? ts.slice(0,10) : "";
+const isLink = l => /^https?:\/\/(discord|discordapp)\.com\/channels\/\d+\/\d+/.test(String(l||"").trim());
+
+function toObjects(rows){
+  if(!rows||!rows.length) return [];
+  const hdr=rows[0];
+  return rows.slice(1).map(r=>{ const o={}; hdr.forEach((h,k)=>o[h]=r[k]); return o; });
+}
+function keyOf(d){
+  if(!blank(d["dropId"])) return String(d["dropId"]);
+  return String(d["Store #"])+"_"+String(d["ReportedTS"]||"");
+}
+function loadCollected(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||[]; }catch(e){ return []; } }
+function saveCollected(arr){ localStorage.setItem(LS_KEY, JSON.stringify(arr)); }
+
+let DROPS=[], STORE_LABEL={}, showCollected=false;
+
+function needsCollection(d){
+  const drop = String(d["Result"]||"").trim()==="drop";
+  const noBottles = blank(d["Bottles"]);
+  const needEnter = String(d["Reporter"]||"").trim().toUpperCase()==="NEED TO ENTER";
+  const includeNeed = document.getElementById("incNeed").checked;
+  return (drop && noBottles) || (includeNeed && needEnter);
+}
+
+async function load(){
+  document.getElementById("queue").innerHTML='<div class="msg">Fetching drops &amp; stores…</div>';
+  try{
+    const [dr, sr] = await Promise.all([
+      fetch(SCRIPT_URL+"?action=getDrops"),
+      fetch(SCRIPT_URL+"?action=getStores"),
+    ]);
+    DROPS = toObjects(await dr.json());
+    const stores = toObjects(await sr.json());
+    STORE_LABEL={};
+    stores.forEach(s=>{ if(!blank(s["id"])) STORE_LABEL[String(s["id"])]=s["label"]; });
+    document.getElementById("prog").style.display="";
+    document.getElementById("controls").style.display="";
+    render();
+  }catch(e){
+    console.error(e);
+    document.getElementById("meta").textContent="";
+    document.getElementById("queue").innerHTML=
+      '<div class="msg err">Couldn\'t reach the Sheet.<br><small>'+esc(e.message||e)+
+      '</small><br><br>Check your connection and tap ↻.</div>';
+  }
+}
+
+function render(){
+  const collected = loadCollected();
+  const doneIds = new Set(collected.map(c=>c.dropId));
+  const candidates = DROPS.filter(needsCollection);
+  const queue = candidates.filter(d=> !doneIds.has(keyOf(d)));
+
+  // progress
+  const total = candidates.length;
+  const doneInScope = total - queue.length;
+  document.getElementById("remain").textContent = queue.length;
+  document.getElementById("proglbl").textContent =
+    "threads left to collect · "+doneInScope+" of "+total+" done";
+  document.getElementById("barfill").style.width = (total? (doneInScope/total*100):0)+"%";
+  document.getElementById("meta").innerHTML =
+    "Live from the Sheet · "+DROPS.length+" drops scanned · "+candidates.length+" need a thread collected";
+  document.getElementById("toggleCollected").textContent =
+    (showCollected?"Hide":"Show")+" collected ("+collected.length+")";
+  document.getElementById("export").disabled = collected.length===0;
+  document.getElementById("download").disabled = collected.length===0;
+
+  // queue — grouped by wave (newest wave label first; unassigned last)
+  const q = document.getElementById("queue");
+  if(queue.length===0){
+    q.innerHTML='<div class="empty"><div class="em">🎉</div>'+
+      (total? "Queue clear — every thread in scope is collected.":"No drops need a thread right now.")+
+      '</div>';
+  } else {
+    const groups={};
+    queue.forEach(d=>{ const w = blank(d["Wave Label"])? " ":d["Wave Label"]; (groups[w]=groups[w]||[]).push(d); });
+    const order = Object.keys(groups).sort((a,b)=> b.localeCompare(a)); // desc;   (unassigned) sorts last
+    let html="";
+    order.forEach(w=>{
+      const items = groups[w].sort((a,b)=> Number(a["Store #"])-Number(b["Store #"]));
+      const title = w===" " ? "— unassigned to a wave —" : w;
+      html += '<div class="grp">'+esc(title)+'<span class="ct">'+items.length+'</span></div>';
+      items.forEach(d=> html += cardHTML(d));
+    });
+    q.innerHTML=html;
+    queue.forEach(d=> wire(d));
+  }
+
+  renderCollected(collected);
+}
+
+function cardHTML(d){
+  const id = keyOf(d);
+  const sid = String(d["Store #"]);
+  const dist = String(d["district"]||"");
+  const distCls = "d"+dist.replace(/\D/g,"");
+  const link = d["Link to report"];
+  const open = isLink(link)
+    ? '<a class="open" href="'+esc(link)+'" target="_blank" rel="noopener">↗ Open thread</a>'
+    : '<span class="nolink">⚠ No thread link — find it in Discord, then paste below</span>';
+  const date = dateOnly(d["ReportedTS"]);
+  return '<div class="card" data-id="'+esc(id)+'">'+
+    '<div class="meta">'+
+      '<span class="store">Store '+esc(sid)+'</span>'+
+      (STORE_LABEL[sid]?'<span class="pill">'+esc(STORE_LABEL[sid])+'</span>':'')+
+      (dist?'<span class="dist '+distCls+'">'+esc(dist)+'</span>':'')+
+      '<span class="pill">'+esc(d["Reporter"]||"?")+'</span>'+
+      (date?'<span class="pill">'+esc(date)+'</span>':'')+
+    '</div>'+
+    '<div class="cardactions">'+open+'</div>'+
+    '<textarea placeholder="Paste the captured thread info here…"></textarea>'+
+    '<div class="savebar">'+
+      '<button class="primary save" disabled>✓ Save &amp; remove</button>'+
+      '<span class="hint">stays in the queue until you save</span>'+
+    '</div>'+
+  '</div>';
+}
+
+function wire(d){
+  const id = keyOf(d);
+  const card = document.querySelector('.card[data-id="'+cssEsc(id)+'"]');
+  if(!card) return;
+  const ta = card.querySelector("textarea");
+  const btn = card.querySelector(".save");
+  ta.addEventListener("input", ()=>{ btn.disabled = ta.value.trim()===""; });
+  btn.addEventListener("click", ()=>{
+    const text = ta.value.trim();
+    if(!text) return;
+    const arr = loadCollected();
+    arr.push({
+      dropId:id, storeId:String(d["Store #"]), label:STORE_LABEL[String(d["Store #"])]||"",
+      district:d["district"]||"", wave:d["Wave Label"]||"", reporter:d["Reporter"]||"",
+      link:d["Link to report"]||"", text, collectedAt:new Date().toISOString()
+    });
+    saveCollected(arr);
+    card.classList.add("gone");
+    setTimeout(render, 200);
+  });
+}
+
+function renderCollected(collected){
+  const el = document.getElementById("collected");
+  if(!showCollected || collected.length===0){ el.innerHTML=""; return; }
+  let html='<div class="collected"><h2>Collected ('+collected.length+')</h2>';
+  collected.slice().reverse().forEach(c=>{
+    html += '<div class="citem"><span class="pill">'+esc(c.storeId)+'</span>'+
+      '<span class="txt">'+esc(c.text.length>180? c.text.slice(0,180)+"…":c.text)+'</span>'+
+      '<button data-undo="'+esc(c.dropId)+'">↩ undo</button></div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+  el.querySelectorAll("button[data-undo]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const arr = loadCollected().filter(c=>c.dropId!==b.getAttribute("data-undo"));
+      saveCollected(arr); render();
+    });
+  });
+}
+
+function cssEsc(s){ return String(s).replace(/["\\]/g,"\\$&"); }
+
+// ── controls ──
+document.getElementById("incNeed").checked = localStorage.getItem(LS_SCOPE)==="1";
+document.getElementById("incNeed").addEventListener("change", e=>{
+  localStorage.setItem(LS_SCOPE, e.target.checked?"1":"0"); render();
+});
+document.getElementById("toggleCollected").addEventListener("click", ()=>{ showCollected=!showCollected; render(); });
+document.getElementById("refresh").addEventListener("click", load);
+document.getElementById("export").addEventListener("click", ()=>{
+  const data = JSON.stringify(loadCollected(), null, 2);
+  navigator.clipboard.writeText(data).then(()=>{
+    const b=document.getElementById("export"); const o=b.textContent; b.textContent="✓ Copied JSON";
+    setTimeout(()=>b.textContent=o,1400);
+  }, ()=>alert("Copy failed — use Download instead."));
+});
+document.getElementById("download").addEventListener("click", ()=>{
+  const blob = new Blob([JSON.stringify(loadCollected(),null,2)], {type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="collected-threads.json"; a.click(); URL.revokeObjectURL(a.href);
+});
+
+load();
+</script>
+</body>
+</html>
