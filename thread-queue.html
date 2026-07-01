@@ -216,13 +216,9 @@ function wire(d){
   const ta=card.querySelector("textarea"), btn=card.querySelector(".save"), bar=card.querySelector(".savebar");
   const cp=card.querySelector(".copybtn");
   if(cp) cp.addEventListener("click",()=>copy(cp.getAttribute("data-copy"),"Link copied"));
-  const tl=card.querySelector(".threadlink");
-  if(tl) tl.addEventListener("click",e=>{
-    e.preventDefault();
-    // open in a reusable popup window so the queue stays put behind it
-    const w=window.open(tl.href,"dropThread","popup=yes,width=540,height=840,scrollbars=yes,resizable=yes");
-    if(!w) window.open(tl.href,"_blank"); // popup blocked -> fall back to a new tab
-  });
+  // Open thread uses a plain target="_blank" new tab (below) so the browser's
+  // bookmark bar stays available for the Thief/Thread capture bookmarklet.
+  // (A window.open popup is always stripped of the bookmark bar.)
   ta.addEventListener("input",()=>{ btn.disabled=ta.value.trim()===""; });
   ta.addEventListener("keydown",e=>{ if((e.metaKey||e.ctrlKey)&&e.key==="Enter"&&ta.value.trim()) btn.click(); });
   btn.addEventListener("click", async ()=>{
