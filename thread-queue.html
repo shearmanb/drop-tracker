@@ -24,60 +24,70 @@
   button:disabled{opacity:.4;cursor:not-allowed}
   button.primary{background:var(--accent);color:#1a1205;border-color:var(--accent);font-weight:700}
   button.ghost{background:transparent}
-  .sub{color:var(--muted);font-size:12.5px;margin:4px 0 14px}
+  .sub{color:var(--muted);font-size:12.5px;margin:4px 0 12px}
+
+  /* backend banner */
+  .banner{border-radius:10px;padding:11px 14px;margin:8px 0 14px;font-size:13px;line-height:1.5}
+  .banner.live{background:rgba(16,185,129,.10);border:1px solid rgba(16,185,129,.35)}
+  .banner.local{background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.4)}
+  .banner b{color:var(--text)}
+  .banner code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:12px}
+  .banner a{color:var(--accent)}
+  .banner .syncbtn{margin-top:8px}
 
   /* progress */
-  .prog{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .prog{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 16px;margin-bottom:12px}
   .prog .row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-  .prog .big{font-size:24px;font-weight:700}
-  .prog .lbl{color:var(--muted);font-size:13px}
-  .bar{height:9px;border-radius:6px;background:var(--surface2);overflow:hidden;margin-top:10px}
-  .bar>div{height:100%;background:var(--green);width:0;transition:width .25s}
+  .prog .big{font-size:22px;font-weight:700}
+  .prog .lbl{color:var(--muted);font-size:12.5px}
+  .bar{height:9px;border-radius:6px;background:var(--surface2);overflow:hidden;margin-top:9px;display:flex}
+  .bar .s01{background:var(--red)} .bar .s02{background:var(--amber)} .bar .s03{background:var(--green)}
 
-  /* controls */
-  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
-  label.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text);cursor:pointer;user-select:none}
-  label.chk input{width:16px;height:16px;accent-color:var(--accent)}
+  /* stage filter pills */
+  .pills{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+  .pill-f{border:1px solid var(--border);background:var(--surface);border-radius:20px;padding:6px 13px;font-size:13px;cursor:pointer}
+  .pill-f.active{border-color:var(--accent);background:var(--surface2);font-weight:700}
+  .pill-f .n{color:var(--muted);font-weight:600}
 
-  /* wave group */
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+
   .grp{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;
-    margin:18px 2px 8px;display:flex;align-items:center;gap:8px}
+    margin:16px 2px 8px;display:flex;align-items:center;gap:8px}
   .grp .ct{color:var(--muted2);font-weight:600}
 
-  /* card */
   .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
   .card.gone{opacity:0;transform:scale(.97);transition:opacity .2s,transform .2s}
-  .meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:10px}
+  .meta{display:flex;flex-wrap:wrap;align-items:center;gap:7px 11px;margin-bottom:10px}
   .store{font-weight:700;font-size:16px}
   .pill{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:1px 8px;font-size:12px;color:var(--muted)}
   .dist{font-weight:700}
   .d14{color:var(--accent)} .d17{color:#2563eb} .d18{color:#10b981} .d07{color:#ef4444}
   .d20{color:#06b6d4} .d16{color:#64748b} .d12{color:#475569}
+  .stg{font-weight:700;border-radius:6px;padding:1px 8px;font-size:11.5px;border:1px solid}
+  .stg01{color:var(--red);border-color:rgba(239,68,68,.5)}
+  .stg02{color:var(--amber);border-color:rgba(245,158,11,.5)}
+  .stg03{color:var(--green);border-color:rgba(16,185,129,.5)}
   .cardactions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
   a.open{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-weight:700;
     background:var(--blue);color:#fff;border-radius:8px;padding:8px 14px}
   a.open:hover{filter:brightness(1.12)}
   .nolink{font-size:13px;color:var(--red);background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
     border-radius:8px;padding:7px 11px}
+  .curbottles{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .curbottles b{color:var(--text)}
   textarea{width:100%;min-height:54px;resize:vertical;background:var(--bg);color:var(--text);
     border:1px solid var(--border);border-radius:8px;padding:9px 11px;font:inherit;font-size:13.5px}
   textarea:focus{outline:none;border-color:var(--accent)}
-  .savebar{display:flex;gap:8px;margin-top:9px;align-items:center}
+  .savebar{display:flex;gap:8px;margin-top:9px;align-items:center;flex-wrap:wrap}
   .savebar .hint{font-size:12px;color:var(--muted2);margin-left:auto}
+  .savebar .err{color:var(--red)}
 
   .empty{text-align:center;padding:50px 16px;color:var(--muted)}
   .empty .em{font-size:40px}
   .msg{padding:40px 16px;text-align:center;color:var(--muted)}
-  .err{color:var(--red)}
-
-  /* collected drawer */
-  .collected{margin-top:24px;border-top:1px solid var(--border);padding-top:14px}
-  .collected h2{font-size:14px;margin:0 0 8px}
-  .citem{display:flex;gap:10px;align-items:flex-start;font-size:13px;padding:8px 0;border-bottom:1px solid var(--border)}
-  .citem .txt{flex:1;min-width:0;color:var(--muted);white-space:pre-wrap;word-break:break-word}
-  .citem button{padding:3px 9px;font-size:12px}
+  .msg.err{color:var(--red)}
   footer{color:var(--muted2);font-size:11.5px;text-align:center;margin-top:26px;line-height:1.6}
-  code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:12px}
+  footer code{background:var(--surface2);padding:1px 5px;border-radius:4px}
 </style>
 </head>
 <body>
@@ -85,220 +95,276 @@
   <header>
     <h1>🧵 Thread Collection Queue</h1>
     <div class="spacer"></div>
-    <button class="ghost" id="refresh" title="Re-pull drops from the Sheet">↻</button>
+    <button class="ghost" id="refresh" title="Re-pull from the Sheet">↻</button>
   </header>
-  <div class="sub" id="meta">Loading drops from the Sheet…</div>
+  <div class="sub" id="meta">Loading…</div>
+
+  <div id="banner"></div>
 
   <div class="prog" id="prog" style="display:none">
-    <div class="row"><span class="big" id="remain">–</span><span class="lbl" id="proglbl"></span></div>
-    <div class="bar"><div id="barfill"></div></div>
+    <div class="row"><span class="big" id="doneN">–</span><span class="lbl" id="progLbl"></span></div>
+    <div class="bar" id="bar"></div>
   </div>
 
+  <div class="pills" id="pills" style="display:none"></div>
+
   <div class="controls" id="controls" style="display:none">
-    <label class="chk"><input type="checkbox" id="incNeed"> Include “NEED TO ENTER” drops</label>
-    <div class="spacer"></div>
-    <button id="export">⧉ Copy all collected</button>
+    <button id="export">⧉ Copy captures</button>
     <button id="download">⬇ Download</button>
-    <button class="ghost" id="toggleCollected"></button>
   </div>
 
   <div id="queue"><div class="msg">Fetching drops &amp; stores…</div></div>
-  <div id="collected"></div>
 
   <footer>
-    Reads the live Sheet (<code>getDrops</code>/<code>getStores</code>). Pasted threads are saved in
-    <b>this browser</b> (<code>localStorage</code>) and survive reloads — use <b>Copy all collected</b> /
-    <b>Download</b> to move them into the Sheet. Collecting does not yet write back to Google Sheets.
+    Stages: <b>01 Thief</b> (auto from thread name) · <b>02 Channel</b> (parsed) · <b>03 Manual</b> (thread verified).
+    The queue holds everything below Stage 03. Reads live from your Sheet; writes via
+    <code>dropSet</code> when the backend add-on is deployed, otherwise captures stay on this device.
   </footer>
 </div>
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFjkKeNmvRXkxe2nj0I58wrwcgRLud97job4_2c3DQaHRf3lvGHRY5hvx-W429F6pg/exec";
-const LS_KEY  = "collectedThreads"; // [{dropId, storeId, label, district, wave, reporter, link, text, collectedAt}]
-const LS_SCOPE = "threadQueue.includeNeedEnter";
+const TOKEN = "PkuEzRzlltYwajakc2a0PThQIo2Nw8Ky";
+const LS_CAP = "tq.captures";       // { dropId: {text, at, storeId, wave, reporter, link, synced} }
+const LS_FILTER = "tq.filter";      // "01" | "02" | "03" | "todo"
+const MAX_CARDS = 300;
 
 const blank = v => v===null||v===undefined||(typeof v==="string"&&v.trim()==="");
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const dateOnly = ts => (typeof ts==="string" && ts.length>=10) ? ts.slice(0,10) : "";
 const isLink = l => /^https?:\/\/(discord|discordapp)\.com\/channels\/\d+\/\d+/.test(String(l||"").trim());
 
-function toObjects(rows){
+function rowsToObjects(rows){
   if(!rows||!rows.length) return [];
   const hdr=rows[0];
-  return rows.slice(1).map(r=>{ const o={}; hdr.forEach((h,k)=>o[h]=r[k]); return o; });
+  return rows.slice(1).map(r=>{ const o={}; hdr.forEach((h,k)=>o[String(h).trim()]=r[k]); return o; });
 }
-function keyOf(d){
-  if(!blank(d["dropId"])) return String(d["dropId"]);
-  return String(d["Store #"])+"_"+String(d["ReportedTS"]||"");
-}
-function loadCollected(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||[]; }catch(e){ return []; } }
-function saveCollected(arr){ localStorage.setItem(LS_KEY, JSON.stringify(arr)); }
+function keyOf(d){ return blank(d["dropId"]) ? String(d["Store #"])+"_"+String(d["ReportedTS"]||"") : String(d["dropId"]); }
+function getCaptures(){ try{ return JSON.parse(localStorage.getItem(LS_CAP))||{}; }catch(e){ return {}; } }
+function setCaptures(o){ localStorage.setItem(LS_CAP, JSON.stringify(o)); }
 
-let DROPS=[], STORE_LABEL={}, showCollected=false;
+// Heuristic stage when the Sheet has no explicit Stage value:
+//   blank Bottles -> 01 (thief, nothing parsed yet); has Bottles -> 02 (channel-parsed).
+function heuristicStage(d){ return blank(d["Bottles"]) ? "01" : "02"; }
 
-function needsCollection(d){
-  const drop = String(d["Result"]||"").trim()==="drop";
-  const noBottles = blank(d["Bottles"]);
-  const needEnter = String(d["Reporter"]||"").trim().toUpperCase()==="NEED TO ENTER";
-  const includeNeed = document.getElementById("incNeed").checked;
-  return (drop && noBottles) || (includeNeed && needEnter);
+// Effective stage: explicit Sheet Stage (sheet mode) > local capture (=>03) > heuristic.
+function stageOf(d, mode){
+  const caps=getCaptures();
+  if(caps[keyOf(d)]) return "03";
+  if(mode==="sheet" && !blank(d["Stage"])){
+    const s=String(d["Stage"]).trim();
+    if(s==="1"||s==="01") return "01";
+    if(s==="2"||s==="02") return "02";
+    if(s==="3"||s==="03") return "03";
+    return s;
+  }
+  return heuristicStage(d);
 }
+
+let MODE="local", DROPS=[], STORE_LABEL={}, CUR_FILTER="todo";
+
+async function fetchJSON(qs){ const r=await fetch(SCRIPT_URL+qs); return r.json(); }
 
 async function load(){
   document.getElementById("queue").innerHTML='<div class="msg">Fetching drops &amp; stores…</div>';
   try{
-    const [dr, sr] = await Promise.all([
-      fetch(SCRIPT_URL+"?action=getDrops"),
-      fetch(SCRIPT_URL+"?action=getStores"),
+    // Detect backend: dropsAll returns {success, rows:[...]} if the add-on is deployed.
+    const [allRes, storesRows] = await Promise.all([
+      fetchJSON("?action=dropsAll").catch(()=>null),
+      fetchJSON("?action=getStores").catch(()=>null),
     ]);
-    DROPS = toObjects(await dr.json());
-    const stores = toObjects(await sr.json());
+    if(allRes && allRes.success && Array.isArray(allRes.rows)){
+      MODE="sheet"; DROPS=rowsToObjects(allRes.rows);
+    }else{
+      MODE="local";
+      const dr=await fetchJSON("?action=getDrops");
+      DROPS=rowsToObjects(dr);
+    }
     STORE_LABEL={};
-    stores.forEach(s=>{ if(!blank(s["id"])) STORE_LABEL[String(s["id"])]=s["label"]; });
+    (storesRows||[]).slice(1).forEach(s=>{ if(!blank(s[0])) STORE_LABEL[String(s[0])]=s[1]; });
+
+    CUR_FILTER = localStorage.getItem(LS_FILTER) || "todo";
     document.getElementById("prog").style.display="";
+    document.getElementById("pills").style.display="";
     document.getElementById("controls").style.display="";
     render();
   }catch(e){
     console.error(e);
     document.getElementById("meta").textContent="";
-    document.getElementById("queue").innerHTML=
-      '<div class="msg err">Couldn\'t reach the Sheet.<br><small>'+esc(e.message||e)+
-      '</small><br><br>Check your connection and tap ↻.</div>';
+    document.getElementById("queue").innerHTML='<div class="msg err">Couldn\'t reach the Sheet.<br><small>'+esc(e.message||e)+'</small><br><br>Tap ↻ to retry.</div>';
   }
 }
 
+function collectableDrops(){ return DROPS.filter(d=>String(d["Result"]||"").trim()==="drop"); }
+
 function render(){
-  const collected = loadCollected();
-  const doneIds = new Set(collected.map(c=>c.dropId));
-  const candidates = DROPS.filter(needsCollection);
-  const queue = candidates.filter(d=> !doneIds.has(keyOf(d)));
+  const drops=collectableDrops();
+  const counts={"01":0,"02":0,"03":0};
+  drops.forEach(d=>{ const s=stageOf(d,MODE); counts[s]=(counts[s]||0)+1; });
+  const total=drops.length, done=counts["03"]||0, todo=(counts["01"]||0)+(counts["02"]||0);
 
-  // progress
-  const total = candidates.length;
-  const doneInScope = total - queue.length;
-  document.getElementById("remain").textContent = queue.length;
-  document.getElementById("proglbl").textContent =
-    "threads left to collect · "+doneInScope+" of "+total+" done";
-  document.getElementById("barfill").style.width = (total? (doneInScope/total*100):0)+"%";
-  document.getElementById("meta").innerHTML =
-    "Live from the Sheet · "+DROPS.length+" drops scanned · "+candidates.length+" need a thread collected";
-  document.getElementById("toggleCollected").textContent =
-    (showCollected?"Hide":"Show")+" collected ("+collected.length+")";
-  document.getElementById("export").disabled = collected.length===0;
-  document.getElementById("download").disabled = collected.length===0;
-
-  // queue — grouped by wave (newest wave label first; unassigned last)
-  const q = document.getElementById("queue");
-  if(queue.length===0){
-    q.innerHTML='<div class="empty"><div class="em">🎉</div>'+
-      (total? "Queue clear — every thread in scope is collected.":"No drops need a thread right now.")+
-      '</div>';
-  } else {
-    const groups={};
-    queue.forEach(d=>{ const w = blank(d["Wave Label"])? " ":d["Wave Label"]; (groups[w]=groups[w]||[]).push(d); });
-    const order = Object.keys(groups).sort((a,b)=> b.localeCompare(a)); // desc;   (unassigned) sorts last
-    let html="";
-    order.forEach(w=>{
-      const items = groups[w].sort((a,b)=> Number(a["Store #"])-Number(b["Store #"]));
-      const title = w===" " ? "— unassigned to a wave —" : w;
-      html += '<div class="grp">'+esc(title)+'<span class="ct">'+items.length+'</span></div>';
-      items.forEach(d=> html += cardHTML(d));
-    });
-    q.innerHTML=html;
-    queue.forEach(d=> wire(d));
+  // banner
+  const caps=getCaptures();
+  const unsynced=Object.values(caps).filter(c=>!c.synced).length;
+  const b=document.getElementById("banner");
+  if(MODE==="sheet"){
+    b.className="banner live";
+    b.innerHTML="<b>✓ Sheet backend live.</b> Stages save to the <code>Stage</code> column and sync across devices."+
+      (unsynced?(" <button class='ghost syncbtn' id='sync'>⤴ Sync "+unsynced+" device capture(s) to the Sheet</button>"):"");
+  }else{
+    b.className="banner local";
+    b.innerHTML="<b>⚠ Local mode.</b> The backend add-on isn't deployed yet, so stages are tracked on <b>this device only</b> "+
+      "and captures aren't written to the Sheet. To turn on cross-device saving: paste <code>tracker-stage-snippet.gs</code> "+
+      "into your tracker Apps Script and <b>Deploy → New version</b>. This page upgrades itself automatically.";
   }
 
-  renderCollected(collected);
+  // progress
+  document.getElementById("doneN").textContent=done;
+  document.getElementById("progLbl").textContent="drops verified (Stage 03) of "+total+" · "+todo+" still to collect";
+  const bar=document.getElementById("bar");
+  bar.innerHTML=["01","02","03"].map(s=>{
+    const w=total?(counts[s]/total*100):0; return '<div class="s'+s+'" style="width:'+w+'%"></div>';
+  }).join("");
+
+  // filter pills
+  const defs=[["todo","To collect (01+02)",todo],["01","Stage 01",counts["01"]||0],["02","Stage 02",counts["02"]||0],["03","Done",done]];
+  document.getElementById("pills").innerHTML=defs.map(([k,lbl,n])=>
+    '<div class="pill-f'+(CUR_FILTER===k?" active":"")+'" data-f="'+k+'">'+lbl+' <span class="n">'+n+'</span></div>'
+  ).join("");
+  document.querySelectorAll(".pill-f").forEach(p=>p.addEventListener("click",()=>{
+    CUR_FILTER=p.getAttribute("data-f"); localStorage.setItem(LS_FILTER,CUR_FILTER); render();
+  }));
+
+  document.getElementById("export").disabled = Object.keys(caps).length===0;
+  document.getElementById("download").disabled = Object.keys(caps).length===0;
+  document.getElementById("meta").innerHTML="Live from the Sheet · "+DROPS.length+" drops · mode: <b>"+(MODE==="sheet"?"Sheet":"local")+"</b>";
+
+  const sync=document.getElementById("sync");
+  if(sync) sync.addEventListener("click", syncLocalToSheet);
+
+  // filtered list
+  const inFilter=drops.filter(d=>{
+    const s=stageOf(d,MODE);
+    return CUR_FILTER==="todo" ? (s==="01"||s==="02") : s===CUR_FILTER;
+  });
+  const q=document.getElementById("queue");
+  if(inFilter.length===0){
+    q.innerHTML='<div class="empty"><div class="em">'+(CUR_FILTER==="03"?"📋":"🎉")+'</div>'+
+      (CUR_FILTER==="03"?"No drops verified yet.":"Nothing here — all clear for this filter.")+'</div>';
+    return;
+  }
+  // group by wave, newest first, unassigned last
+  const groups={};
+  inFilter.forEach(d=>{ const w=blank(d["Wave Label"])?" ":d["Wave Label"]; (groups[w]=groups[w]||[]).push(d); });
+  const order=Object.keys(groups).sort((a,b)=>b.localeCompare(a));
+  let html="", shown=0, truncated=false;
+  for(const w of order){
+    if(shown>=MAX_CARDS){ truncated=true; break; }
+    const items=groups[w].sort((a,b)=>Number(a["Store #"])-Number(b["Store #"]));
+    html+='<div class="grp">'+esc(w===" "?"— unassigned to a wave —":w)+'<span class="ct">'+items.length+'</span></div>';
+    for(const d of items){ if(shown>=MAX_CARDS){truncated=true;break;} html+=cardHTML(d); shown++; }
+  }
+  if(truncated) html+='<div class="msg">…showing first '+MAX_CARDS+'. Collect these or narrow the filter to see more.</div>';
+  q.innerHTML=html;
+  inFilter.slice(0,shown).forEach(d=>wire(d));
 }
 
 function cardHTML(d){
-  const id = keyOf(d);
-  const sid = String(d["Store #"]);
-  const dist = String(d["district"]||"");
-  const distCls = "d"+dist.replace(/\D/g,"");
-  const link = d["Link to report"];
-  const open = isLink(link)
+  const id=keyOf(d), sid=String(d["Store #"]), dist=String(d["district"]||"");
+  const s=stageOf(d,MODE);
+  const link=d["Link to report"];
+  const open=isLink(link)
     ? '<a class="open" href="'+esc(link)+'" target="_blank" rel="noopener">↗ Open thread</a>'
     : '<span class="nolink">⚠ No thread link — find it in Discord, then paste below</span>';
-  const date = dateOnly(d["ReportedTS"]);
+  const date=dateOnly(d["ReportedTS"]);
+  const curB=blank(d["Bottles"])?"":'<div class="curbottles">current bottles: <b>'+esc(d["Bottles"])+'</b></div>';
   return '<div class="card" data-id="'+esc(id)+'">'+
     '<div class="meta">'+
       '<span class="store">Store '+esc(sid)+'</span>'+
       (STORE_LABEL[sid]?'<span class="pill">'+esc(STORE_LABEL[sid])+'</span>':'')+
-      (dist?'<span class="dist '+distCls+'">'+esc(dist)+'</span>':'')+
+      (dist?'<span class="dist '+("d"+dist.replace(/\D/g,""))+'">'+esc(dist)+'</span>':'')+
+      '<span class="stg stg'+s+'">Stage '+s+'</span>'+
       '<span class="pill">'+esc(d["Reporter"]||"?")+'</span>'+
       (date?'<span class="pill">'+esc(date)+'</span>':'')+
     '</div>'+
     '<div class="cardactions">'+open+'</div>'+
+    curB+
     '<textarea placeholder="Paste the captured thread info here…"></textarea>'+
     '<div class="savebar">'+
-      '<button class="primary save" disabled>✓ Save &amp; remove</button>'+
-      '<span class="hint">stays in the queue until you save</span>'+
+      '<button class="primary save" disabled>✓ Collected → Stage 03</button>'+
+      '<span class="hint">'+(MODE==="sheet"?"saves to the Sheet":"saved on this device")+'</span>'+
     '</div>'+
   '</div>';
 }
 
-function wire(d){
-  const id = keyOf(d);
-  const card = document.querySelector('.card[data-id="'+cssEsc(id)+'"]');
-  if(!card) return;
-  const ta = card.querySelector("textarea");
-  const btn = card.querySelector(".save");
-  ta.addEventListener("input", ()=>{ btn.disabled = ta.value.trim()===""; });
-  btn.addEventListener("click", ()=>{
-    const text = ta.value.trim();
-    if(!text) return;
-    const arr = loadCollected();
-    arr.push({
-      dropId:id, storeId:String(d["Store #"]), label:STORE_LABEL[String(d["Store #"])]||"",
-      district:d["district"]||"", wave:d["Wave Label"]||"", reporter:d["Reporter"]||"",
-      link:d["Link to report"]||"", text, collectedAt:new Date().toISOString()
-    });
-    saveCollected(arr);
-    card.classList.add("gone");
-    setTimeout(render, 200);
-  });
-}
-
-function renderCollected(collected){
-  const el = document.getElementById("collected");
-  if(!showCollected || collected.length===0){ el.innerHTML=""; return; }
-  let html='<div class="collected"><h2>Collected ('+collected.length+')</h2>';
-  collected.slice().reverse().forEach(c=>{
-    html += '<div class="citem"><span class="pill">'+esc(c.storeId)+'</span>'+
-      '<span class="txt">'+esc(c.text.length>180? c.text.slice(0,180)+"…":c.text)+'</span>'+
-      '<button data-undo="'+esc(c.dropId)+'">↩ undo</button></div>';
-  });
-  html+='</div>';
-  el.innerHTML=html;
-  el.querySelectorAll("button[data-undo]").forEach(b=>{
-    b.addEventListener("click", ()=>{
-      const arr = loadCollected().filter(c=>c.dropId!==b.getAttribute("data-undo"));
-      saveCollected(arr); render();
-    });
-  });
-}
-
 function cssEsc(s){ return String(s).replace(/["\\]/g,"\\$&"); }
 
-// ── controls ──
-document.getElementById("incNeed").checked = localStorage.getItem(LS_SCOPE)==="1";
-document.getElementById("incNeed").addEventListener("change", e=>{
-  localStorage.setItem(LS_SCOPE, e.target.checked?"1":"0"); render();
-});
-document.getElementById("toggleCollected").addEventListener("click", ()=>{ showCollected=!showCollected; render(); });
+function wire(d){
+  const id=keyOf(d);
+  const card=document.querySelector('.card[data-id="'+cssEsc(id)+'"]');
+  if(!card) return;
+  const ta=card.querySelector("textarea"), btn=card.querySelector(".save"), bar=card.querySelector(".savebar");
+  ta.addEventListener("input",()=>{ btn.disabled=ta.value.trim()===""; });
+  btn.addEventListener("click", async ()=>{
+    const text=ta.value.trim(); if(!text) return;
+    btn.disabled=true; btn.textContent="Saving…";
+    const ok = await saveCollected(d, text);
+    if(ok){
+      // record capture locally (for export + sync); mark synced if we wrote to the Sheet
+      const caps=getCaptures();
+      caps[id]={text, at:new Date().toISOString(), storeId:String(d["Store #"]),
+        wave:d["Wave Label"]||"", reporter:d["Reporter"]||"", link:d["Link to report"]||"", synced:(MODE==="sheet")};
+      setCaptures(caps);
+      if(MODE==="sheet") d["Stage"]="03";
+      card.classList.add("gone");
+      setTimeout(render,200);
+    }else{
+      btn.disabled=false; btn.textContent="✓ Collected → Stage 03";
+      const e=document.createElement("span"); e.className="err"; e.textContent="save failed — try again";
+      bar.appendChild(e);
+    }
+  });
+}
+
+// Write-back. Sheet mode: dropSet (ThreadRaw + Stage 03 + clear review). Local mode: keep on device.
+async function saveCollected(d, text){
+  if(MODE!=="sheet") return true; // local: capture stored by caller
+  try{
+    const payload=[{ dropId:keyOf(d), fields:{ ThreadRaw:text, Stage:"03", "Needs Review":false } }];
+    const r=await fetchJSON("?action=dropSet&token="+TOKEN+"&data="+encodeURIComponent(JSON.stringify(payload)));
+    return r && r.success===true && (r.updated>0 || (r.missing&&r.missing.length===0));
+  }catch(e){ console.error(e); return false; }
+}
+
+async function syncLocalToSheet(){
+  const caps=getCaptures();
+  const pending=Object.entries(caps).filter(([id,c])=>!c.synced);
+  if(!pending.length) return;
+  const btn=document.getElementById("sync"); if(btn){btn.disabled=true;btn.textContent="Syncing…";}
+  const payload=pending.map(([id,c])=>({ dropId:id, fields:{ ThreadRaw:c.text, Stage:"03", "Needs Review":false } }));
+  try{
+    const r=await fetchJSON("?action=dropSet&token="+TOKEN+"&data="+encodeURIComponent(JSON.stringify(payload)));
+    if(r && r.success){
+      const missing=new Set((r.missing||[]).map(String));
+      pending.forEach(([id,c])=>{ if(!missing.has(String(id))) caps[id].synced=true; });
+      setCaptures(caps);
+    }
+  }catch(e){ console.error(e); }
+  await load();
+}
+
 document.getElementById("refresh").addEventListener("click", load);
 document.getElementById("export").addEventListener("click", ()=>{
-  const data = JSON.stringify(loadCollected(), null, 2);
+  const data=JSON.stringify(getCaptures(),null,2);
   navigator.clipboard.writeText(data).then(()=>{
-    const b=document.getElementById("export"); const o=b.textContent; b.textContent="✓ Copied JSON";
+    const b=document.getElementById("export"); const o=b.textContent; b.textContent="✓ Copied";
     setTimeout(()=>b.textContent=o,1400);
-  }, ()=>alert("Copy failed — use Download instead."));
+  },()=>alert("Copy failed — use Download."));
 });
 document.getElementById("download").addEventListener("click", ()=>{
-  const blob = new Blob([JSON.stringify(loadCollected(),null,2)], {type:"application/json"});
+  const blob=new Blob([JSON.stringify(getCaptures(),null,2)],{type:"application/json"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-  a.download="collected-threads.json"; a.click(); URL.revokeObjectURL(a.href);
+  a.download="thread-captures.json"; a.click(); URL.revokeObjectURL(a.href);
 });
 
 load();
