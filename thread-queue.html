@@ -86,7 +86,7 @@
   <div class="actionbar" id="actionbar" style="display:none">
     <span class="count"><span id="remain">–</span> <span class="muted">to collect</span></span>
     <div class="spacer"></div>
-    <button class="primary" id="copyAll">⧉ Copy all for Claude</button>
+    <button class="primary" id="copyAll" title="Copies every thread you've saved as one block — paste it to Claude to parse into bottles &amp; details">⧉ Copy all for Claude</button>
     <button id="download" title="Download captures">⬇</button>
     <button class="ghost" id="showDone" title="Show/hide collected"></button>
   </div>
@@ -216,6 +216,13 @@ function wire(d){
   const ta=card.querySelector("textarea"), btn=card.querySelector(".save"), bar=card.querySelector(".savebar");
   const cp=card.querySelector(".copybtn");
   if(cp) cp.addEventListener("click",()=>copy(cp.getAttribute("data-copy"),"Link copied"));
+  const tl=card.querySelector(".threadlink");
+  if(tl) tl.addEventListener("click",e=>{
+    e.preventDefault();
+    // open in a reusable popup window so the queue stays put behind it
+    const w=window.open(tl.href,"dropThread","popup=yes,width=540,height=840,scrollbars=yes,resizable=yes");
+    if(!w) window.open(tl.href,"_blank"); // popup blocked -> fall back to a new tab
+  });
   ta.addEventListener("input",()=>{ btn.disabled=ta.value.trim()===""; });
   ta.addEventListener("keydown",e=>{ if((e.metaKey||e.ctrlKey)&&e.key==="Enter"&&ta.value.trim()) btn.click(); });
   btn.addEventListener("click", async ()=>{
